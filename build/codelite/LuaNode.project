@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Project Name="LuaNode" InternalType="Console">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
+  </Plugins>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="../../src/blogger.cpp"/>
+    <File Name="../../src/blogger.h"/>
+    <File Name="../../src/EvaluadorLUA.cpp"/>
+    <File Name="../../src/EvaluadorLUA.h"/>
+    <File Name="../../src/LuaNode.cpp"/>
+    <File Name="../../src/LuaRuntime.cpp"/>
+    <File Name="../../src/LuaRuntime.h"/>
+    <File Name="../../src/LuaStackChecker.h"/>
+    <File Name="../../src/stdafx.cpp"/>
+    <File Name="../../src/stdafx.h"/>
+    <File Name="../../src/targetver.h"/>
+    <File Name="../../src/Todo.h"/>
+    <File Name="../../src/LuaNode.h"/>
+    <VirtualDirectory Name="Network">
+      <File Name="../../src/Network/IIndexedOpaqueUserData.h"/>
+      <File Name="../../src/Network/IMonitorSocketAllocation.h"/>
+      <File Name="../../src/Network/IndexedOpaqueUserData.h"/>
+      <File Name="../../src/Network/IProvideUserData.h"/>
+      <File Name="../../src/Network/ISocket.h"/>
+      <File Name="../../src/Network/IStreamSocketServerCallback.h"/>
+      <File Name="../../src/Network/NamedIndex.cpp"/>
+      <File Name="../../src/Network/NamedIndex.h"/>
+      <File Name="../../src/Network/NullSocketAllocationMonitor.h"/>
+      <File Name="../../src/Network/shared_const_buffer.h"/>
+      <File Name="../../src/Network/Socket.cpp"/>
+      <File Name="../../src/Network/Socket.h"/>
+      <File Name="../../src/Network/SocketAllocator.cpp"/>
+      <File Name="../../src/Network/SocketAllocator.h"/>
+      <File Name="../../src/Network/StreamSocketServer.cpp"/>
+      <File Name="../../src/Network/StreamSocketServer.h"/>
+    </VirtualDirectory>
+    <File Name="../../src/ClientConnection.cpp"/>
+    <File Name="../../src/ClientConnection.h"/>
+    <File Name="../../src/SocketServer.cpp"/>
+    <File Name="../../src/SocketServer.h"/>
+  </VirtualDirectory>
+  <Settings Type="Executable">
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+        <IncludePath Value="$(INCONCERT_DEVEL)/sources"/>
+        <IncludePath Value="$(INCONCERT_DEVEL)/packages/boost_1_44_0"/>
+        <Preprocessor Value="_WIN32_WINNT=0x0501"/>
+      </Compiler>
+      <Linker Options="" Required="yes">
+        <LibraryPath Value="d:/trunk_git/lib"/>
+        <LibraryPath Value="$(INCONCERT_DEVEL)/lib"/>
+        <LibraryPath Value="$(INCONCERT_DEVEL)/packages/Lua5.1/lib"/>
+        <LibraryPath Value="$(INCONCERT_DEVEL)/packages/boost_1_44_0/lib"/>
+        <Library Value="Lua5.1"/>
+        <Library Value="libsupportlib"/>
+        <Library Value="libblogger2"/>
+        <Library Value="WS2_32"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <GlobalSettings>
+      <Compiler Options="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+  </Settings>
+</CodeLite_Project>

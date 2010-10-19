@@ -1,0 +1,94 @@
+# depslib dependency file v1.0
+1283381650 source:d:\trunk_git\sources\luanode\src\luanode.cpp
+	"stdafx.h"
+	"EvaluadorLua.h"
+	"../../../packages/lua5.1/include/lua.hpp"
+	"blogger.h"
+
+1283366753 d:\trunk_git\sources\luanode\src\stdafx.h
+	"targetver.h"
+	<stdio.h>
+	<tchar.h>
+	<supportlib/bstring/bstrwrap.h>
+
+1283365528 d:\trunk_git\sources\luanode\src\targetver.h
+
+1263820868 d:\trunk_git\sources\supportlib\bstring\bstrwrap.h
+	<stdlib.h>
+	"bstrlib.h"
+	<vector>
+	<string>
+	"__mis_toques_bstring.h"
+
+1263820868 d:\trunk_git\sources\supportlib\bstring\bstrlib.h
+	<stdarg.h>
+	<string.h>
+	<limits.h>
+	<ctype.h>
+
+1263820868 d:\trunk_git\sources\supportlib\bstring\__mis_toques_bstring.h
+
+1283370491 d:\trunk_git\sources\luanode\src\evaluadorlua.h
+	"LuaRuntime.h"
+
+1283366702 d:\trunk_git\sources\luanode\src\luaruntime.h
+	"../../../packages/lua5.1/include/lua.hpp"
+
+1263479273 d:\trunk_git\packages\lua5.1\include\lua.hpp
+	"lua.h"
+	"lualib.h"
+	"lauxlib.h"
+
+1263479273 d:\trunk_git\packages\lua5.1\include\lua.h
+	<stdarg.h>
+	<stddef.h>
+	"luaconf.h"
+
+1263479273 d:\trunk_git\packages\lua5.1\include\luaconf.h
+	<limits.h>
+	<stddef.h>
+	<unistd.h>
+	<io.h>
+	<stdio.h>
+	<stdio.h>
+	<readline/readline.h>
+	<readline/history.h>
+	<math.h>
+	<unistd.h>
+
+1263479273 d:\trunk_git\packages\lua5.1\include\lualib.h
+	"lua.h"
+
+1263479273 d:\trunk_git\packages\lua5.1\include\lauxlib.h
+	<stddef.h>
+	<stdio.h>
+	"lua.h"
+
+1283370101 source:d:\trunk_git\sources\luanode\src\luaruntime.cpp
+	"StdAfx.h"
+	"LuaRuntime.h"
+	"blogger.h"
+	"ToDo.h"
+	<assert.h>
+
+1283367823 d:\trunk_git\sources\luanode\src\blogger.h
+
+1263839096 d:\trunk_git\sources\luanode\src\todo.h
+
+1283363950 source:d:\trunk_git\sources\luanode\src\stdafx.cpp
+	"stdafx.h"
+
+1283370737 source:d:\trunk_git\sources\luanode\src\evaluadorlua.cpp
+	"stdafx.h"
+	<supportLib/bstring/bstrwrap.h>
+	"EvaluadorLUA.h"
+	"blogger.h"
+	<assert.h>
+
+1283381110 source:d:\trunk_git\sources\luanode\src\blogger.cpp
+	"stdafx.h"
+	"blogger.h"
+	<libBlogger2/libblogger2.h>
+
+1283381219 d:\trunk_git\sources\libblogger2\libblogger2.h
+

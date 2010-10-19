@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="..\..\src\EvaluadorLUA.cpp" open="1" top="0" tabpos="5">
+		<Cursor position="3482" topLine="92" />
+	</File>
+	<File name="..\..\src\LuaNode.cpp" open="1" top="1" tabpos="9">
+		<Cursor position="408" topLine="0" />
+	</File>
+	<File name="..\..\src\LuaRuntime.cpp" open="1" top="0" tabpos="4">
+		<Cursor position="1546" topLine="31" />
+	</File>
+	<File name="..\..\src\LuaRuntime.h" open="1" top="0" tabpos="1">
+		<Cursor position="934" topLine="0" />
+	</File>
+	<File name="..\..\src\blogger.cpp" open="1" top="0" tabpos="8">
+		<Cursor position="521" topLine="6" />
+	</File>
+	<File name="..\..\src\blogger.h" open="1" top="0" tabpos="7">
+		<Cursor position="369" topLine="0" />
+	</File>
+	<File name="..\..\src\stdafx.h" open="1" top="0" tabpos="2">
+		<Cursor position="376" topLine="0" />
+	</File>
+</CodeBlocks_layout_file>

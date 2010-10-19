@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="LuaNode" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin\Debug\LuaNode" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Debug\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="$(INCONCERT_DEVEL)\sources" />
+					<Add directory="$(INCONCERT_DEVEL)\packages\boost_1_44_0" />
+				</Compiler>
+				<Linker>
+					<Add library="Lua5.1" />
+					<Add library="libsupportlib" />
+					<Add library="libBlogger2" />
+					<Add directory="$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib" />
+					<Add directory="$(INCONCERT_DEVEL)\packages\Lua5.1\lib" />
+					<Add directory="$(INCONCERT_DEVEL)\lib" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin\Release\LuaNode" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="$(INCONCERT_DEVEL)\sources" />
+					<Add directory="$(INCONCERT_DEVEL)\packages\boost_1_44_0" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="Lua5.1" />
+					<Add library="libsupportlib" />
+					<Add library="libBlogger2" />
+					<Add directory="$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib" />
+					<Add directory="$(INCONCERT_DEVEL)\packages\Lua5.1\lib" />
+					<Add directory="$(INCONCERT_DEVEL)\lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="..\..\src\EvaluadorLUA.cpp" />
+		<Unit filename="..\..\src\EvaluadorLUA.h" />
+		<Unit filename="..\..\src\LuaNode.cpp" />
+		<Unit filename="..\..\src\LuaRuntime.cpp" />
+		<Unit filename="..\..\src\LuaRuntime.h" />
+		<Unit filename="..\..\src\LuaStackChecker.h" />
+		<Unit filename="..\..\src\blogger.cpp" />
+		<Unit filename="..\..\src\blogger.h" />
+		<Unit filename="..\..\src\stdafx.cpp" />
+		<Unit filename="..\..\src\stdafx.h" />
+		<Unit filename="..\..\src\targetver.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
