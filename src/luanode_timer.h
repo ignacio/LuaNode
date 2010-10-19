@@ -33,6 +33,8 @@ private:
 	lua_State* m_L;
 	bool m_repeats;
 	int m_after;
+
+	int m_reference;
 };
 
 }

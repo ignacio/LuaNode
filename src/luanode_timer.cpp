@@ -72,6 +72,8 @@ int Timer::Start(lua_State* L) {
 	}
 	m_timer.reset( new boost::asio::deadline_timer(GetIoService(), boost::posix_time::milliseconds(m_after)) );
 
+	lua_pushvalue(L, 1);
+	m_reference = luaL_ref(L, LUA_REGISTRYINDEX);
 	m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, boost::asio::placeholders::error) );
 	return 0;
 }
@@ -102,6 +104,8 @@ int Timer::Again(lua_State* L) {
 			m_timer->cancel();
 		}
 		else {*/
+		lua_pushvalue(L, 1);
+		m_reference = luaL_ref(L, LUA_REGISTRYINDEX);
 		m_timer->expires_from_now( boost::posix_time::milliseconds(m_after) );
 		m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, boost::asio::placeholders::error) );
 		//}
@@ -115,7 +119,10 @@ int Timer::Again(lua_State* L) {
 void Timer::OnTimeout(const boost::system::error_code& ec) {
 	if(boost::asio::error::operation_aborted != ec) {
 		lua_State* L = m_L;
-		GetSelf(L);
+
+		lua_rawgeti(L, LUA_REGISTRYINDEX, m_reference);
+		luaL_unref(L, LUA_REGISTRYINDEX, m_reference);
+		//GetSelf(L);
 
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {

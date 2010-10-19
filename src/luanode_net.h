@@ -12,47 +12,14 @@ namespace Net {
 void RegisterFunctions(lua_State* L);
 
 static int IsIP(lua_State* L);
-/*class Net : public LuaCppBridge::HybridObjectWithProperties<Net>
-{
-public:
-	Net(lua_State* L);
-	virtual ~Net(void);
-
-public:
-	LCB_HOWP_DECLARE_EXPORTABLE(Net);
-
-	int CreateSocket(lua_State* L);
-
-	int Accept(lua_State* L);
-	int Stop(lua_State* L);
-	int Again(lua_State* L);
-
-	LCB_DECL_GET(timeout);
-	LCB_DECL_SETGET(repeat);
-	//LCB_DECL_GET(callback);
-
-public:
-	//void OnTimeout(const boost::system::error_code& ec);
-	void HandleAccept(boost::shared_ptr< boost::asio::ip::tcp::socket > socket, const boost::system::error_code& error);
-
-private:
-	void StartAccept();
-
-private:
-	// Our socket acceptor
-	boost::asio::ip::tcp::acceptor m_acceptor;
-
-	lua_State* m_L;
-};*/
-
-
-
 
 
 class Socket : public LuaCppBridge::HybridObjectWithProperties<Socket>
 {
 public:
+	// Normal constructor
 	Socket(lua_State* L);
+	// Constructor used when we accept a connection
 	Socket(lua_State* L, boost::asio::ip::tcp::socket*);
 	virtual ~Socket(void);
 
@@ -74,11 +41,14 @@ public:
 	int GetLocalAddress(lua_State* L);
 	int GetRemoteAddress(lua_State* L);
 
+public:
+	boost::asio::ip::tcp::socket& GetSocketRef() { return *m_socket; };
+
 private:
-	void HandleWrite(const boost::system::error_code& error, size_t bytes_transferred);
-	void HandleRead(const boost::system::error_code& error, size_t bytes_transferred);
-	void HandleReadSome(const boost::system::error_code& error, size_t bytes_transferred);
-	void HandleConnect(const boost::system::error_code& error);
+	void HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleReadSome(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleConnect(int reference, const boost::system::error_code& error);
 
 private:
 	boost::shared_ptr< boost::asio::ip::tcp::socket > m_socket;
@@ -115,7 +85,7 @@ public:
 
 
 public:
-	void HandleAccept(boost::asio::ip::tcp::socket* socket, const boost::system::error_code& error);
+	void HandleAccept(int reference, boost::asio::ip::tcp::socket* socket, const boost::system::error_code& error);
 
 private:
 

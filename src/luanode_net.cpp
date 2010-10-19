@@ -6,6 +6,8 @@
 #include <boost/bind.hpp>
 #include "Network/shared_const_buffer.h"
 
+#include "luanode_crypto.h"
+
 
 // this is needed for tcp_keepalive definition
 #ifdef _WIN32
@@ -101,157 +103,10 @@ void LuaNode::Net::RegisterFunctions(lua_State* L) {
 	return 2;
 }
 
-// mas que Net esto es el equivalente a IOWatcher
-/*const char* Net::className = "Net";
-const Net::RegType Net::methods[] = {
-	{"accept", &Net::Accept},
-	{"stop", &Net::Stop},
-	{"again", &Net::Again},
-	{0}
-};
-
-const Net::RegType Net::setters[] = {
-	LCB_ADD_SET(Net, repeat),
-	{0}
-};
-
-const Net::RegType Net::getters[] = {
-	LCB_ADD_GET(Net, timeout),
-	LCB_ADD_GET(Net, repeat),
-	{0}
-};
-
-Net::Net(lua_State* L) : 
-	m_L(L),
-	m_acceptor(GetIoService())
-{
-	LogDebug("Constructing Net (%p)", this);
-}
-
-Net::~Net(void)
-{
-	LogDebug("Destructing Net (%p)", this);
-}
-
-LCB_IMPL_GET(Net, timeout) {
-	return 1;
-}
-
-LCB_IMPL_SET(Net, repeat) {
-	return 0;
-}
-LCB_IMPL_GET(Net, repeat) {
-	return 1;
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
-int Net::CreateSocket(lua_State* L) {
-	//m_acceptor
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
-void Net::StartAccept() {
-	boost::shared_ptr< boost::asio::ip::tcp::socket > socket(new boost::asio::ip::tcp::socket( GetIoService() ));
-	
-	m_acceptor.async_accept(
-		*socket,
-		boost::bind(&Net::HandleAccept, this, socket, boost::asio::placeholders::error)
-	);
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
-int Net::Accept(lua_State* L) {
-	LogDebug("Net::Accept");
-
-	SOCKET s = (SOCKET)luaL_checknumber(L, 2);
-
-	m_acceptor.assign( boost::asio::ip::tcp::v4(), s );
-
-	StartAccept();
-	return 0;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Net::HandleAccept(boost::shared_ptr< boost::asio::ip::tcp::socket > socket, const boost::system::error_code& error) {
-	LogDebug("Net::HandleAccept (%p)", socket.get());
-	if(!error) {
-		// Get ready for another connection
-		StartAccept();	// TODO: Esto lo voy a hacer desde Lua
-		boost::asio::ip::address address = socket->remote_endpoint().address();
-		//OnConnectionEstablished(socket, address);
-		lua_State* L = m_L;
-
-		GetSelf(L);
-
-		boost::shared_ptr< boost::asio::ip::tcp::socket > socket2( new boost::asio::ip::tcp::socket( GetIoService() ) );
-
-		boost::system::error_code ec;
-		int v = socket->native();
-		socket2->assign( boost::asio::ip::tcp::v4(), socket->native(), ec );
-		if (ec) {
-			LogError("%s", ec.message().c_str()); 
-		}
-
-		lua_getfield(L, 1, "callback");
-		if(lua_type(L, 2) == LUA_TFUNCTION) {
-			lua_newtable(L);
-			int peer = lua_gettop(L);
-
-			lua_pushstring(L, "fd");
-			lua_pushnumber(L, socket->native());
-			lua_rawset(L, peer);
-
-			const std::string& sAddress = address.to_string();
-			lua_pushstring(L, "address");
-			lua_pushlstring(L, sAddress.c_str(), sAddress.length());
-			lua_rawset(L, peer);
-
-			lua_pushstring(L, "port");
-			lua_pushnumber(L, socket->remote_endpoint().port());
-			lua_rawset(L, peer);
-
-			LuaNode::GetLuaEval().call(1, LUA_MULTRET);
-		}
-		else {
-			// do nothing?
-		}
-		lua_settop(L, 0);
-	}
-	else {
-		if(error != boost::asio::error::operation_aborted) {
-			LogError("Net::HandleAccept (%p) - %s", socket.get(), error.message().c_str());
-		}
-		////Pm_allocator.ReleaseSocket(socket);
-		// we don't call OnSocketReleased, because a connection had not been established
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
-int Net::Stop(lua_State* L) {
-	LogDebug("Timer::Stop");
-	
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
-int Net::Again(lua_State* L) {
-	LogDebug("Timer::Again");
-	return 0;
-}*/
-
-
-
-
-
-
 const char* Socket::className = "Socket";
 const Socket::RegType Socket::methods[] = {
 	{"setoption", &Socket::SetOption},
@@ -292,6 +147,8 @@ Socket::Socket(lua_State* L) :
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// This gets called when we accept a connection
 Socket::Socket(lua_State* L, boost::asio::ip::tcp::socket* socket) :
 	m_L(L),
 	m_socket(socket)
@@ -448,6 +305,10 @@ int Socket::Shutdown(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Write(lua_State* L) {
+	// store a reference in the registry
+	lua_pushvalue(L, 1);
+	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+
 	if(lua_type(L, 2) == LUA_TSTRING) {
 		const char* data = lua_tostring(L, 2);
 		size_t length = lua_objlen(L, 2);
@@ -457,7 +318,7 @@ int Socket::Write(lua_State* L) {
 		LogDebug("Socket::Write (%p) - Length=%d, \r\n'%s'", this, length, data);
 	
 		boost::asio::async_write(*m_socket, buffer,
-			boost::bind(&Socket::HandleWrite, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			boost::bind(&Socket::HandleWrite, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
 	}
 	else {
@@ -468,12 +329,13 @@ int Socket::Write(lua_State* L) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Socket::HandleWrite(const boost::system::error_code& error, size_t bytes_transferred) {
+void Socket::HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
+	lua_State* L = m_L;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
 	if(!error) {
 		LogInfo("Socket::HandleWrite (%p) - Bytes Transferred (%d)", this, bytes_transferred);
-		
-		lua_State* L = m_L;
-		GetSelf(L);
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -487,8 +349,6 @@ void Socket::HandleWrite(const boost::system::error_code& error, size_t bytes_tr
 	else {
 		LogDebug("Socket::HandleWrite with error (%p) - %s", this, error.message().c_str());
 		//m_callback.OnWriteCompletionError(shared_from_this(), bytes_transferred, error);
-		lua_State* L = m_L;
-		GetSelf(L);
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -531,10 +391,14 @@ void Socket::HandleWrite(const boost::system::error_code& error, size_t bytes_tr
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Read(lua_State* L) {
+	// store a reference in the registry
+	lua_pushvalue(L, 1);
+	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+
 	if(lua_isnoneornil(L, 2)) {
 		m_socket->async_read_some(
 			boost::asio::buffer(m_inputArray), 
-			boost::bind(&Socket::HandleReadSome, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			boost::bind(&Socket::HandleReadSome, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
 	}
 	else if(!lua_isnumber(L, 2)) {
@@ -545,7 +409,7 @@ int Socket::Read(lua_State* L) {
 			*m_socket, 
 			m_inputBuffer, 
 			delimiter,
-			boost::bind(&Socket::HandleRead, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			boost::bind(&Socket::HandleRead, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
 	}
 
@@ -557,11 +421,13 @@ int Socket::Read(lua_State* L) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Socket::HandleRead(const boost::system::error_code& error, size_t bytes_transferred) {
+void Socket::HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
+	lua_State* L = m_L;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
 	if(!error) {
 		LogInfo("Socket::HandleRead (%p) - Bytes Transferred (%d)", this, bytes_transferred);
-		lua_State* L = m_L;
-		GetSelf(L);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -577,9 +443,6 @@ void Socket::HandleRead(const boost::system::error_code& error, size_t bytes_tra
 	}
 	else {
 		LogDebug("Socket::HandleRead with error (%p) - %s", this, error.message().c_str());
-
-		lua_State* L = m_L;
-		GetSelf(L);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -621,12 +484,14 @@ void Socket::HandleRead(const boost::system::error_code& error, size_t bytes_tra
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Socket::HandleReadSome(const boost::system::error_code& error, size_t bytes_transferred) {
+void Socket::HandleReadSome(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
+	lua_State* L = m_L;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+	
 	const char* data = m_inputArray.c_array();
 	if(!error) {
 		LogInfo("Socket::HandleReadSome (%p) - Bytes Transferred (%d)", this, bytes_transferred);
-		lua_State* L = m_L;
-		GetSelf(L);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -641,8 +506,6 @@ void Socket::HandleReadSome(const boost::system::error_code& error, size_t bytes
 		lua_settop(L, 0);
 	}
 	else {
-		lua_State* L = m_L;
-		GetSelf(L);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -692,9 +555,12 @@ int Socket::Connect(lua_State* L) {
 
 	boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip), port );
 
-	//boost::system::error_code ec;
+	// store a reference in the registry
+	lua_pushvalue(L, 1);
+	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+
 	m_socket->async_connect(endpoint, 
-		boost::bind(&Socket::HandleConnect, this, boost::asio::placeholders::error)
+		boost::bind(&Socket::HandleConnect, this, reference, boost::asio::placeholders::error)
 	);
 	lua_pushboolean(L, true);
 	return 1;
@@ -704,40 +570,30 @@ int Socket::Connect(lua_State* L) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Socket::HandleConnect(const boost::system::error_code& error) {
-	if(!error) {
-		LogInfo("Socket::HandleConnect (%p)", this);
+void Socket::HandleConnect(int reference, const boost::system::error_code& error) {
+	lua_State* L = m_L;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
-		lua_State* L = m_L;
-		GetSelf(L);
-		lua_getfield(L, 1, "connect_callback");
-		if(lua_type(L, 2) == LUA_TFUNCTION) {
-			lua_pushvalue(L, 1);
+	LogInfo("Socket::HandleConnect (%p)", this);
+	lua_getfield(L, 1, "connect_callback");
+	if(lua_type(L, 2) == LUA_TFUNCTION) {
+		lua_pushvalue(L, 1);
+		if(!error) {
 			lua_pushboolean(L, true);
 			LuaNode::GetLuaEval().call(2, LUA_MULTRET);
 		}
 		else {
-			// do nothing?
-		}
-		lua_settop(L, 0);
-	}
-	else {	// este else pide refactor a gritos...
-		lua_State* L = m_L;
-		GetSelf(L);
-		lua_getfield(L, 1, "connect_callback");
-		if(lua_type(L, 2) == LUA_TFUNCTION) {
-			lua_pushvalue(L, 1);
 			lua_pushboolean(L, false);
 			lua_pushstring(L, error.message().c_str());
 
 			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
-			m_inputBuffer.consume(m_inputBuffer.size());
-		}
-		else {
-			LogError("Socket::HandleConnect with error (%p) - %s", this, error.message().c_str());
-		}
-		lua_settop(L, 0);
+		}		
 	}
+	else {
+		LogError("Socket::HandleConnect with error (%p) - %s", this, error.message().c_str());
+	}
+	lua_settop(L, 0);
 }
 
 
@@ -747,7 +603,7 @@ void Socket::HandleConnect(const boost::system::error_code& error) {
 
 
 
-// mas que Net esto es el equivalente a IOWatcher
+
 const char* Acceptor::className = "Acceptor";
 const Acceptor::RegType Acceptor::methods[] = {
 	{"open", &Acceptor::Open},
@@ -772,7 +628,7 @@ long s_acceptorCount = 0;
 
 Acceptor::Acceptor(lua_State* L) : 
 	m_L(L),
-	m_acceptor(GetIoService())
+	m_acceptor( GetIoService() )
 {
 	s_acceptorCount++;
 	LogDebug("Constructing Acceptor (%p). Current acceptor count = %d", this, s_acceptorCount);
@@ -868,26 +724,28 @@ int Acceptor::Accept(lua_State* L) {
 
 	boost::asio::ip::tcp::socket* socket = new boost::asio::ip::tcp::socket( GetIoService() );
 
+	// store a reference in the registry
+	lua_pushvalue(L, 1);
+	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+
 	m_acceptor.async_accept(
 		*socket,
-		boost::bind(&Acceptor::HandleAccept, this, socket, boost::asio::placeholders::error)
+		boost::bind(&Acceptor::HandleAccept, this, reference, socket, boost::asio::placeholders::error)
 	);
 	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Acceptor::HandleAccept(boost::asio::ip::tcp::socket* socket, const boost::system::error_code& error) {
+void Acceptor::HandleAccept(int reference, boost::asio::ip::tcp::socket* socket, const boost::system::error_code& error) {
 	LogDebug("Acceptor::HandleAccept (new socket %p) (%p)", socket, this);
+	lua_State* L = m_L;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
 	if(!error) {
-		// Get ready for another connection
-		//StartAccept();	// TODO: Esto lo voy a hacer desde Lua
 		boost::asio::ip::address address = socket->remote_endpoint().address();
 		//OnConnectionEstablished(socket, address);
-		lua_State* L = m_L;
-
-		GetSelf(L);
-
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_newtable(L);
@@ -895,11 +753,10 @@ void Acceptor::HandleAccept(boost::asio::ip::tcp::socket* socket, const boost::s
 
 			lua_pushstring(L, "socket");
 			Socket* luasocket = new Socket(L, socket);
-			//Socket::push(L, luasocket, false/*true*/);	// now Socket is the owner
 			Socket::push(L, luasocket, true);	// now Socket is the owner
-			if(Socket::s_trackingEnabled) {
+			/*if(Socket::s_trackingEnabled) {
 				luasocket->KeepTrack(L);
-			}
+			}*/
 			lua_rawset(L, peer);
 
 			const std::string& sAddress = address.to_string();
@@ -916,7 +773,6 @@ void Acceptor::HandleAccept(boost::asio::ip::tcp::socket* socket, const boost::s
 		else {
 			// do nothing?
 		}
-		lua_settop(L, 0);
 	}
 	else {
 		if(error != boost::asio::error::operation_aborted) {
@@ -925,4 +781,5 @@ void Acceptor::HandleAccept(boost::asio::ip::tcp::socket* socket, const boost::s
 		////Pm_allocator.ReleaseSocket(socket);
 		// we don't call OnSocketReleased, because a connection had not been established
 	}
+	lua_settop(L, 0);
 }

@@ -224,7 +224,7 @@ int Parser::name(http_parser* p) {			\
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_path(http_parser* p, const char* at, size_t length) {
+/*static*/ int Parser::on_path(http_parser* p, const char* at, size_t length) {
 	if(length == 0) {
 		// shortcut
 		return 0; 
@@ -257,7 +257,7 @@ int Parser::on_path(http_parser* p, const char* at, size_t length) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_query_string(http_parser* p, const char* at, size_t length) {
+/*static*/ int Parser::on_query_string(http_parser* p, const char* at, size_t length) {
 	Parser* parser = static_cast<Parser*>(p->data);
 	lua_State* L = LuaNode::GetLuaEval();
 	parser->GetSelf(L);
@@ -285,7 +285,7 @@ int Parser::on_query_string(http_parser* p, const char* at, size_t length) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_url(http_parser* p, const char* at, size_t length) {
+/*static*/ int Parser::on_url(http_parser* p, const char* at, size_t length) {
 	if(length == 0) {
 		// shortcut
 		return 0; 
@@ -318,7 +318,7 @@ int Parser::on_url(http_parser* p, const char* at, size_t length) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_fragment(http_parser* p, const char* at, size_t length) {
+/*static*/ int Parser::on_fragment(http_parser* p, const char* at, size_t length) {
 	Parser* parser = static_cast<Parser*>(p->data);
 	lua_State* L = LuaNode::GetLuaEval();
 	parser->GetSelf(L);
@@ -346,7 +346,7 @@ int Parser::on_fragment(http_parser* p, const char* at, size_t length) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_header_field(http_parser* p, const char* at, size_t length) {
+/*static*/ int Parser::on_header_field(http_parser* p, const char* at, size_t length) {
 	if(length == 0) {
 		// shortcut
 		return 0; 
@@ -378,7 +378,7 @@ int Parser::on_header_field(http_parser* p, const char* at, size_t length) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_header_value(http_parser* p, const char* at, size_t length) {
+/*static*/ int Parser::on_header_value(http_parser* p, const char* at, size_t length) {
 	Parser* parser = static_cast<Parser*>(p->data);
 	lua_State* L = LuaNode::GetLuaEval();
 	parser->GetSelf(L);
@@ -406,7 +406,7 @@ int Parser::on_header_value(http_parser* p, const char* at, size_t length) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_headers_complete(http_parser* p) {
+/*static*/ int Parser::on_headers_complete(http_parser* p) {
 	Parser* parser = static_cast<Parser*>(p->data);
 	lua_State* L = LuaNode::GetLuaEval();
 	parser->GetSelf(L);
@@ -490,7 +490,7 @@ int Parser::on_headers_complete(http_parser* p) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_body(http_parser* p, const char* at, size_t length) {
+/*static*/ int Parser::on_body(http_parser* p, const char* at, size_t length) {
 	Parser* parser = static_cast<Parser*>(p->data);
 	lua_State* L = LuaNode::GetLuaEval();
 	parser->GetSelf(L);
@@ -518,7 +518,7 @@ int Parser::on_body(http_parser* p, const char* at, size_t length) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-int Parser::on_message_complete(http_parser* p) {
+/*static*/ int Parser::on_message_complete(http_parser* p) {
 	Parser* parser = static_cast<Parser*>(p->data);
 	lua_State* L = LuaNode::GetLuaEval();
 	parser->GetSelf(L);
