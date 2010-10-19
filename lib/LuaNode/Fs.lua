@@ -39,3 +39,10 @@ function readSync(fd, length, position)
 
 	return fd:read(length)
 end
+
+function readFileSync(path, encoding)
+	local f = assert(io.open(path, "rb"))
+	local content = f:read("*a")
+	f:close()
+	return content
+end

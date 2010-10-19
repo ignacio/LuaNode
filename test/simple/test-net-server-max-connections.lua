@@ -23,7 +23,9 @@ function makeConnection (index)
 		table.insert(connections, c)
 		c.gotData = false
 
-		c:on('end', function () c:finish() end)
+		c:on('end', function ()
+			c:finish()
+		end)
 
 		c:on('data', function (self, b)
 			self.gotData = true
@@ -40,7 +42,7 @@ function makeConnection (index)
 
 			if (closes < N/2) then
 				assert_true(server.maxConnections <= index, 
-					index .. " was one of the first closed connections but shouldnt have been");
+					index .. " was one of the first closed connections but shouldn't have been");
 			end
 
 			if (closes == N/2) then
@@ -76,15 +78,16 @@ server:listen(common.PORT, function ()
 	for i = 1, N do
 		makeConnection(i)
 	end
-end);
+end)
 
 server.maxConnections = N / 2
 
 console.error("server.maxConnections = %d", server.maxConnections)
 
 process:on('exit', function ()
-  assert_equal(N, closes);
+	assert_equal(N, closes);
 end);
 
 process:loop()
+a=2
 end
