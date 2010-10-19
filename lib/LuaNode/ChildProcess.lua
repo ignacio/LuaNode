@@ -1,4 +1,3 @@
---local var util = require('util');
 local EventEmitter = require "luanode.EventEmitter"
 local Stream = require("luanode.stream").Stream
 
