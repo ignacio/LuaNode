@@ -1,4 +1,4 @@
- #include "StdAfx.h"
+#include "StdAfx.h"
 #include "luanode.h"
 #include "luanode_timer.h"
 #include "blogger.h"
@@ -28,8 +28,7 @@ const Timer::RegType Timer::getters[] = {
 
 // ojo acá que si el código está ejecutando en una corutina, L no es mi main state, sino la propia Corutina
 Timer::Timer(lua_State* L) : 
-	//m_L(L),
-m_L( LuaNode::GetLuaEval() ),
+	m_L( LuaNode::GetLuaEval() ),
 	m_repeats(false),
 	m_after(0)
 {
@@ -73,8 +72,8 @@ int Timer::Start(lua_State* L) {
 	m_timer.reset( new boost::asio::deadline_timer(GetIoService(), boost::posix_time::milliseconds(m_after)) );
 
 	lua_pushvalue(L, 1);
-	m_reference = luaL_ref(L, LUA_REGISTRYINDEX);
-	m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, boost::asio::placeholders::error) );
+	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+	m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, reference, boost::asio::placeholders::error) );
 	return 0;
 }
 
@@ -99,38 +98,44 @@ int Timer::Again(lua_State* L) {
 		return Start(L);
 	}
 	else {
-		// if started but non repeating, stop it
-		/*if(!m_repeats) {
+		// if started but non repeating, stop it and start it again
+		if(!m_repeats) {
 			m_timer->cancel();
 		}
-		else {*/
-		lua_pushvalue(L, 1);
-		m_reference = luaL_ref(L, LUA_REGISTRYINDEX);
-		m_timer->expires_from_now( boost::posix_time::milliseconds(m_after) );
-		m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, boost::asio::placeholders::error) );
-		//}
 
+		if(lua_isnumber(L, 2)) {
+			m_after = lua_tonumber(L, 2);
+		}
+
+		lua_pushvalue(L, 1);
+		int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+		m_timer->expires_from_now( boost::posix_time::milliseconds(m_after) );
+		m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, reference, boost::asio::placeholders::error) );
 	}
 	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Timer::OnTimeout(const boost::system::error_code& ec) {
+void Timer::OnTimeout(int reference, const boost::system::error_code& ec) {
+	lua_State* L = m_L;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
 	if(boost::asio::error::operation_aborted != ec) {
-		lua_State* L = m_L;
-
-		lua_rawgeti(L, LUA_REGISTRYINDEX, m_reference);
-		luaL_unref(L, LUA_REGISTRYINDEX, m_reference);
-		//GetSelf(L);
-
+		bool repeats = m_repeats;	// might change during the callback
+		
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			LuaNode::GetLuaEval().call(0, LUA_MULTRET);
 
 			if(m_repeats) {
+				// since a new timer could be setup in the callback, grab a new reference and pass that
+				// so I can always clean up the old one
+				// maybe optimize this some time
+				int newReference = luaL_ref(L, LUA_REGISTRYINDEX);
 				m_timer->expires_from_now( boost::posix_time::milliseconds(m_after) );
-				m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, boost::asio::placeholders::error) );
+				m_timer->async_wait( boost::bind(&Timer::OnTimeout, this, newReference, boost::asio::placeholders::error) );
 			}
 		}
 		else {
@@ -138,5 +143,6 @@ void Timer::OnTimeout(const boost::system::error_code& ec) {
 			m_timer->cancel();
 		}
 		lua_settop(L, 0);
+		
 	}
 }

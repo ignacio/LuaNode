@@ -3,12 +3,10 @@
 #include <luacppbridge51/lcbHybridObjectWithProperties.h>
 #include <boost/asio.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
 
 namespace LuaNode {
 
-	class Timer : public LuaCppBridge::HybridObjectWithProperties<Timer>//,
-		//public boost::enable_shared_from_this<Timer>
+	class Timer : public LuaCppBridge::HybridObjectWithProperties<Timer>
 {
 public:
 	Timer(lua_State* L);
@@ -23,18 +21,15 @@ public:
 
 	LCB_DECL_GET(timeout);
 	LCB_DECL_SETGET(repeat);
-	//LCB_DECL_GET(callback);
 
 public:
-	void OnTimeout(const boost::system::error_code& ec);
+	void OnTimeout(int reference, const boost::system::error_code& ec);
 
 private:
 	boost::shared_ptr< boost::asio::deadline_timer > m_timer;
 	lua_State* m_L;
 	bool m_repeats;
 	int m_after;
-
-	int m_reference;
 };
 
 }
