@@ -5,6 +5,8 @@ local io = require "io"
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
+local function noop () end
+
 function openSync(path, flags, mode)
 	mode = mode or 0666
 	return io.open(path, flags)
@@ -40,9 +42,57 @@ function readSync(fd, length, position)
 	return fd:read(length)
 end
 
+function readFile(path, encoding, callback)
+	callback = type(callback) == "function" and callback or (type(encoding) == "function" and encoding) or noop
+	encoding = type(encoding) == "string" and encoding or nil
+	
+	if type(callback) == "function" then
+		process.nextTick(function()
+			local f, err = assert(io.open(path, "rb"))
+			if not f then
+				callback(err)
+			else
+				local content = f:read("*a")
+				f:close()
+				callback(nil, content)
+			end
+		end)
+	end
+end
+
 function readFileSync(path, encoding)
 	local f = assert(io.open(path, "rb"))
 	local content = f:read("*a")
 	f:close()
 	return content
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
