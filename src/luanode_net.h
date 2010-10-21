@@ -26,6 +26,8 @@ public:
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Socket);
 
+	static int tostring_T(lua_State* L);
+
 	int SetOption(lua_State* L);
 
 	int Bind(lua_State* L);
@@ -52,6 +54,7 @@ private:
 
 private:
 	boost::shared_ptr< boost::asio::ip::tcp::socket > m_socket;
+	const unsigned long m_socketId;
 	boost::asio::streambuf m_inputBuffer;
 	//boost::array<char, 4> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 32> m_inputArray;	// agrandar esto y poolearlo
@@ -92,6 +95,7 @@ private:
 private:
 	// Our socket acceptor
 	boost::asio::ip::tcp::acceptor m_acceptor;
+	unsigned long m_acceptorId;
 	lua_State* m_L;
 };
 

@@ -142,7 +142,6 @@ void Timer::OnTimeout(int reference, const boost::system::error_code& ec) {
 			// no callback, stop the timer
 			m_timer->cancel();
 		}
-		lua_settop(L, 0);
-		
 	}
+	lua_settop(L, 0);
 }

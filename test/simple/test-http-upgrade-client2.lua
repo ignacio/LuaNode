@@ -14,51 +14,54 @@ server:on('upgrade', function(self, req, socket, head)
 		socket:finish()
 	end)
 end)
-server:listen(8000)
 
-local client = http.createClient(8000)
-
-function upgradeRequest(fn)
-	local request = client:request('GET', '/', {
-		Connection = 'Upgrade',
-		Upgrade = 'Test'
-	})
-	
-	local wasUpgrade = false
-	
-	function onUpgrade(self, res, socket, head)
-		wasUpgrade = true
+local function upgradeRequest(client, fn)
+		local request = client:request('GET', '/', {
+			Connection = 'Upgrade',
+			Upgrade = 'Test'
+		})
 		
-		client:removeListener('upgrade', onUpgrade)
-		socket:finish()
-	end
-	client:on('upgrade', onUpgrade)
-	
-	function onEnd()
-		client:removeListener('end', onEnd);
-		if not wasUpgrade then
-			error("hasn't received upgrade event")
-		else
-			if fn then
-				process.nextTick(fn)
+		local wasUpgrade = false
+		
+		function onUpgrade(self, res, socket, head)
+			wasUpgrade = true
+			
+			self:removeListener('upgrade', onUpgrade)
+			socket:finish()
+		end
+		
+		function onEnd()
+			client:removeListener('end', onEnd)
+			if not wasUpgrade then
+				error("hasn't received upgrade event")
+			else
+				if fn then
+					process.nextTick(fn)
+				end
 			end
 		end
+		
+		client:on('upgrade', onUpgrade)
+		client:on('end', onEnd)
+		
+		request:write('head')
 	end
-	client:on('end', onEnd)
-	
-	request:write('head');
-end
 
-successCount = 0
-upgradeRequest(function()
-	successCount = successCount + 1
-	upgradeRequest(function()
+server:listen(common.PORT, function()
+	
+	local client = http.createClient(common.PORT)
+	
+	successCount = 0
+	upgradeRequest(client, function()
 		successCount = successCount + 1
-		-- Test pass
-		console.log('Pass!')
-		client:finish()
-		client:destroy()
-		server:close()
+		upgradeRequest(client, function()
+			successCount = successCount + 1
+			-- Test pass
+			console.log('Pass!')
+			client:finish()
+			client:destroy()
+			server:close()
+		end)
 	end)
 end)
 
