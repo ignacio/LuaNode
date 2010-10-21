@@ -1,4 +1,6 @@
-local assert = assert
+local assert, type, error, ipairs, print, pcall = assert, type, error, ipairs, print, pcall
+local table = table
+
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
@@ -103,6 +105,15 @@ end
 --
 _M.on = _M.addListener
 
+function _M:once(kind, listener)
+	local t = {}
+	t.callback = function(...)
+		self:removeListener(kind, t.callback)
+		listener(self, ...)
+	end
+	self:on(kind, t.callback)
+end
+
 --
 --
 function _M:removeListener(kind, listener)
@@ -155,30 +166,8 @@ function _M:listeners(kind)
 end
 
 
-
-
-
-
---[[
-function MakeEmitter(obj)
-	obj.emit = emit
-	obj.addListener = addListener
-	obj.on = on
-	obj.removeListener = removeListener
-	obj.removeAllListeners = removeAllListeners
-	obj.listeners = listeners
-	
-	return obj
-end
-]]
-
 function new()
-	local o = {}
-	setmetatable(o, _M)
+	local o = setmetatable({}, _M)
 	o._events = {}
 	return o
-	
-	--local t = setmetatable({}, { __index = _M })
-	--t._events = {}
-	--return t
 end
