@@ -4,22 +4,16 @@
 #include "luanode_net.h"
 #include "blogger.h"
 
+#include <boost/asio/read_until.hpp>
+
 #include <boost/bind.hpp>
 #include "Network/shared_const_buffer.h"
 
-static int BoostErrorCodeToLua(lua_State* L, const boost::system::error_code& ec) {
-	if(ec) {
-		lua_pushboolean(L, false);
-		lua_pushinteger(L, ec.value());
-		lua_pushstring(L, ec.message().c_str());
-		return 3;
-	}
-	lua_pushboolean(L, true);
-	return 1;
-}
-
 
 using namespace LuaNode::Crypto;
+
+static unsigned long s_nextSocketId = 0;
+static unsigned long s_socketCount = 0;
 
 const char* Socket::className = "SecureSocket";
 const Socket::RegType Socket::methods[] = {
@@ -45,7 +39,6 @@ const Socket::RegType Socket::getters[] = {
 	{0}
 };
 
-static long s_socketCount = 0;
 
 static int verify_callback(int ok, X509_STORE_CTX *ctx) {
 	assert(ok);
@@ -53,13 +46,15 @@ static int verify_callback(int ok, X509_STORE_CTX *ctx) {
 }
 
 Socket::Socket(lua_State* L) : 
-	m_L(L)	,
+	m_L(L),
+	m_socketId(++s_nextSocketId),
 	m_shutdown_pending(false),
+	m_close_pending(false),
 	m_pending_writes(0),
 	m_pending_reads(0)
 {
 	s_socketCount++;
-	LogDebug("Constructing Crypto::Socket (%p). Current socket count = %d", this, s_socketCount);
+	LogDebug("Constructing Crypto::Socket (%p) (id:%d). Current socket count = %d", this, m_socketId, s_socketCount);
 
 	LuaNode::Net::Socket* pSocket = LuaNode::Net::Socket::check(L, 1);
 	SecureContext* ctx = Crypto::SecureContext::check(L, 2);
@@ -88,9 +83,11 @@ Socket::Socket(lua_State* L) :
 Socket::~Socket(void)
 {
 	s_socketCount--;
-	LogDebug("Destructing Crypto::Socket (%p). Current socket count = %d", this, s_socketCount);
+	LogDebug("Destructing Crypto::Socket (%p) (id:%d). Current socket count = %d", this, m_socketId, s_socketCount);
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// 
 int Socket::SetOption(lua_State* L) {
 	return 0;
 }
@@ -216,7 +213,7 @@ int Socket::GetPeerCertificate(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::DoHandShake(lua_State* L) {
-	LogDebug("SecureSocket::DoHandShake (%p)", this);
+	LogDebug("SecureSocket::DoHandShake (%p) (id:%d)", this, m_socketId);
 
 	// store a reference in the registry
 	lua_pushvalue(L, 1);
@@ -237,7 +234,7 @@ void Socket::HandleHandshake(int reference, const boost::system::error_code& err
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
 	if(!error) {
-		LogInfo("SecureSocket::HandleHandshake (%p)", this);
+		LogInfo("SecureSocket::HandleHandshake (%p) (id:%d)", this, m_socketId);
 		lua_getfield(L, 1, "handshake_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -246,10 +243,9 @@ void Socket::HandleHandshake(int reference, const boost::system::error_code& err
 		else {
 			// do nothing?
 		}
-		lua_settop(L, 0);
 	}
 	else {
-		LogDebug("SecureSocket::HandleHandshake with error (%p) - %s", this, error.message().c_str());
+		LogDebug("SecureSocket::HandleHandshake with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		lua_getfield(L, 1, "handshake_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -283,10 +279,10 @@ void Socket::HandleHandshake(int reference, const boost::system::error_code& err
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
-			LogError("SecureSocket::HandleWrite with error (%p) - %s", this, error.message().c_str());
+			LogError("SecureSocket::HandleWrite with error (%p) - %s", this, m_socketId, error.message().c_str());
 		}
-		lua_settop(L, 0);
 	}
+	lua_settop(L, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -306,7 +302,7 @@ int Socket::Write(lua_State* L) {
 		std::string d(data, length);
 		shared_const_buffer buffer(d);
 
-		LogDebug("SecureSocket::Write (%p) - Length=%d, \r\n'%s'", this, length, data);
+		LogDebug("SecureSocket::Write (%p) (id:%d) - Length=%d, \r\n'%s'", this, m_socketId, length, data);
 
 		m_pending_writes++;
 		boost::asio::async_write(*m_ssl_socket, buffer,
@@ -314,7 +310,7 @@ int Socket::Write(lua_State* L) {
 			);
 	}
 	else {
-		luaL_error(L, "SecureSocket::Write, unhandled type '%s'", luaL_typename(L, 2));
+		luaL_error(L, "SecureSocket::Write (%p) (id:%d), unhandled type '%s'", this, m_socketId, luaL_typename(L, 2));
 	}
 	return 0;
 }
@@ -328,7 +324,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 
 	m_pending_writes--;
 	if(!error) {
-		LogInfo("SecureSocket::HandleWrite (%p) - Bytes Transferred (%d)", this, bytes_transferred);
+		LogInfo("SecureSocket::HandleWrite (%p) (id:%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -339,7 +335,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		}
 	}
 	else {
-		LogDebug("SecureSocket::HandleWrite with error (%p) - %s", this, error.message().c_str());
+		LogDebug("SecureSocket::HandleWrite with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -373,7 +369,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
-			LogError("SecureSocket::HandleWrite with error (%p) - %s", this, error.message().c_str());
+			LogError("SecureSocket::HandleWrite with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		}
 	}
 
@@ -396,7 +392,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 			m_ssl_socket->lowest_layer().shutdown(boost::asio::socket_base::shutdown_receive, ec);
 		}
 		if(ec) {
-			LogWarning("Error en shutdown '%s'", ec.message().c_str());
+			LogWarning("Error en shutdown (%p) (id:%d) '%s'", this, m_socketId, ec.message().c_str());
 		}
 	}
 
@@ -422,6 +418,11 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 			m_ssl_socket->lowest_layer().shutdown(boost::asio::socket_base::shutdown_receive, ec);			
 		}*/
 	//}
+
+	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_ssl_socket->lowest_layer().close(ec);
+	}
 
 	lua_settop(L, 0);
 }
@@ -472,7 +473,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 
 	m_pending_reads--;
 	if(!error) {
-		LogInfo("SecureSocket::HandleRead (%p) - Bytes Transferred (%d)", this, bytes_transferred);
+		LogInfo("SecureSocket::HandleRead (%p) (id:%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -484,14 +485,13 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 		else {
 			// do nothing?
 		}
-		lua_settop(L, 0);
 	}
 	else {
 		if(m_shutdown_pending) {
 			// ignore error when we're shutting down (FIXME!)
 			return;
 		}
-		LogDebug("SecureSocket::HandleRead with error (%p) - %s", this, error.message().c_str());
+		LogDebug("SecureSocket::HandleRead with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -525,9 +525,8 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
-			LogError("SecureSocket::HandleRead with error (%p) - %s", this, error.message().c_str());
+			LogError("SecureSocket::HandleRead with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		}
-		lua_settop(L, 0);
 	}
 
 	/*boost::system::error_code ec;
@@ -542,6 +541,13 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 			luaL_error(L, ec.message().c_str());
 		}
 	}*/
+
+	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_ssl_socket->lowest_layer().close(ec);
+	}
+
+	lua_settop(L, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -554,19 +560,17 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 	m_pending_reads--;
 	const char* data = m_inputArray.c_array();
 	if(!error) {
-		LogInfo("SecureSocket::HandleReadSome (%p) - Bytes Transferred (%d)", this, bytes_transferred);
+		LogInfo("SecureSocket::HandleReadSome (%p) (id:%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
 			const char* data = m_inputArray.c_array();
 			lua_pushlstring(L, data, bytes_transferred);
-			//m_inputBuffer.consume(m_inputBuffer.size());	// its safe to consume, the string has already been interned
 			LuaNode::GetLuaEval().call(2, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
 		}
-		lua_settop(L, 0);
 	}
 	else {
 		if(m_shutdown_pending) {
@@ -606,9 +610,8 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
-			LogError("SecureSocket::HandleRead with error (%p) - %s", this, error.message().c_str());
+			LogError("SecureSocket::HandleRead with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		}
-		lua_settop(L, 0);
 	}
 
 	/*boost::system::error_code ec;
@@ -623,21 +626,28 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 			luaL_error(L, ec.message().c_str());
 		}
 	}*/
+
+	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_ssl_socket->lowest_layer().close(ec);
+	}
+
+	lua_settop(L, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Close(lua_State* L) {
-	LogDebug("SecureSocket::Close - Socket (%p)", this);
-	boost::system::error_code ec;
-	m_ssl_socket->lowest_layer().close(ec);
-	return BoostErrorCodeToLua(L, ec);
+	LogDebug("SecureSocket::Close - Socket (%p) (id:%d)", this, m_socketId);
+	// can't close the socket right away, just flag it and close it when there are no more queued ops
+	m_close_pending = true;
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Shutdown(lua_State* L) {
-	LogDebug("Socket::Shutdown (%p)", this);
+	LogDebug("Socket::Shutdown (%p) (id:%d)", this, m_socketId);
 
 	m_shutdown_pending = true;
 
@@ -667,7 +677,7 @@ void Socket::HandleShutdown(int reference, const boost::system::error_code& erro
 
 	// No encontre mejor forma de hacer esto que llamar al read_handler con un error 'eof'
 	if(!error) {
-		LogInfo("SecureSocket::HandleShutdown (%p)", this);
+		LogInfo("SecureSocket::HandleShutdown (%p) (id:%d)", this, m_socketId);
 
 		lua_getfield(L, 1, "read_callback");
 		//lua_getfield(L, 1, "shutdown_callback");
@@ -680,10 +690,9 @@ void Socket::HandleShutdown(int reference, const boost::system::error_code& erro
 		else {
 			// do nothing?
 		}
-		lua_settop(L, 0);
 	}
 	else {
-		LogDebug("SecureSocket::HandleShutdown with error (%p) - %s", this, error.message().c_str());
+		LogDebug("SecureSocket::HandleShutdown with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		//lua_getfield(L, 1, "shutdown_callback");
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
@@ -695,10 +704,11 @@ void Socket::HandleShutdown(int reference, const boost::system::error_code& erro
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
-			LogError("SecureSocket::HandleShutdown with error (%p) - %s", this, error.message().c_str());
+			LogError("SecureSocket::HandleShutdown with error (%p) (id:%d) - %s", this, m_socketId, error.message().c_str());
 		}
-		lua_settop(L, 0);
 	}
+
+	lua_settop(L, 0);
 }
 
 
@@ -710,20 +720,13 @@ void Socket::HandleShutdown(int reference, const boost::system::error_code& erro
 
 
 
-
+//////////////////////////////////////////////////////////////////////////
+/// 
 const char* SecureContext::className = "SecureContext";
 const SecureContext::RegType SecureContext::methods[] = {
 	{"setKey", &SecureContext::SetKey},
 	{"setCert", &SecureContext::SetCert},
 	{"addCACert", &SecureContext::AddCACert},
-	/*{"bind", &Socket::Bind},
-	{"close", &Socket::Close},
-	{"shutdown", &Socket::Shutdown},
-	{"write", &Socket::Write},
-	{"read", &Socket::Read},
-	{"connect", &Socket::Connect},
-	{"getsockname", &Socket::GetLocalAddress},
-	{"getpeername", &Socket::GetRemoteAddress},*/
 	{0}
 };
 
@@ -740,24 +743,20 @@ typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 SecureContext::SecureContext(lua_State* L) : 
 	m_L(L)
 {
+	// TODO: handle other ssl types
 	m_context.reset( new boost::asio::ssl::context( GetIoService(), boost::asio::ssl::context::sslv23) );
-
 	m_context->set_options(boost::asio::ssl::context::default_workarounds);
 
 	//boost::system::error_code ec;
 	//m_context->set_verify_mode(boost::asio::ssl::context_base::verify_peer, ec);
 	
-
 	m_ca_store = X509_STORE_new();
 	SSL_CTX_set_cert_store(m_context->impl(), m_ca_store);
-	//( LuaNode::GetIoService(),  )
 }
 
 
 SecureContext::~SecureContext(void)
 {
-	//s_socketCount--;
-	//LogDebug("Destructing Crypto::Socket (%p). Current socket count = %d", this, s_socketCount);
 }
 
 //////////////////////////////////////////////////////////////////////////

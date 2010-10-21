@@ -1,7 +1,10 @@
 #pragma once
 
 #include <luacppbridge51/lcbHybridObjectWithProperties.h>
-#include <boost/asio.hpp>
+
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/streambuf.hpp>
+
 #include <boost/asio/ssl.hpp>
 
 namespace LuaNode {
@@ -45,6 +48,7 @@ private:
 
 private:
 	boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>* m_ssl_socket;
+	const unsigned long m_socketId;
 	boost::asio::streambuf m_inputBuffer;
 	//boost::array<char, 4> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 32> m_inputArray;	// agrandar esto y poolearlo
@@ -55,9 +59,10 @@ private:
 	bool m_should_verify;
 
 	bool m_shutdown_pending;
+	bool m_close_pending;
 	bool m_shutdown_send;
-	long m_pending_writes;
-	long m_pending_reads;
+	unsigned long m_pending_writes;
+	unsigned long m_pending_reads;
 };
 
 
