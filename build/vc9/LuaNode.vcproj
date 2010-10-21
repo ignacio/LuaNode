@@ -295,6 +295,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_net_acceptor.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_timer.cpp"
 				>
 			</File>
@@ -374,6 +378,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_net.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_net_acceptor.h"
 				>
 			</File>
 			<File
