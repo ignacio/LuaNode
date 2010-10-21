@@ -10,8 +10,9 @@
 static int BoostErrorCodeToLua(lua_State* L, const boost::system::error_code& ec) {
 	if(ec) {
 		lua_pushboolean(L, false);
+		lua_pushinteger(L, ec.value());
 		lua_pushstring(L, ec.message().c_str());
-		return 2;
+		return 3;
 	}
 	lua_pushboolean(L, true);
 	return 1;
