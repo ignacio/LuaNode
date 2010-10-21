@@ -28,6 +28,8 @@ void LuaNode::Http::RegisterFunctions(lua_State* L) {
 	Parser::s_settings.on_message_complete = Parser::on_message_complete;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// 
 static inline const char* method_to_str(unsigned short m) {
 	switch (m) {
 		case HTTP_DELETE:     return "DELETE";
@@ -59,12 +61,6 @@ const Parser::RegType Parser::methods[] = {
 	{"execute", &Parser::Execute},
 	{"finish", &Parser::Finish},
 	{"reinitialize", &Parser::Reinitialize},
-	/*{"shutdown", &Socket::Shutdown},
-	{"write", &Socket::Write},
-	{"read", &Socket::Read},
-	{"connect", &Socket::Connect},
-	{"getsockname", &Socket::GetLocalAddress},
-	{"getpeername", &Socket::GetRemoteAddress},*/
 	{0}
 };
 

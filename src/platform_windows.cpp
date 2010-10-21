@@ -15,4 +15,8 @@ int OS::GetExecutablePath(char* buffer, size_t* size) {
 	return 0;
 }
 
+const char* OS::GetPlatform() {
+	return "windows";
+}
+
 }  // namespace LuaNode

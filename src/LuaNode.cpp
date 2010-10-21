@@ -1,6 +1,3 @@
-// LuaNode.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 
 #include "LuaNode.h"
@@ -18,6 +15,7 @@
 
 #include "luanode_timer.h"
 #include "luanode_net.h"
+#include "luanode_net_acceptor.h"
 #include "luanode_http_parser.h"
 #include "luanode_dns.h"
 #include "luanode_crypto.h"
@@ -30,31 +28,46 @@
 namespace LuaNode {
 
 static const char* LUANODE_VERSION = "0.0.1";
+static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
 static int option_end_index = 0;
 static bool use_debug_agent = false;
 static bool debug_wait_connect = false;
-static int debug_port=5858;
+static int debug_port = 5858;
 
 static bool need_tick_cb = false;
 static int tickCallback = LUA_NOREF;
 
 static boost::asio::io_service io_service;
+static CEvaluadorLua eval;
 
+//////////////////////////////////////////////////////////////////////////
+/// 
 /*static*/ boost::asio::io_service& GetIoService() {
 	return io_service;
 }
 
-static CEvaluadorLua eval;
-
+//////////////////////////////////////////////////////////////////////////
+/// 
 /*static*/ CEvaluadorLua& GetLuaEval() {
 	return eval;
 }
 
-static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
+//////////////////////////////////////////////////////////////////////////
+/// 
+/*static*/ int BoostErrorCodeToLua(lua_State* L, const boost::system::error_code& ec) 
+{
+	if(ec) {
+		lua_pushboolean(L, false);
+		lua_pushinteger(L, ec.value());
+		lua_pushstring(L, ec.message().c_str());
+		return 3;
+	}
+	lua_pushboolean(L, true);
+	return 1;
+}
 
 #if defined(_WIN32)
-
 
 //////////////////////////////////////////////////////////////////////////
 /// Para poder bajar el servicio, si tengo la consola habilitada
@@ -73,6 +86,7 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 			
 			// Stop the io pool
 			LuaNode::GetIoService().stop();
+			LogInfo("After CTRL-C event");
 			return TRUE;
 		break;
 		case CTRL_CLOSE_EVENT:
@@ -169,9 +183,6 @@ static int Loop(lua_State* L) {
 	// TODO: Ver si esto no jode. Estoy sacando la tabla process del stack de C. Es seguro hacer esto porque en node.lua 
 	// guardé una referencia en _G
 	lua_settop(L, 0);
-	/*int t = lua_gettop(L);
-	int j = luaL_ref(L, LUA_REGISTRYINDEX);
-	t = lua_gettop(L);*/
 
 	LogDebug("LuaNode.exe: Loop - begin");
 	boost::system::error_code ec;
@@ -180,14 +191,15 @@ static int Loop(lua_State* L) {
 			lua_rawgeti(L, LUA_REGISTRYINDEX, tickCallback);
 			LuaNode::GetLuaEval().call(0, LUA_MULTRET);
 		}
-	}
-	// TODO: hacer algo con el error code :D
-	*/
+	}*/
 
-	// TODO: hacer algo con el error code :D
 	io_service.run(ec);
 	luaL_unref(L, LUA_REGISTRYINDEX, tickCallback);
 
+	if(ec) {
+		LogError("LuaNode.exe: Loop - ended with error\r\n%s", ec.message().c_str());
+		return ec.value();
+	}
 	LogDebug("LuaNode.exe: Loop - end");
 	return 0;
 }
@@ -216,8 +228,7 @@ static void Load(int argc, char *argv[]) {
 	lua_setfield(L, table, "version");
 
 	// process.platform
-	// TODO: que dependa del platform compilado
-	lua_pushstring(L, "windows");
+	lua_pushstring(L, LuaNode::OS::GetPlatform());
 	lua_setfield(L, table, "platform");
 
 	// process.argv
@@ -287,21 +298,14 @@ static void Load(int argc, char *argv[]) {
 	
 	// Initialize the C++ modules..................filename of module
 	Net::RegisterFunctions(L);
-	//Net::EnableTracking(L);
-	//Net::Register(L, NULL, true);
 
-	//Net::Acceptor::EnableTracking(L);
 	Net::Acceptor::Register(L, NULL, true);
 
-	//Net::Socket::EnableTracking(L);
 	Net::Socket::Register(L, NULL, true);
 	//IOWatcher::Initialize(process);              // io_watcher.cc
 
-	//Dns::Resolver::EnableTracking(L);
 	Dns::Resolver::Register(L, NULL, true);
 
-	//Crypto::Socket::EnableTracking(L);
-	//Crypto::Socket::Register(L, "Socket", true);
 	Crypto::Socket::Register(L, NULL, true);
 	Crypto::SecureContext::Register(L, NULL, true);
 
@@ -309,9 +313,6 @@ static void Load(int argc, char *argv[]) {
 	Http::Parser::EnableTracking(L);
 	Http::Parser::Register(L, NULL, true);
 
-	//Timer::Initialize(process);                  // timer.cc
-	//Timer::EnableTracking(L);
-	//Timer::s_trackingEnabled = true;
 	Timer::Register(L, NULL, true);					// luanode_timer.cc
 
 	ChildProcess::Register(L, NULL, true);
@@ -323,6 +324,7 @@ static void Load(int argc, char *argv[]) {
 
 	// The node.js file returns a function 'f'
 
+	// TODO: Remove this hardcoded path
 	LuaNode::eval.dofile("d:/trunk_git/sources/LuaNode/src/node.lua");
 	int function = lua_gettop(L);
 	if(lua_type(L, function) != LUA_TFUNCTION) {
@@ -334,10 +336,13 @@ static void Load(int argc, char *argv[]) {
 	lua_pushvalue(L, table);
 
 	eval.call(1, LUA_MULTRET);
+
+	// TODO: propagar el valor de exit hacia atras
 }
 
 
-// Parse LuaNode command line arguments.
+//////////////////////////////////////////////////////////////////////////
+/// Parse LuaNode command line arguments.
 static void ParseArgs(int *argc, char **argv) {
 	int i;
 
@@ -367,7 +372,8 @@ static void ParseArgs(int *argc, char **argv) {
 	option_end_index = i;
 }
 
-
+//////////////////////////////////////////////////////////////////////////
+/// 
 static void AtExit() {
 	//LuaNode::Stdio::Flush();
 	//LuaNode::Stdio::DisableRawMode(STDIN_FILENO);
@@ -377,38 +383,30 @@ static void AtExit() {
 
 }  // namespace LuaNode
 
+
+//////////////////////////////////////////////////////////////////////////
+/// 
 int main(int argc, char* argv[])
 {
 	// TODO: Parsear argumentos
+#if defined(_WIN32)
 	if(!SetConsoleCtrlHandler((PHANDLER_ROUTINE)LuaNode::ConsoleControlHandler, TRUE)) {
 		LogError("SetConsoleCtrlHandler failed");
 	}
+#endif
 
 	// TODO: wrappear el log en un objeto (o usar libblogger2cpp)
 	LogInfo("**** Starting LuaNode - Built on %s ****", LuaNode::compileDateTime);
-
-	long nListenPort, keepAliveTime, keepAliveInterval;
-
-	nListenPort = 6060;
-	keepAliveTime = 10000;
-	keepAliveInterval = 5000;
-
-	//inConcert::Network::CSocketAllocator allocator(2);
-	//CSocketServer server(static_cast<unsigned short>(nListenPort), allocator, keepAliveTime, keepAliveInterval, allocator);
 
 	atexit(LuaNode::AtExit);
 
 	// Parse a few arguments which are specific to Node.
 	LuaNode::ParseArgs(&argc, argv);
 
+	int result = 0;
+	// TODO: Load tiene que devolver el result
 	LuaNode::Load(argc, argv);
-	//LuaNode::eval.dostring("print('\\nHello world from LuaNode');");
-	
-
-	//server.Start();
-	//LuaNode::hEvtStop = CreateEvent(NULL, FALSE, FALSE, NULL);
-	//WaitForSingleObject(LuaNode::hEvtStop, INFINITE);
 
 	LogFree();
-	return 0;
+	return result;
 }

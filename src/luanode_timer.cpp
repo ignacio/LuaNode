@@ -3,6 +3,8 @@
 #include "luanode_timer.h"
 #include "blogger.h"
 
+#include <boost/asio/placeholders.hpp>
+
 #include <boost/bind.hpp>
 
 using namespace LuaNode;
@@ -16,13 +18,10 @@ const Timer::RegType Timer::methods[] = {
 };
 
 const Timer::RegType Timer::setters[] = {
-	LCB_ADD_SET(Timer, repeat),
 	{0}
 };
 
 const Timer::RegType Timer::getters[] = {
-	LCB_ADD_GET(Timer, timeout),
-	LCB_ADD_GET(Timer, repeat),
 	{0}
 };
 
@@ -39,18 +38,6 @@ Timer::~Timer(void)
 {
 	LogDebug("Destructing Timer (%p)", this);
 }
-
-LCB_IMPL_GET(Timer, timeout) {
-	return 1;
-}
-
-LCB_IMPL_SET(Timer, repeat) {
-	return 0;
-}
-LCB_IMPL_GET(Timer, repeat) {
-	return 1;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 /// 
@@ -104,7 +91,7 @@ int Timer::Again(lua_State* L) {
 		}
 
 		if(lua_isnumber(L, 2)) {
-			m_after = lua_tonumber(L, 2);
+			m_after = lua_tointeger(L, 2);
 		}
 
 		lua_pushvalue(L, 1);

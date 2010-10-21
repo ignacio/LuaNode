@@ -2,6 +2,9 @@
 #include "luanode.h"
 #include "luanode_dns.h"
 #include "blogger.h"
+
+#include <boost/asio/placeholders.hpp>
+
 #include <boost/bind.hpp>
 
 
@@ -22,7 +25,7 @@ const Resolver::RegType Resolver::getters[] = {
 	{0}
 };
 
-long s_resolverCount = 0;
+static unsigned long s_resolverCount = 0;
 
 Resolver::Resolver(lua_State* L) : 
 	m_L(L),

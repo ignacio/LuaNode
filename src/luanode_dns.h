@@ -1,7 +1,8 @@
 #pragma once
 
 #include <luacppbridge51/lcbHybridObjectWithProperties.h>
-#include <boost/asio.hpp>
+
+#include <boost/asio/ip/tcp.hpp>
 
 namespace LuaNode {
 

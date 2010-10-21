@@ -1,7 +1,10 @@
 #pragma once
 
 #include <luacppbridge51/lcbHybridObjectWithProperties.h>
-#include <boost/asio.hpp>
+
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/streambuf.hpp>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
@@ -60,42 +63,6 @@ private:
 	//boost::array<char, 32> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 64> m_inputArray;	// agrandar esto y poolearlo
 	boost::array<char, 128> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
-	lua_State* m_L;
-};
-
-
-
-
-
-class Acceptor : public LuaCppBridge::HybridObjectWithProperties<Acceptor>
-{
-public:
-	Acceptor(lua_State* L);
-	virtual ~Acceptor(void);
-
-public:
-	LCB_HOWP_DECLARE_EXPORTABLE(Acceptor);
-
-	int Open(lua_State* L);
-	int Close(lua_State* L);
-
-	int SetOption(lua_State* L);
-	int GetLocalAddress(lua_State* L);
-
-	int Bind(lua_State* L);
-	int Listen(lua_State* L);
-	int Accept(lua_State* L);
-
-
-public:
-	void HandleAccept(int reference, boost::asio::ip::tcp::socket* socket, const boost::system::error_code& error);
-
-private:
-
-private:
-	// Our socket acceptor
-	boost::asio::ip::tcp::acceptor m_acceptor;
-	unsigned long m_acceptorId;
 	lua_State* m_L;
 };
 

@@ -2,15 +2,12 @@
 #define EVALUADOR_LUA__H
 
 #include "LuaRuntime.h"
-//#include <NodeList.h>
-//#include "IHostVirtualMachine.h"
 
 class CEvaluadorLua :
-	public CLuaRuntime<CEvaluadorLua>//,
-	//public InconcertTools::CNodeList::Node
+	public CLuaRuntime<CEvaluadorLua>
 {
 public:
-	CEvaluadorLua(/*IHostVirtualMachine& vmHost*/);
+	CEvaluadorLua();
 	virtual ~CEvaluadorLua();
 
 public:
@@ -28,7 +25,6 @@ public:
 	static void PushPathArray(const CBStringList& paths, lua_State* L);
 
 protected:
-	//IHostVirtualMachine& m_vmHost;
 	long m_ID;	// a numeric ID
 	unsigned int m_timestampLastUsed;
 
