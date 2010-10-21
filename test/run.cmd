@@ -6,6 +6,9 @@ rem @echo off
 @call luanode run.lua simple.test-event-emitter-modify-in-emit
 @if not %errorlevel% == 0 exit %errorlevel%
 
+@call luanode run.lua simple.test-event-emitter-once
+@if not %errorlevel% == 0 exit %errorlevel%
+
 @call luanode run.lua simple.test-event-emitter-remove-listeners
 @if not %errorlevel% == 0 exit %errorlevel%
 
@@ -100,6 +103,9 @@ rem @if not %errorlevel% == 0 exit %errorlevel%
 @if not %errorlevel% == 0 exit %errorlevel%
 
 @call luanode run.lua simple.test-net-binary
+@if not %errorlevel% == 0 exit %errorlevel%
+
+@call luanode run.lua simple.test-net-eaddrinuse
 @if not %errorlevel% == 0 exit %errorlevel%
 
 @call luanode run.lua simple.test-net-isip

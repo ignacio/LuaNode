@@ -86,7 +86,6 @@ end
 -- kind = tcp, tcp4, tcp6, unix, unix_dgram, udp, udp4, udp6
 local function socket(kind)
 	local skt = assert(process.Socket(kind))
-	skt:setoption("reuseaddr", true)
 	return skt
 end
 
@@ -94,7 +93,6 @@ end
 -- Creates an Acceptor, that is, a socket that can listen
 local function acceptor(kind)
 	local skt = assert(process.Acceptor(kind))
-	skt:setoption("reuseaddr", true)
 	return skt
 end
 
@@ -107,13 +105,13 @@ end
 local function bind(socket, port, ip)
 	assert(socket and port, "Must pass fd and port / path")
 	
-	socket:setoption("reuseaddr", true)
 	if not ip then
 		ip = "0.0.0.0"
 	end
-	local ok, err = socket:bind(ip, port)
+	local ok, err, msg = socket:bind(ip, port)
 	if not ok then
-		error( console.error("bind('%s', '%s', '%s') failed with error: %s", socket, port, ip, err) )
+		console.error("bind('%s', '%s', '%s') failed with error: %s\r\n%s", socket, port, ip, err, msg)
+		return false, err, msg
 	end
 	return true	-- TODO: homogeneizar el manejo de errores
 end
@@ -421,7 +419,6 @@ local function initStream(self)
 	self._stream.read_callback = function(stream, data, reason)
 		if not data or #data == 0 then
 			self.readable = false
-			--if reason == "eof" or reason == "closed" or reason == "aborted" or reason == "reset" then
 			--if reason == "eof" or reason == "closed" or reason == "aborted" or reason == "reset" then
 				if not self.writable then
 					self:destroy()
@@ -943,11 +940,11 @@ createServer = function(listener)
 end
 
 -- 
--- server.listen(port, [host], [callback])
+-- server.listen (port, [host], [callback])
 -- Begin accepting connections on the specified port and host. If the host is omitted, the server will accept 
 -- connections directed to any IPv4 address (INADDR_ANY).
 -- This function is asynchronous. The last parameter callback will be called when the server has been bound.
-function Server:listen(port, host, callback)
+function Server:listen (port, host, callback)
 	console.log("Server:listen %s, %s, %s", port, host, callback)
 	
 	if self.fd then
@@ -972,11 +969,37 @@ function Server:listen(port, host, callback)
 		-- The port can be found with server.address()
 		self.type = "tcp4"
 		self.acceptor:open(self.type)
-		bind(self.acceptor, 0)
+		local ok, err = bind(self.acceptor, 0)
+		if not ok then
+			self:emit("error", err)
+			return false
+		end
 		process.nextTick(function()
 			self:_doListen()
 		end)
 	else
+		local ip = host or "0.0.0.0"
+		local port = tonumber(port)
+		assert(port >= 0 and port <= 65535, "port number out of range")
+		if ip:lower() == "localhost" then
+			ip = "127.0.0.1"
+		end
+		dns.lookup(ip, function (err, address, hostname)
+			if err then
+				self:emit('error', err)
+			else
+				self.kind = (address.family == 6 and "tcp6") or (address.family == 4 and "tcp4") or error("unknown address family" .. tostring(address.family))
+				self.acceptor:open(self.kind)
+				local ok, err, msg = bind(self.acceptor, port, ip)
+				if not ok then
+					self:emit("error", err, msg)
+					return
+				end
+				process.nextTick(function ()
+					self:_doListen()
+				end)
+			end
+		end)
 		--[[
 		dns.lookup(arguments[1], function (err, ip, addressType) {
 			if (err) {
@@ -989,6 +1012,7 @@ function Server:listen(port, host, callback)
 			}
 		})
 		--]]
+		--[[
 		-- TODO: por ahora asumo que es siempre una ip x.x.x.x
 		local ip = host or "0.0.0.0"
 		local port = tonumber(port)
@@ -1004,15 +1028,24 @@ function Server:listen(port, host, callback)
 		end
 		self.type = (version == 6 and "tcp6") or (version == 4 and "tcp4") or error("unknown IP version")
 		self.acceptor:open(self.type)
-		bind(self.acceptor, port, ip)
+		local ok, err, msg = bind(self.acceptor, port, ip)
+		if not ok then
+			self:emit("error", err, msg)
+			return false
+		end
 		process.nextTick(function ()
 			self:_doListen()
 		end)
+		--]]
 	end
 end
 
 function Server:_doListen()
 	console.log("Server:_doListen")
+	if not self.acceptor then
+		-- was closed before started listening?
+		return
+	end
 	
 	local ok, err = self.acceptor:listen(self._backlog or 128)	-- el backlog
 	if not ok then
