@@ -111,6 +111,9 @@ rem @if not %errorlevel% == 0 exit %errorlevel%
 @call luanode run.lua simple.test-net-isip
 @if not %errorlevel% == 0 exit %errorlevel%
 
+@call luanode run.lua simple\test-net-multiple-writes-close.lua
+@if not %errorlevel% == 0 exit %errorlevel%
+
 @call luanode run.lua simple.test-net-reconnect
 @if not %errorlevel% == 0 exit %errorlevel%
 

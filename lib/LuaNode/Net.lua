@@ -796,11 +796,13 @@ function Stream:_shutdown()
 	if not self.writable then
 		error("The connection is not writable")
 	else
+		-- readable and writable
 		if self.readable then
 			self.writable = false
 			
 			self:_shutdownImpl()
 		else
+			-- writable but not readable
 			self:destroy()
 		end
 	end

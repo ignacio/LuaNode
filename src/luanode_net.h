@@ -62,8 +62,13 @@ private:
 	//boost::array<char, 4> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 32> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 64> m_inputArray;	// agrandar esto y poolearlo
-	boost::array<char, 128> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
+	//boost::array<char, 128> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
+	boost::array<char, 8192> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
 	lua_State* m_L;
+
+	bool m_close_pending;
+	unsigned long m_pending_writes;
+	unsigned long m_pending_reads;
 };
 
 }

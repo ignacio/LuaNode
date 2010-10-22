@@ -130,7 +130,10 @@ const Socket::RegType Socket::getters[] = {
 /// 
 Socket::Socket(lua_State* L) : 
 	m_L(L),
-	m_socketId(++s_nextSocketId)
+	m_socketId(++s_nextSocketId),
+	m_close_pending(false),
+	m_pending_writes(0),
+	m_pending_reads(0)
 {
 	s_socketCount++;
 	LogDebug("Constructing Socket (%p) (id=%d). Current socket count = %d", this, m_socketId, s_socketCount);
@@ -150,7 +153,10 @@ Socket::Socket(lua_State* L) :
 Socket::Socket(lua_State* L, boost::asio::ip::tcp::socket* socket) :
 	m_L(L),
 	m_socket(socket),
-	m_socketId(++s_nextSocketId)
+	m_socketId(++s_nextSocketId),
+	m_close_pending(false),
+	m_pending_writes(0),
+	m_pending_reads(0)
 {
 	s_socketCount++;
 	LogDebug("Constructing Socket (%p) (id=%d). Current socket count = %d", this, m_socketId, s_socketCount);
@@ -262,7 +268,16 @@ int Socket::Bind(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Close(lua_State* L) {
-	LogDebug("Socket::Close - Socket (%p) (id=%d)", this, m_socketId);
+	// Q: should I do the same when there are pending reads? probably not. One tends to have always a pending read.
+	if(m_pending_writes) {
+		LogDebug("Socket::Close - Socket (%p) (id=%d) marked for closing", this, m_socketId);
+		// can't close the socket right away, just flag it and close it when there are no more queued ops
+		m_close_pending = true;
+		lua_pushboolean(L, true);
+		return 1;
+	}
+	// nothing is waiting, just close the socket right away
+	LogDebug("Socket::Close - Socket (%p) (id=%d) closing now", this, m_socketId);
 	boost::system::error_code ec;
 	m_socket->close(ec);
 	return BoostErrorCodeToLua(L, ec);
@@ -325,6 +340,7 @@ int Socket::Write(lua_State* L) {
 
 		LogDebug("Socket::Write (%p) (id=%d) - Length=%d, \r\n'%s'", this, m_socketId, length, data);
 	
+		m_pending_writes++;
 		boost::asio::async_write(*m_socket, buffer,
 			boost::bind(&Socket::HandleWrite, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
@@ -342,6 +358,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
+	m_pending_writes--;
 	if(!error) {
 		LogInfo("Socket::HandleWrite (%p) (id=%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
 		lua_getfield(L, 1, "write_callback");
@@ -392,6 +409,14 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		}
 	}
 	lua_settop(L, 0);
+
+	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_socket->close(ec);
+		if(ec) {
+			LogError("Socket::HandleWrite - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -403,6 +428,8 @@ int Socket::Read(lua_State* L) {
 
 	if(lua_isnoneornil(L, 2)) {
 		LogDebug("Socket::Read (%p) (id=%d) - ReadSome", this, m_socketId);
+
+		m_pending_reads++;
 		m_socket->async_read_some(
 			boost::asio::buffer(m_inputArray), 
 			boost::bind(&Socket::HandleReadSome, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
@@ -414,12 +441,16 @@ int Socket::Read(lua_State* L) {
 
 		LogDebug("Socket::Read (%p) (id=%d) - ReadLine", this, m_socketId);
 
+		m_pending_reads++;
 		boost::asio::async_read_until(
 			*m_socket, 
 			m_inputBuffer, 
 			delimiter,
 			boost::bind(&Socket::HandleRead, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
+	}
+	else {
+		luaL_error(L, "for the moment the read must be done with nil or a number");
 	}
 
 	/*boost::asio::async_read(*m_socket, buffer,
@@ -435,6 +466,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
+	m_pending_reads--;
 	if(!error) {
 		LogInfo("Socket::HandleRead (%p) (id=%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
@@ -495,6 +527,14 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 		}
 	}
 	lua_settop(L, 0);
+
+	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_socket->close(ec);
+		if(ec) {
+			LogError("Socket::HandleRead - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -504,6 +544,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 	
+	m_pending_reads--;
 	const char* data = m_inputArray.c_array();
 	if(!error) {
 		LogInfo("Socket::HandleReadSome (%p) (id=%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
@@ -571,6 +612,14 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 		}
 	}
 	lua_settop(L, 0);
+
+	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_socket->close(ec);
+		if(ec) {
+			LogError("Socket::HandleReadSome - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////

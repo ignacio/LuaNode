@@ -422,6 +422,9 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
 		boost::system::error_code ec;
 		m_ssl_socket->lowest_layer().close(ec);
+		if(ec) {
+			LogError("SecureSocket::HandleWrite - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
 	}
 
 	lua_settop(L, 0);
@@ -545,6 +548,9 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
 		boost::system::error_code ec;
 		m_ssl_socket->lowest_layer().close(ec);
+		if(ec) {
+			LogError("Socket::HandleRead - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
 	}
 
 	lua_settop(L, 0);
@@ -630,6 +636,9 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
 		boost::system::error_code ec;
 		m_ssl_socket->lowest_layer().close(ec);
+		if(ec) {
+			LogError("Socket::HandleReadSome - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
 	}
 
 	lua_settop(L, 0);
@@ -638,10 +647,19 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Close(lua_State* L) {
-	LogDebug("SecureSocket::Close - Socket (%p) (id:%d)", this, m_socketId);
-	// can't close the socket right away, just flag it and close it when there are no more queued ops
-	m_close_pending = true;
-	return 0;
+	// Q: should I do the same when there are pending reads? probably not. One tends to have always a pending read.
+	if(m_pending_writes) {
+		LogDebug("SecureSocket::Close - Socket (%p) (id=%d) marked for closing", this, m_socketId);
+		// can't close the socket right away, just flag it and close it when there are no more queued ops
+		m_close_pending = true;
+		lua_pushboolean(L, true);
+		return 1;
+	}
+	// nothing is waiting, just close the socket right away
+	LogDebug("SecureSocket::Close - Socket (%p) (id=%d) closing now", this, m_socketId);
+	boost::system::error_code ec;
+	m_ssl_socket->lowest_layer().close(ec);
+	return BoostErrorCodeToLua(L, ec);
 }
 
 //////////////////////////////////////////////////////////////////////////
