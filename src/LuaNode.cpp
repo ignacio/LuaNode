@@ -21,9 +21,12 @@
 #include "luanode_crypto.h"
 #include "luanode_child_process.h"
 
+#ifdef _WIN32
+#include "luanode_file_win32.h"
+#endif
+
 #include "blogger.h"
 
-//#include "SocketServer.h"
 #include "../lib/preloader.h"
 
 namespace LuaNode {
@@ -42,6 +45,10 @@ static int tickCallback = LUA_NOREF;
 
 static boost::asio::io_service io_service;
 static CEvaluadorLua eval;
+
+/*static ev_async eio_want_poll_notifier;
+static ev_async eio_done_poll_notifier;
+static ev_idle  eio_poller;*/
 
 //////////////////////////////////////////////////////////////////////////
 /// 
@@ -68,6 +75,25 @@ static CEvaluadorLua eval;
 	lua_pushboolean(L, true);
 	return 1;
 }
+
+
+#ifndef _WIN32
+// EIOWantPoll() is called from the EIO thread pool each time an EIO
+// request (that is, one of the node.fs.* functions) has completed.
+static void EIOWantPoll(void) {
+	// Signal the main thread that eio_poll need to be processed.
+	//ev_async_send(EV_DEFAULT_UC_ &eio_want_poll_notifier);
+	int h = 0;
+}
+
+
+static void EIODonePoll(void) {
+	// Signal the main thread that we should stop calling eio_poll().
+	// from the idle watcher.
+	//ev_async_send(EV_DEFAULT_UC_ &eio_done_poll_notifier);
+	int h = 0;
+}
+#endif
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 
@@ -337,6 +363,8 @@ static int Load(int argc, char *argv[]) {
 
 	ChildProcess::Register(L, NULL, true);
 
+	Fs::RegisterFunctions(L);
+
 	//DefineConstants(process);                    // constants.cc
 	// Compile, execute the src/node.js file. (Which was included as static C
 	// string in node_natives.h. 'natve_node' is the string containing that
@@ -437,6 +465,7 @@ int main(int argc, char* argv[])
 #if defined(_WIN32)
 	if(!SetConsoleCtrlHandler((PHANDLER_ROUTINE)LuaNode::ConsoleControlHandler, TRUE)) {
 		LogError("SetConsoleCtrlHandler failed");
+		return -1;
 	}
 #endif
 
@@ -448,11 +477,14 @@ int main(int argc, char* argv[])
 	// Parse a few arguments which are specific to Node.
 	LuaNode::ParseArgs(&argc, argv);
 
-	int result = 0;
-	// TODO: Load tiene que devolver el result
-	result = LuaNode::Load(argc, argv);
+#ifndef _WIN32
+	eio_init(LuaNode::EIOWantPoll, LuaNode::EIODonePoll);
+	// Don't handle more than 10 reqs on each eio_poll(). This is to avoid
+	// race conditions. See test/simple/test-eio-race.js
+	eio_set_max_poll_reqs(10);
+#endif
 
-	//LuaNode::io_service.stop();
+	int result = LuaNode::Load(argc, argv);
 	LogFree();
 	return result;
 }

@@ -1,6 +1,7 @@
 local Stream = require "luanode.stream"
 
 local io = require "io"
+--local Fs = require "Fs"
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
@@ -18,7 +19,10 @@ function read(fd, length, position, callback)
 		callback = position
 		position = nil
 	end
+	
+	--Fs.read(fd, length, callback)
 
+	---[[
 	process.nextTick(function()
 		if type(position) == "number" then
 			assert(fd:seek("set", position))
@@ -28,6 +32,7 @@ function read(fd, length, position, callback)
 			callback(fd, err, data, #data)
 		end
 	end)
+	--]]
 end
 
 

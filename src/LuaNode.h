@@ -1,9 +1,15 @@
 #ifndef SRC_LUANODE_H_
 #define SRC_LUANODE_H_
 
-//#include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
 #include "EvaluadorLua.h"
+
+#include <sys/types.h>
+
+#ifndef _WIN32
+	#include "../deps/libeio/eio_patch.h"
+	#include "../deps/libeio/eio.h"
+#endif
 
 
 namespace LuaNode {
@@ -11,6 +17,7 @@ namespace LuaNode {
 	CEvaluadorLua& GetLuaEval();
 	int BoostErrorCodeToLua(lua_State* L, const boost::system::error_code& ec);
 	
+	const char *signo_string(int errorno);
 	
 	
 }
