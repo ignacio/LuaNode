@@ -23,7 +23,8 @@
 
 #include "blogger.h"
 
-#include "SocketServer.h"
+//#include "SocketServer.h"
+#include "../lib/preloader.h"
 
 namespace LuaNode {
 
@@ -31,6 +32,7 @@ static const char* LUANODE_VERSION = "0.0.1";
 static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
 static int option_end_index = 0;
+static bool debug_mode = false;
 static bool use_debug_agent = false;
 static bool debug_wait_connect = false;
 static int debug_port = 5858;
@@ -67,7 +69,7 @@ static CEvaluadorLua eval;
 	return 1;
 }
 
-#if defined(_WIN32)
+#if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 
 //////////////////////////////////////////////////////////////////////////
 /// Para poder bajar el servicio, si tengo la consola habilitada
@@ -102,6 +104,16 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 	}
 	return FALSE;
 }
+
+/*int CConsoleWrite(lua_State* L) {
+	const char* s = luaL_checkstring(L, 1);
+	size_t len = lua_objlen(L, 1);
+	DWORD dwWritten;
+	WriteFile(m_hConsole, s, len, &dwWritten, NULL);
+	return 0;
+}*/
+
+
 #endif
 
 
@@ -218,7 +230,7 @@ static void OnFatalError(const char* location, const char* message) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-static void Load(int argc, char *argv[]) {
+static int Load(int argc, char *argv[]) {
 	lua_State* L = LuaNode::eval;
 	
 	// tabla 'process'
@@ -230,6 +242,14 @@ static void Load(int argc, char *argv[]) {
 	// process.platform
 	lua_pushstring(L, LuaNode::OS::GetPlatform());
 	lua_setfield(L, table, "platform");
+
+	// FIXME: esto no puede quedar asi
+	lua_pushcfunction(L, LuaNode::OS::SetConsoleForegroundColor);
+	lua_setfield(L, table, "set_console_fg_color");
+	lua_pushcfunction(L, LuaNode::OS::SetConsoleBackgroundColor);
+	lua_setfield(L, table, "set_console_bg_color");
+	//lua_pushcfunction(L, CConsoleWrite);
+	//lua_setfield(L, table, "print_write");
 
 	// process.argv
 	lua_newtable(L);
@@ -324,20 +344,40 @@ static void Load(int argc, char *argv[]) {
 
 	// The node.js file returns a function 'f'
 
-	// TODO: Remove this hardcoded path
-	LuaNode::eval.dofile("d:/trunk_git/sources/LuaNode/src/node.lua");
+	int extension_status;
+
+	if(!debug_mode) {
+		PreloadModules(L);
+
+		#include "node.precomp"
+		if(extension_status) {
+			return lua_error(L);
+		}
+	}
+	else {
+		lua_pushboolean(L, true);
+		lua_setfield(L, LUA_GLOBALSINDEX, "DEBUG"); // esto es temporal
+		eval.loadfile("d:/trunk_git/sources/luanode/src/node.lua");
+	}
+
+	eval.call(0, 1);
+
 	int function = lua_gettop(L);
 	if(lua_type(L, function) != LUA_TFUNCTION) {
 		// TODO: fix me
 		LogError("Error in node.lua");
 		lua_settop(L, 0);
-		return;
+		return 1;
 	}
 	lua_pushvalue(L, table);
 
 	eval.call(1, LUA_MULTRET);
+	if(lua_type(L, -1) == LUA_TNUMBER) {
+		return lua_tointeger(L, -1);
+	}
 
 	// TODO: propagar el valor de exit hacia atras
+	return 0;
 }
 
 
@@ -352,6 +392,7 @@ static void ParseArgs(int *argc, char **argv) {
 		if (strstr(arg, "--debug") == arg) {
 			//ParseDebugOpt(arg);
 			argv[i] = const_cast<char*>("");
+			debug_mode = true;
 		} else if (strcmp(arg, "--version") == 0 || strcmp(arg, "-v") == 0) {
 			printf("%s\n", LUANODE_VERSION);
 			exit(0);
@@ -378,6 +419,10 @@ static void AtExit() {
 	//LuaNode::Stdio::Flush();
 	//LuaNode::Stdio::DisableRawMode(STDIN_FILENO);
 	LogFree();
+
+#if defined(_WIN32)  &&  !defined(__CYGWIN__) 
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+#endif
 }
 
 
@@ -405,8 +450,9 @@ int main(int argc, char* argv[])
 
 	int result = 0;
 	// TODO: Load tiene que devolver el result
-	LuaNode::Load(argc, argv);
+	result = LuaNode::Load(argc, argv);
 
+	//LuaNode::io_service.stop();
 	LogFree();
 	return result;
 }
