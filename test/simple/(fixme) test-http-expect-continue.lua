@@ -1,3 +1,4 @@
+-- no anda, esta raro porque el server cierra el socket luego de responder al continue
 module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")

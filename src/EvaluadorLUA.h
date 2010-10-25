@@ -21,9 +21,6 @@ public:
 
 	static int OnPanic(lua_State* L);
 
-	// helpers
-	static void PushPathArray(const CBStringList& paths, lua_State* L);
-
 protected:
 	long m_ID;	// a numeric ID
 	unsigned int m_timestampLastUsed;

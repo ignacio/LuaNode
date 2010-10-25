@@ -2,32 +2,26 @@ return function(process)
 
 _G.process = process
 
--- TODO: fix me
--- a prepo enchufo los paths de luarocks
-package.path = [[d:\trunk_git\sources\LuaNode\lib\?.lua;d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] .. [[C:\LuaRocks\1.0\lua\?.lua;C:\LuaRocks\1.0\lua\?\init.lua;]] .. package.path
-
---
---
---[=[
-local function require_internal(...)
-	local path, cpath = package.path, package.cpath
-	
-	-- TODO: fix these paths
-	package.path = [[d:\trunk_git\sources\LuaNode\lib\?.lua;d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] .. path
-	package.cpath = [[d:\trunk_git\sources\LuaNode\lib\?.dll;]] .. cpath
-	
-	local ok, result = pcall(require, ...)
-	
-	package.path = path
-	package.cpath = cpath
-	
-	if not ok then
-		error(result)
-	end
-	
-	return result
+if DEBUG then
+	-- TODO: fix me, infer the path instead of hardcoding it
+	package.path = [[d:\trunk_git\sources\LuaNode\lib\?.lua;d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] .. 
+		[[C:\LuaRocks\1.0\lua\?.lua;C:\LuaRocks\1.0\lua\?\init.lua;]] .. package.path
+	package.cpath = [[.\?.dll;C:\LuaRocks\1.0\?.dll;C:\LuaRocks\1.0\loadall.dll;]] .. package.cpath
 end
-]=]
+
+--[[
+-- Insert a loader that allows me to require luanode.* as if they were on a (case insensitive) filesystem
+table.insert(package.loaders, function(name)
+	print(name, package.preload[name])
+	name = name:lower()
+	if name:match("^luanode%.") and package.preload[name] then
+		print(name, "found")
+		--return function()
+			return package.preload[name]
+		--end
+	end
+end)
+]]
 
 -- nextTick()
 
@@ -35,24 +29,20 @@ local nextTickQueue = {}
 
 -- como lo de javascript
 local function splice(array, from)
-	local t = {}
+	local t = {} 
 	for i = from, #array do
 		t[#t + 1] = array[i]
-	end
+	end 
 	return t
 end
 
 process._tickcallback = function()
-	print("_tickcallback - begin")
 	local l = #nextTickQueue
-	--print("_tickcallback - "..l.." callbacks in queue")
 	if l == 0 then
-		print("_tickcallback - end")
 		return
 	end
 	
 	-- can't use ipairs because if a callback calls nextTick it will be called immediately
-	--for _, callback in ipairs(nextTickQueue) do
 	for i=1, l do
 		nextTickQueue[i]()
 		--local ok, err = pcall(nextTickQueue[i])
@@ -64,12 +54,6 @@ process._tickcallback = function()
 		--end
 	end
 	nextTickQueue = splice(nextTickQueue, l + 1)
-	--local t = {}
-	--for i = l + 1, #nextTickQueue do
-	--		t[#t + 1] = nextTickQueue[i]
-	--	end
-	--	nextTickQueue = t
-	print("_tickcallback - end")
 end
 
 process.nextTick = function(callback)
@@ -77,21 +61,10 @@ process.nextTick = function(callback)
 	process._needTickCallback()
 end
 
---local events = require_internal "LuaNode.EventEmitter"
-local events = require "LuaNode.EventEmitter"
-
+local events = require "luanode.event_emitter"
 -- hacemos que process se convierta en un EventEmitter
 setmetatable(process, {__index = events:new() })
---setmetatable(process, events:new())
 
--- TODO: esto luego va a funcionar con require normal y no lo voy a hacer de acá a prepo
--- ojo con el clash de nombres, que tengo el modulo Net desde LuaNode
---local net = require_internal "net"
---local net = require "LuaNode.Net"
---local http = require_internal "http"
---local http = require "LuaNode.Http"
---local url = require_internal "url"
---local url = require "LuaNode.Url"
 
 -- TODO: Meter la parte de Signal Handlers de node.js
 --[=[
@@ -146,7 +119,6 @@ setmetatable(process, {__index = events:new() })
 -- Timers
 --
 local function addTimerListener(timer, callback, ...)
-	print("addTimerListener", type(callback))
 	if select("#", ...) > 0 then
 		local args = {...}
 		timer.callback = function()
@@ -198,47 +170,101 @@ end
 
 function LogDebug(fmt, ...)
 	local msg = string.format(fmt, LogArgumentsFormatter(...))
-	print(msg) --scriptLogger.LogDebug(msg)
+	--print(msg) --scriptLogger.LogDebug(msg)
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
 
 function LogInfo(fmt, ...)
 	local msg = string.format(fmt, LogArgumentsFormatter(...))
-	print(msg) --scriptLogger.LogInfo(msg)
+	--print(msg) --scriptLogger.LogInfo(msg)
+	--io.write(msg)
+	--io.write("\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
 
 function LogWarning(fmt, ...)
 	local msg = string.format(fmt, LogArgumentsFormatter(...))
-	print(msg) --scriptLogger.LogWarning(msg)
+	--print(msg) --scriptLogger.LogWarning(msg)
+	io.write(msg)
+	io.write("\r\n")
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
 end
 
 function LogError(fmt, ...)
 	local msg = string.format(fmt, LogArgumentsFormatter(...))
-	print(msg) --scriptLogger.LogError(msg)
+	--print(msg) --scriptLogger.LogError(msg)
+	io.write(msg)
+	io.write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
 	return msg
 end
 
 function LogFatal(fmt, ...)
 	local msg = string.format(fmt, LogArgumentsFormatter(...))
-	print(msg) --scriptLogger.LogFatal(msg)
+	--print(msg) --scriptLogger.LogFatal(msg)
+	io.write(msg)
+	io.write("\r\n")
 	if decoda_output then decoda_output("[FATAL] " .. msg) end
 	return msg
 end
 
+console = require "luanode.console"
 
-console = {
-	log   = LogDebug,
-	info  = LogInfo,
-	warn  = LogWarning,
-	["error"] = LogError,
-	fatal = LogFatal
-}
+function console.log (fmt, ...)
+	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	--print(msg) --scriptLogger.LogDebug(msg)
+	io.write(msg)
+	io.write("\r\n")
+	if decoda_output then decoda_output("[DEBUG] " .. msg) end
+	return msg
+end
+
+function console.info (fmt, ...)
+	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	--print(msg) --scriptLogger.LogInfo(msg)
+	io.write(msg)
+	io.write("\r\n")
+	if decoda_output then decoda_output("[INFO ] " .. msg) end
+	return msg
+end
+
+function console.warn (fmt, ...)
+	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	--print(msg) --scriptLogger.LogWarning(msg)
+	console.color("yellow")
+	io.write(msg)
+	console.color("gray")
+	io.write("\r\n")
+	if decoda_output then decoda_output("[WARN ] " .. msg) end
+	return msg
+end
+
+console["error"] = function (fmt, ...)
+	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	--print(msg) --scriptLogger.LogError(msg)
+	console.color("lightred")
+	io.write(msg)
+	console.color("gray")
+	io.write("\r\n")
+	if decoda_output then decoda_output("[ERROR] " .. msg) end
+	return msg
+end
+
+function console.fatal (fmt, ...)
+	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	--print(msg) --scriptLogger.LogFatal(msg)
+	console.color("lightred")
+	console.bgcolor("white")
+	io.write(msg)
+	console.reset_color()
+	io.write("\r\n")
+	if decoda_output then decoda_output("[FATAL] " .. msg) end
+	return msg
+end
+
 
 local times = {}
 -- TODO: Supply a high-perf timer if available. This sucks
@@ -278,8 +304,7 @@ process.kill = function(pid, sig)
 end
 
 local cwd = process.cwd()
---local path = require_internal("path")
-local path = require "LuaNode.path"
+local path = require "luanode.path"
 
 -- Make process.argv[1] and process.argv[2] into full paths.
 
@@ -304,6 +329,8 @@ if process.argv[2] then
 	end
 end
 --]=]
+local propagate_result = 0
+
 if not process.argv[2] then
 	-- run repl
 	process:loop()
@@ -331,9 +358,14 @@ else
 	end
 	local args = {}
 	for i=3, #process.argv do args[#args + 1] = process.argv[i] end
-	code(unpack(args))
+	local result = code(unpack(args))
+	if result ~= nil then
+		propagate_result = tonumber(result)
+	end
 end
 
 process:emit("exit")
+
+return propagate_result
 
 end

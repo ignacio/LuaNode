@@ -11,25 +11,6 @@ extern CBString InternalStackTrace(lua_State* L, int startLevel, bool traverseIn
 
 long CEvaluadorLua::s_nextID = 0;
 
-//////////////////////////////////////////////////////////////////////////
-/// Toma una lista de strings y la convierte a un array Lua. Asume que
-/// hay una tabla Lua al tope del stack.
-/*static*/ void CEvaluadorLua::PushPathArray(const CBStringList& paths, lua_State* L) {
-	assert(lua_istable(L, -1));
-
-	CBStringList::const_iterator iter;
-	int i;
-	lua_createtable(L, paths.size(), 0);
-
-	for(iter = paths.begin(), i = 1;
-		iter != paths.end(); ++iter, ++i)
-	{
-		lua_pushnumber(L, i);
-		lua_pushstring(L, *iter);
-		lua_settable(L, -3);
-	}
-}
-
 
 //////////////////////////////////////////////////////////////////////
 // Constructor

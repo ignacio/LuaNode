@@ -1,11 +1,9 @@
 --var util = require('util');
 
 local net = require "luanode.net"
-
-local EventEmitter = require "luanode.EventEmitter"
-local stream = require "luanode.Stream"
-
-local FreeList = require "luanode.freelist"
+local EventEmitter = require "luanode.event_emitter"
+local stream = require "luanode.stream"
+local FreeList = require "luanode.free_list"
 local HTTPParser = process.HTTPParser	--local HTTPParser = require "HTTPParser"
 
 -- TODO: sacar el seeall
@@ -844,7 +842,7 @@ end)
 --
 --
 local function connectionListener (server, socket)
-	--LogDebug("new http connection")
+	LogDebug("new http connection")
 	
 	httpSocketSetup(socket)
 	
@@ -1053,7 +1051,7 @@ function Client:new ()
 	
 	newClient:addListener("secure", function (self)
 		self:_initParser()
-		--debug('requests: ' + util.inspect(self._outgoing));
+		LogDebug('requests: ')-- + util.inspect(self._outgoing));
 		outgoingFlush(newClient)
 	end)
 	

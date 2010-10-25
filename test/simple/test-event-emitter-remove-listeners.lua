@@ -6,7 +6,7 @@ common = dofile("common.lua")
 --assert = common.assert
 
 function test()
-	local EventEmitter = require "luanode.EventEmitter"
+	local EventEmitter = require "luanode.event_emitter"
 
 	count = 0
 

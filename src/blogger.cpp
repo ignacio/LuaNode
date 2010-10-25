@@ -3,6 +3,7 @@
 extern "C" {
 #include <libBlogger2/libblogger2.h>
 }
+#include <stdarg.h>
 
 static bool bFirstRun = true;
 static logger_instance objLog = NULL;

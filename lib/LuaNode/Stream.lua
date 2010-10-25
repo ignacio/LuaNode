@@ -1,4 +1,4 @@
-local EventEmitter = require "luanode.EventEmitter"
+local EventEmitter = require "luanode.event_emitter"
 --var util = require('util');
 
 -- TODO: sacar el seeall

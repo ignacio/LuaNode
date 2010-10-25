@@ -3,6 +3,7 @@
 #include "blogger.h"
 #include "ToDo.h"
 #include <assert.h>
+#include <supportLib/bstring/bstrwrap.h>
 
 //////////////////////////////////////////////////////////////////////////
 /// Given a source file and a line number, tries to find the name of the function defined in that line.
@@ -434,6 +435,6 @@ CBString redirected_print_formatter(lua_State* L) {
 /// Función para reemplazar el 'print' de Lua. Redirige la salida a
 /// LogInfo
 int redirected_print(lua_State* L) {
-	LogInfo("%s", (const char*)redirected_print_formatter(L));
+	printf("%s\r\n", (const char*)redirected_print_formatter(L));
 	return 0;
 }

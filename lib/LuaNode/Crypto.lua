@@ -4,8 +4,8 @@ local SecureContext = process.SecureContext
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
-local ssl = require "ssl"
-require("ssl.context")
+--local ssl = require "ssl"
+--require("ssl.context")
 
 local RootCaCerts = {
 -- "GTE CyberTrust Root CA"

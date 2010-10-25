@@ -1,4 +1,4 @@
-local Stream = require "luanode.Stream"
+local Stream = require "luanode.stream"
 
 local io = require "io"
 

@@ -1,4 +1,4 @@
-local EventEmitter = require "luanode.EventEmitter"
+local EventEmitter = require "luanode.event_emitter"
 local Stream = require("luanode.stream").Stream
 
 -- TODO: sacar el seeall

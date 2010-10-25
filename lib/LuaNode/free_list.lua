@@ -1,5 +1,6 @@
--- TODO: sacar el seeall
-module(..., package.seeall)
+local setmetatable, table = setmetatable, table
+
+module((...))
 
 -- This is a free list to avoid creating so many of the same object.
 

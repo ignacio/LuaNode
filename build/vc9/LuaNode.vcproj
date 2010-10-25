@@ -14,6 +14,9 @@
 		/>
 	</Platforms>
 	<ToolFiles>
+		<ToolFile
+			RelativePath=".\build_lua.rules"
+		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -28,6 +31,9 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="Build Lua File"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -103,6 +109,9 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="Build Lua File"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -183,6 +192,9 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
+				Name="Build Lua File"
+			/>
+			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -196,7 +208,7 @@
 				Optimization="0"
 				EnableIntrinsicFunctions="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\sources\LuaNode\deps\http-parser&quot;"
+				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\sources\LuaNode\deps\http-parser&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -218,10 +230,11 @@
 				AdditionalDependencies="lua5.1.lib Support_vc9.lib libblogger2.lib ssleay32.lib libeay32.lib"
 				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\stage\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(INCONCERT_DEVEL)\bin\$(TargetName).pdb"
 				SubSystem="1"
+				LargeAddressAware="2"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
 				LinkTimeCodeGeneration="0"
@@ -260,10 +273,6 @@
 			>
 			<File
 				RelativePath="..\..\src\blogger.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\ClientConnection.cpp"
 				>
 			</File>
 			<File
@@ -311,7 +320,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\SocketServer.cpp"
+				RelativePath="..\..\lib\preloader.cpp"
 				>
 			</File>
 			<File
@@ -350,10 +359,6 @@
 			>
 			<File
 				RelativePath="..\..\src\blogger.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\ClientConnection.h"
 				>
 			</File>
 			<File
@@ -401,6 +406,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lib\preloader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\SocketServer.h"
 				>
 			</File>
@@ -427,163 +436,7 @@
 			Name="Network"
 			>
 			<File
-				RelativePath="..\..\src\Network\IIndexedOpaqueUserData.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\IMonitorSocketAllocation.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\IndexedOpaqueUserData.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\IProvideUserData.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\ISocket.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\IStreamSocketServerCallback.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\NamedIndex.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Debuggable|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\NamedIndex.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\NullSocketAllocationMonitor.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\Network\shared_const_buffer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\Socket.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Debuggable|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\Socket.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\SocketAllocator.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Debuggable|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\SocketAllocator.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\StreamSocketServer.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Debuggable|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\Network\StreamSocketServer.h"
 				>
 			</File>
 		</Filter>
@@ -625,6 +478,74 @@
 				RelativePath="..\..\deps\http-parser\http_parser.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Lua files"
+			>
+			<File
+				RelativePath="..\..\lib\LuaNode\child_process.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\console.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\crypto.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\dns.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\event_emitter.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\free_list.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\fs.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\http.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\net.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\node.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\path.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\querystring.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\stream.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\url.lua"
+				>
+			</File>
+			<Filter
+				Name="net"
+				>
+				<File
+					RelativePath="..\..\lib\LuaNode\net\timeout.lua"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

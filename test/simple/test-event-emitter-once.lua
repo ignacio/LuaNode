@@ -2,7 +2,7 @@ module(..., lunit.testcase, package.seeall)
 
 common = dofile("common.lua")
 
-local EventEmitter = require "luanode.EventEmitter"
+local EventEmitter = require "luanode.event_emitter"
 
 function test()
 	local e = EventEmitter:new()

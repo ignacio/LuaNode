@@ -1,7 +1,7 @@
 --local util = require "util"		--var util = require("util");
 --local fs = require "fs"			--var fs = require("fs");
-local EventEmitter = require "luanode.EventEmitter"
-local stream = require "luanode.Stream"
+local EventEmitter = require "luanode.event_emitter"
+local stream = require "luanode.stream"
 
 
 -- TODO: arreglar el despelote de los fd's
@@ -13,13 +13,13 @@ local Timeout = require "luanode.net.timeout"
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
-local dns = require "luanode.Dns"		-- var dns = require("dns");
+local dns = require "luanode.dns"		-- var dns = require("dns");
 
 local kMinPoolSpace = 128
 local kPoolSize = 40 * 1024
 
 --local Buffer = require "buffer"
-local FreeList = require "luanode.freelist"
+local FreeList = require "luanode.free_list"
 
 local Net = require "Net"--process.Net
 
@@ -596,7 +596,7 @@ local function doConnect(stream, port, host)
 		return
 	end
 	
-	console.log("connecting to %s:%d", host, port)
+	LogDebug("connecting to %s:%d", host, port)
 
 	-- Don't start the read watcher until connection is established
 	--socket._readWatcher.set(socket.fd, true, false)
@@ -947,7 +947,7 @@ end
 -- connections directed to any IPv4 address (INADDR_ANY).
 -- This function is asynchronous. The last parameter callback will be called when the server has been bound.
 function Server:listen (port, host, callback)
-	console.log("Server:listen %s, %s, %s", port, host, callback)
+	LogDebug("Server:listen %s, %s, %s", port, host, callback)
 	
 	if self.fd then
 		error("Server already opened")
@@ -1043,7 +1043,6 @@ function Server:listen (port, host, callback)
 end
 
 function Server:_doListen()
-	console.log("Server:_doListen")
 	if not self.acceptor then
 		-- was closed before started listening?
 		return
@@ -1058,7 +1057,6 @@ function Server:_doListen()
 end
 
 function Server:_startWatcher()
-	print("Server:_startWatcher")
 	--this.watcher.set(this.fd, true, false)
 	--this.watcher.start()
 	--this.emit("listening")

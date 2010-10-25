@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="Build Lua File"
+	Version="8,00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="Build Lua File"
+			DisplayName="Build Lua File"
+			CommandLine="..\..\tools\lua5.1.exe ..\..\tools\bin2c.lua $(InputPath) extension_status &gt; &quot;$(InputDir)\$(InputName).precomp&quot;"
+			Outputs="$(InputDir)\$(InputName).precomp"
+			FileExtensions="*.lua"
+			>
+			<Properties>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>

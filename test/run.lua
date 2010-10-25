@@ -1,3 +1,7 @@
+package.path = ---[[d:\trunk_git\sources\LuaNode\lib\?.lua;d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] ..
+	[[d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] .. [[C:\LuaRocks\1.0\lua\?.lua;C:\LuaRocks\1.0\lua\?\init.lua;]] .. package.path
+--package.cpath = [[.\?.dll;C:\LuaRocks\1.0\?.dll;C:\LuaRocks\1.0\loadall.dll;]] .. package.cpath
+
 require "luarocks.require"
 require "lunit"
 
@@ -5,13 +9,6 @@ local console = require "lunit-console"
 
 -- eventos posibles:
 -- begin, done, fail, err, run, pass
-
---require "simple.test-net-binary"
---require "simple.test-net-isip"
---require "simple.test-net-server-max-connections"
---require "simple.test-http"
-
---require "simple.test-event-emitter-add-listeners"
 
 local num_tests = select("#", ...)
 if num_tests == 0 then
@@ -48,5 +45,8 @@ lunit.setrunner({
 })
 
 --console.begin()
-lunit.run()
+local stats = lunit.run()
+if stats.failed > 0 or stats.errors > 0 then
+	return -1
+end
 --console.done()

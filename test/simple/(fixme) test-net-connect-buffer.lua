@@ -40,14 +40,14 @@ function startClient ()
 
 	socket:on('connect', function ()
 		console.log('socket connected')
-		socket:finish()		-- asi anda
+		--socket:finish()		-- asi anda
 	end)
 
 	assert_equal("opening", socket:readyState())
 
 	assert_equal(false, socket:write("foo"))
-	--socket:finish("bar")
-	socket:write("bar")	-- asi anda
+	socket:finish("bar")
+	--socket:write("bar")	-- asi anda
 
 	assert_equal("opening", socket:readyState())
 end

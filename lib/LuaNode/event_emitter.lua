@@ -1,9 +1,8 @@
 local assert, type, error, ipairs, print, pcall = assert, type, error, ipairs, print, pcall
-local table = table
+local table, setmetatable = table, setmetatable
+local select = select
 
-
--- TODO: sacar el seeall
-module(..., package.seeall)
+module((...))
 
 _M.__index = _M
 
@@ -29,6 +28,7 @@ function _M:emit(kind, ...)
 			( isArray(self._events.error) and #(self._events.error) )
 		then
 			-- TODO: entender como funciona esta parte en events.js@EventEmitter.emit
+			-- porque cuando esto ocurre (desde un callback) se tranca la consola y ctrl-c no la mata
 			error(...)
 		end
 	end
@@ -50,6 +50,7 @@ function _M:emit(kind, ...)
 			local arg1 = select(1, ...)
 			local arg2 = select(2, ...)
 			--print("before emitting " .. kind)
+			print(type(handler))
 			handler(self, arg1, arg2)
 			--print("after emitting " .. kind)
 		else
