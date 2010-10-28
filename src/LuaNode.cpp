@@ -10,6 +10,7 @@
 //#include <unistd.h>
 #include <errno.h>
 #include <direct.h>	//< contigo seguro que voy a tener problemas
+#include <signal.h>
 
 #include "platform.h"
 
@@ -29,8 +30,20 @@
 
 #include "../lib/preloader.h"
 
+
+/*#ifdef _WIN32
+#include <io.h>
+#include <stdio.h>
+#define lua_stdin_is_tty()	_isatty(_fileno(stdin))
+#else
+#include <unistd.h>
+#define lua_stdin_is_tty()	isatty(0)
+#endif*/
+
+
 namespace LuaNode {
 
+static const char* LUANODE_PROGNAME = "LuaNode";
 static const char* LUANODE_VERSION = "0.0.1";
 static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
@@ -76,6 +89,31 @@ static ev_idle  eio_poller;*/
 	return 1;
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// 
+static void SignalExit(int signal) {
+	// Stop the io pool
+	LuaNode::GetIoService().stop();
+	// Kindly leave the stage...
+	exit(1);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int RegisterSignalHandler(int sig_no, void (*handler)(int)) {
+#ifdef _WIN32
+	signal(sig_no, handler);
+	return 0;
+#else
+	struct sigaction sa;
+
+	memset(&sa, 0, sizeof(sa));
+
+	sigfillset(&sa.sa_mask);
+	return sigaction(sig_no, &sa, NULL);
+#endif	
+}
+
 
 #ifndef _WIN32
 // EIOWantPoll() is called from the EIO thread pool each time an EIO
@@ -97,39 +135,6 @@ static void EIODonePoll(void) {
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 
-//////////////////////////////////////////////////////////////////////////
-/// Para poder bajar el servicio, si tengo la consola habilitada
-BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
-	LogInfo("***** Console Event Detected *****");
-	switch(ctrlType) {
-		case CTRL_LOGOFF_EVENT:
-			LogInfo("Event: CTRL-LOGOFF Event");
-			return TRUE;
-		break;
-		case CTRL_C_EVENT:
-		case CTRL_BREAK_EVENT:
-			LogInfo("Event: CTRL-C or CTRL-BREAK Event");
-			//_Module.SetServiceStatus(SERVICE_STOP_PENDING);
-			//PostThreadMessage(_Module.m_dwThreadID, WM_QUIT, 0, 0);
-			
-			// Stop the io pool
-			LuaNode::GetIoService().stop();
-			LogInfo("After CTRL-C event");
-			return TRUE;
-		break;
-		case CTRL_CLOSE_EVENT:
-		case CTRL_SHUTDOWN_EVENT:
-			LogInfo("Event: CTRL-CLOSE or CTRL-SHUTDOWN Event");
-			//_Module.SetServiceStatus(SERVICE_STOP_PENDING);
-			//PostThreadMessage(_Module.m_dwThreadID, WM_QUIT, 0, 0);
-			
-			// Stop the io pool
-			LuaNode::GetIoService().stop();
-			return FALSE;
-		break;
-	}
-	return FALSE;
-}
 
 /*int CConsoleWrite(lua_State* L) {
 	const char* s = luaL_checkstring(L, 1);
@@ -141,8 +146,6 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 
 
 #endif
-
-
 
 //////////////////////////////////////////////////////////////////////////
 /// 
@@ -256,9 +259,222 @@ static void OnFatalError(const char* location, const char* message) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
+static void PrintVersion() {
+	printf("LuaNode %s\n", LUANODE_VERSION);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// taken from Lua interpreter
+
+static void lstop (lua_State *L, lua_Debug *ar) {
+	(void)ar;  /* unused arg. */
+	lua_sethook(L, NULL, 0, 0);
+	luaL_error(L, "interrupted!");
+}
+
+static void laction (int i) {
+	signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
+							terminate process (default action) */
+	lua_sethook(LuaNode::eval, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static void PrintUsage (void) {
+	fprintf(stderr,
+		"usage: %s [options] [script [args]].\n"
+		"Available options are:\n"
+		"  -e stat  execute string " LUA_QL("stat") "\n"
+		"  -l name  require library " LUA_QL("name") "\n"
+		"  -i       enter interactive mode after executing " LUA_QL("script") "\n"
+		"  -v       show version information\n"
+		"  --       stop handling options\n"
+		"  -        execute stdin and stop handling options\n"
+		,
+		LUANODE_PROGNAME);
+	fflush(stderr);
+}
+
+static void l_message (const char *pname, const char *msg) {
+	if (pname) fprintf(stderr, "%s: ", pname);
+	fprintf(stderr, "%s\n", msg);
+	fflush(stderr);
+}
+
+
+static int report (lua_State *L, int status) {
+	if (status && !lua_isnil(L, -1)) {
+		const char *msg = lua_tostring(L, -1);
+		if (msg == NULL) msg = "(error object is not a string)";
+		l_message(LUANODE_PROGNAME, msg);
+		lua_pop(L, 1);
+	}
+	return status;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int traceback (lua_State *L) {
+	if (!lua_isstring(L, 1))  /* 'message' not a string? */
+		return 1;  /* keep it intact */
+	lua_getfield(L, LUA_GLOBALSINDEX, "debug");
+	if (!lua_istable(L, -1)) {
+		lua_pop(L, 1);
+		return 1;
+	}
+	lua_getfield(L, -1, "traceback");
+	if (!lua_isfunction(L, -1)) {
+		lua_pop(L, 2);
+		return 1;
+	}
+	lua_pushvalue(L, 1);  /* pass error message */
+	lua_pushinteger(L, 2);  /* skip this function and traceback */
+	lua_call(L, 2, 1);  /* call debug.traceback */
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int docall (lua_State *L, int narg, int clear) {
+	int status;
+	int base = lua_gettop(L) - narg;  /* function index */
+	lua_pushcfunction(L, traceback);  /* push traceback function */
+	lua_insert(L, base);  /* put it under chunk and args */
+	signal(SIGINT, laction);
+	status = lua_pcall(L, narg, (clear ? 0 : LUA_MULTRET), base);
+	signal(SIGINT, SIG_DFL);
+	lua_remove(L, base);  /* remove traceback function */
+	/* force a complete garbage collection in case of errors */
+	if (status != 0) lua_gc(L, LUA_GCCOLLECT, 0);
+	return status;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int dofile (lua_State *L, const char *name) {
+	int status = luaL_loadfile(L, name) || docall(L, 0, 1);
+	return report(L, status);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int dostring (lua_State *L, const char *s, const char *name) {
+	int status = luaL_loadbuffer(L, s, strlen(s), name) || docall(L, 0, 1);
+	return report(L, status);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int dolibrary (lua_State *L, const char *name) {
+	lua_getglobal(L, "require");
+	lua_pushstring(L, name);
+	return report(L, docall(L, 1, 1));
+}
+
+/* check that argument has no extra characters at the end */
+#define notail(x)	{if ((x)[2] != '\0') return -1;}
+
+
+static int collectargs (char **argv, int *pi, int *pv, int *pe) {
+	int i;
+	for (i = 1; argv[i] != NULL; i++) {
+		if (argv[i][0] != '-')  /* not an option? */
+			return i;
+		switch (argv[i][1]) {  /* option */
+	  case '-':
+		  notail(argv[i]);
+		  return (argv[i+1] != NULL ? i+1 : 0);
+	  case '\0':
+		  return i;
+	  case 'i':
+		  notail(argv[i]);
+		  *pi = 1;  /* go through */
+	  case 'v':
+		  notail(argv[i]);
+		  *pv = 1;
+		  break;
+	  case 'e':
+		  *pe = 1;  /* go through */
+	  case 'l':
+		  if (argv[i][2] == '\0') {
+			  i++;
+			  if (argv[i] == NULL) return -1;
+		  }
+		  break;
+	  default: return -1;  /* invalid option */
+		}
+	}
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int runargs (lua_State *L, char **argv, int n) {
+	int i;
+	for (i = 1; i < n; i++) {
+		if (argv[i] == NULL) continue;
+		lua_assert(argv[i][0] == '-');
+		switch (argv[i][1]) {  /* option */
+	  case 'e': {
+		  const char *chunk = argv[i] + 2;
+		  if (*chunk == '\0') chunk = argv[++i];
+		  lua_assert(chunk != NULL);
+		  if (dostring(L, chunk, "=(command line)") != 0)
+			  return 1;
+		  break;
+				}
+	  case 'l': {
+		  const char *filename = argv[i] + 2;
+		  if (*filename == '\0') filename = argv[++i];
+		  lua_assert(filename != NULL);
+		  if (dolibrary(L, filename))
+			  return 1;  /* stop if file fails */
+		  break;
+				}
+	  default: break;
+		}
+	}
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int handle_luainit (lua_State *L) {
+	const char *init = getenv(LUA_INIT);
+	if (init == NULL) return 0;  /* status OK */
+	else if (init[0] == '@')
+		return dofile(L, init+1);
+	else
+		return dostring(L, init, "=" LUA_INIT);
+}
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
 static int Load(int argc, char *argv[]) {
 	lua_State* L = LuaNode::eval;
 	
+	int status = handle_luainit(L);
+	if(status != 0) return EXIT_FAILURE;
+
+	int has_i, has_v, has_e;
+	int script = collectargs(argv, &has_i, &has_v, &has_e);
+	if (script < 0) {  /* invalid args? */
+		PrintUsage();
+		//s->status = 1;
+		return 1;
+	}
+
+	status = runargs(L, argv, (script > 0) ? script : argc);
+	//status = runargs(L, argv, argc);
+	if(status != 0) return EXIT_FAILURE;
+
 	// tabla 'process'
 	lua_newtable(L);
 	int table = lua_gettop(L);
@@ -287,8 +503,6 @@ static int Load(int argc, char *argv[]) {
 		lua_rawseti(L, argArray, j);
 	}
 	// assign it
-	lua_pushvalue(L, argArray);
-	lua_setfield(L, table, "ARGV");
 	lua_setfield(L, table, "argv");
 
 	// create process.env
@@ -307,9 +521,6 @@ static int Load(int argc, char *argv[]) {
 		}
 		lua_settable(L, envTable);
 	}
-	// assign process.ENV
-	lua_pushvalue(L, envTable);
-	lua_setfield(L, table, "ENV");
 	lua_setfield(L, table, "env");
 
 	lua_pushinteger(L, _getpid());
@@ -392,10 +603,9 @@ static int Load(int argc, char *argv[]) {
 
 	int function = lua_gettop(L);
 	if(lua_type(L, function) != LUA_TFUNCTION) {
-		// TODO: fix me
 		LogError("Error in node.lua");
 		lua_settop(L, 0);
-		return 1;
+		return EXIT_FAILURE;
 	}
 	lua_pushvalue(L, table);
 
@@ -404,8 +614,7 @@ static int Load(int argc, char *argv[]) {
 		return lua_tointeger(L, -1);
 	}
 
-	// TODO: propagar el valor de exit hacia atras
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 
@@ -422,15 +631,15 @@ static void ParseArgs(int *argc, char **argv) {
 			argv[i] = const_cast<char*>("");
 			debug_mode = true;
 		} else if (strcmp(arg, "--version") == 0 || strcmp(arg, "-v") == 0) {
-			printf("%s\n", LUANODE_VERSION);
-			exit(0);
+			PrintVersion();
+			exit(EXIT_SUCCESS);
 		} else if (strcmp(arg, "--vars") == 0) {
 			//printf("NODE_PREFIX: %s\n", NODE_PREFIX);
 			//printf("NODE_CFLAGS: %s\n", NODE_CFLAGS);
-			exit(0);
+			exit(EXIT_SUCCESS);
 		} else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
-			//PrintHelp();
-			exit(0);
+			PrintUsage();
+			exit(EXIT_SUCCESS);
 		/*} else if (strcmp(arg, "--v8-options") == 0) {
 			argv[i] = const_cast<char*>("--help");*/
 		} else if (argv[i][0] != '-') {
@@ -453,6 +662,39 @@ static void AtExit() {
 #endif
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Para poder bajar el servicio, si tengo la consola habilitada
+BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
+	LogInfo("***** Console Event Detected *****");
+	switch(ctrlType) {
+		case CTRL_LOGOFF_EVENT:
+			LogInfo("Event: CTRL-LOGOFF Event");
+			return TRUE;
+			break;
+		case CTRL_C_EVENT:
+		case CTRL_BREAK_EVENT:
+			LogInfo("Event: CTRL-C or CTRL-BREAK Event");
+			//_Module.SetServiceStatus(SERVICE_STOP_PENDING);
+			//PostThreadMessage(_Module.m_dwThreadID, WM_QUIT, 0, 0);
+
+			// Stop the io pool
+			LuaNode::GetIoService().stop();
+			LogInfo("After CTRL-C event");
+			return TRUE;
+			break;
+		case CTRL_CLOSE_EVENT:
+		case CTRL_SHUTDOWN_EVENT:
+			LogInfo("Event: CTRL-CLOSE or CTRL-SHUTDOWN Event");
+			//_Module.SetServiceStatus(SERVICE_STOP_PENDING);
+			//PostThreadMessage(_Module.m_dwThreadID, WM_QUIT, 0, 0);
+
+			// Stop the io pool
+			LuaNode::GetIoService().stop();
+			return FALSE;
+			break;
+	}
+	return FALSE;
+}
 
 }  // namespace LuaNode
 
@@ -461,16 +703,22 @@ static void AtExit() {
 /// 
 int main(int argc, char* argv[])
 {
-	// TODO: Parsear argumentos
 #if defined(_WIN32)
 	if(!SetConsoleCtrlHandler((PHANDLER_ROUTINE)LuaNode::ConsoleControlHandler, TRUE)) {
 		LogError("SetConsoleCtrlHandler failed");
 		return -1;
 	}
 #endif
+	// TODO: Parsear argumentos
 
 	// TODO: wrappear el log en un objeto (o usar libblogger2cpp)
 	LogInfo("**** Starting LuaNode - Built on %s ****", LuaNode::compileDateTime);
+
+#ifndef _WIN32
+	LuaNode::RegisterSignalHandler(SIGPIPE, SIG_IGN);
+#endif
+	LuaNode::RegisterSignalHandler(SIGINT, LuaNode::SignalExit);
+	LuaNode::RegisterSignalHandler(SIGTERM, LuaNode::SignalExit);
 
 	atexit(LuaNode::AtExit);
 

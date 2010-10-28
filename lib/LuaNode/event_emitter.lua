@@ -50,7 +50,7 @@ function _M:emit(kind, ...)
 			local arg1 = select(1, ...)
 			local arg2 = select(2, ...)
 			--print("before emitting " .. kind)
-			print(type(handler))
+			--print(type(handler))
 			handler(self, arg1, arg2)
 			--print("after emitting " .. kind)
 		else

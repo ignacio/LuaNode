@@ -292,6 +292,10 @@ int Socket::Write(lua_State* L) {
 		LogDebug("SecureSocket::Write (%p) ignoring because shutdown was signaled", this);
 		return 0;
 	}*/
+	if(m_pending_writes > 0) {
+		lua_pushboolean(L, false);
+		return 1;
+	}
 	// store a reference in the registry
 	lua_pushvalue(L, 1);
 	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -312,7 +316,8 @@ int Socket::Write(lua_State* L) {
 	else {
 		luaL_error(L, "SecureSocket::Write (%p) (id:%d), unhandled type '%s'", this, m_socketId, luaL_typename(L, 2));
 	}
-	return 0;
+	lua_pushboolean(L, true);
+	return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -665,7 +670,7 @@ int Socket::Close(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Shutdown(lua_State* L) {
-	LogDebug("Socket::Shutdown (%p) (id:%d)", this, m_socketId);
+	LogDebug("SecureSocket::Shutdown (%p) (id:%d)", this, m_socketId);
 
 	m_shutdown_pending = true;
 

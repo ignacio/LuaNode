@@ -108,6 +108,9 @@ rem @echo off
 @call luanode run.lua simple.test-net-eaddrinuse
 @rem @if not %errorlevel% == 0 exit %errorlevel%
 
+@call luanode run.lua simple\test-net-huge-write-finish
+@rem @if not %errorlevel% == 0 exit %errorlevel%
+
 @call luanode run.lua simple.test-net-isip
 @rem @if not %errorlevel% == 0 exit %errorlevel%
 

@@ -694,7 +694,10 @@ local function httpSocketSetup (socket)
 	socket.ondrain = function()
 		local message = socket._outgoing[1]
 		if message then message:emit("drain") end
-		if socket.__destroyOnDrain then socket:destroy() end
+		if socket.__destroyOnDrain then
+			socket:destroy()
+			socket.__destroyOnDrain = nil
+		end
 	end
 end
 
@@ -917,6 +920,7 @@ local function connectionListener (server, socket)
 			-- HACK: need way to do this with socket interface
 			if #socket._writeQueue > 0 then
 				socket.__destroyOnDrain = true
+				socket._dont_read = true
 			else
 				-- TODO: si no cierro el socket, anda el test case "test-http-expect-continue" y "test-http-proxy"
 				-- TODO: todo esto merece una revisada. Supuestamente esto es HTTP 1.1 y cierra la conexión a prepo !

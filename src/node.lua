@@ -114,43 +114,13 @@ setmetatable(process, {__index = events:new() })
 })();
 --]=]
 
+local Timers = require "luanode.timers"
 
---
--- Timers
---
-local function addTimerListener(timer, callback, ...)
-	if select("#", ...) > 0 then
-		local args = {...}
-		timer.callback = function()
-			callback(unpack(args))
-		end
-	else
-		timer.callback = callback
-	end
-end
 
-function _G.setTimeout(callback, after, ...)
-	assert(callback, "A callback function must be supplied")
-	local timer = process.Timer()
-	addTimerListener(timer, callback, ...)
-	timer:start(after, 0)
-	return timer
-end
-
-function _G.setInterval(callback, repeat_, ...)
-	local timer = process.Timer()
-	addTimerListener(timer, callback, ...)
-	timer:start(repeat_, repeat_ and repeat_ or 1)
-	return timer
-end
-
-function _G.clearTimeout(timer)
-	--TODO: assert(timer es un timer posta)
-	timer.callback = nil
-	timer:stop()
-end
-
-_G.clearInterval = clearTimeout
+_G.setTimeout = Timers.setTimeout
+_G.setInterval = Timers.setInterval
+_G.clearTimeout = Timers.clearTimeout
+_G.clearInterval = Timers.clearInterval
 
 --
 -- Console
@@ -330,8 +300,8 @@ if process.argv[2] then
 end
 --]=]
 local propagate_result = 0
-
 if not process.argv[2] then
+	io.write("LuaNode " .. process.version)
 	-- run repl
 	process:loop()
 else

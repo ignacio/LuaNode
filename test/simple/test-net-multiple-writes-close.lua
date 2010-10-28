@@ -54,6 +54,7 @@ server:listen(common.PORT, function (self)
 	client:setEncoding("ascii")
 		
 	client:addListener("connect", function ()
+		--client:write(("start"):rep(1240):rep(1024))
 		client:write("start")
 		client:finish()
 	end)

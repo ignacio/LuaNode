@@ -132,6 +132,8 @@ Socket::Socket(lua_State* L) :
 	m_L(L),
 	m_socketId(++s_nextSocketId),
 	m_close_pending(false),
+	//m_read_shutdown_pending(false),
+	m_write_shutdown_pending(false),
 	m_pending_writes(0),
 	m_pending_reads(0)
 {
@@ -155,6 +157,8 @@ Socket::Socket(lua_State* L, boost::asio::ip::tcp::socket* socket) :
 	m_socket(socket),
 	m_socketId(++s_nextSocketId),
 	m_close_pending(false),
+	//m_read_shutdown_pending(false),
+	m_write_shutdown_pending(false),
 	m_pending_writes(0),
 	m_pending_reads(0)
 {
@@ -279,6 +283,7 @@ int Socket::Close(lua_State* L) {
 	// nothing is waiting, just close the socket right away
 	LogDebug("Socket::Close - Socket (%p) (id=%d) closing now", this, m_socketId);
 	boost::system::error_code ec;
+	m_socket->shutdown(boost::asio::socket_base::shutdown_both, ec);
 	m_socket->close(ec);
 	return BoostErrorCodeToLua(L, ec);
 }
@@ -298,20 +303,42 @@ int Socket::Shutdown(lua_State* L) {
 
 	if(lua_type(L, 2) == LUA_TSTRING) {
 		const char* option = luaL_checkstring(L, 2);
-		LogDebug("Socket::Shutdown (%p) (id=%d) - %s", this, m_socketId, option);
 		
 		int chosen_option = luaL_checkoption(L, 2, "no_option", options);
 		switch(chosen_option) {
 			case 0:	// read
+				/*m_read_shutdown_pending = true;
+				if(m_pending_reads > 0) {
+					m_write_shutdown_pending = true;
+				}
+				else {
+					m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
+				}*/
+				LogDebug("Socket::Shutdown (%p) (id=%d) - %s", this, m_socketId, option);
 				m_socket->shutdown(boost::asio::socket_base::shutdown_receive, ec);
 			break;
 	
 			case 1:	// write
-				m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
+				if(m_pending_writes > 0) {
+					m_write_shutdown_pending = true;
+					LogDebug("Socket::Shutdown (%p) (id=%d) - Marked for shutdown - %s", this, m_socketId, option);
+				}
+				else {
+					m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
+				}
 			break;
 	
 			case 2:	// both
-				m_socket->shutdown(boost::asio::socket_base::shutdown_both, ec);
+				if(m_pending_writes > 0) {
+					m_write_shutdown_pending = true;
+					LogDebug("Socket::Shutdown (%p) (id=%d) - Marked for shutdown - write", this, m_socketId);
+				}
+				else {
+					m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
+				}
+				//m_write_shutdown_pending = true;
+				//m_read_shutdown_pending = true;
+				m_socket->shutdown(boost::asio::socket_base::shutdown_receive, ec);
 			break;
 	
 			default:
@@ -320,7 +347,14 @@ int Socket::Shutdown(lua_State* L) {
 	}
 	else {
 		LogDebug("Socket::Shutdown (%p) (id=%d) - both", this, m_socketId);
-		m_socket->shutdown(boost::asio::socket_base::shutdown_both, ec);
+		if(m_pending_writes > 0) {
+			m_write_shutdown_pending = true;
+			LogDebug("Socket::Shutdown (%p) (id=%d) - Marked for shutdown - write", this, m_socketId);
+		}
+		else {
+			m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
+		}
+		m_socket->shutdown(boost::asio::socket_base::shutdown_receive, ec);
 	}
 	return BoostErrorCodeToLua(L, ec);
 }
@@ -328,6 +362,10 @@ int Socket::Shutdown(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Write(lua_State* L) {
+	if(m_pending_writes > 0) {
+		lua_pushboolean(L, false);
+		return 1;
+	}
 	// store a reference in the registry
 	lua_pushvalue(L, 1);
 	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -348,7 +386,8 @@ int Socket::Write(lua_State* L) {
 	else {
 		luaL_error(L, "Socket::Write, unhandled type '%s'", luaL_typename(L, 2));
 	}
-	return 0;
+	lua_pushboolean(L, true);
+	return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -409,6 +448,15 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		}
 	}
 	lua_settop(L, 0);
+
+	if(m_write_shutdown_pending && m_pending_writes == 0) {
+		LogDebug("Socket::HandleWrite - Applying delayed send shutdown (%p) (id=%d) (send)", this, m_socketId);
+		boost::system::error_code ec;
+		m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
+		if(ec) {
+			LogError("Socket::HandleWrite - Error shutting down socket (%p) (id=%d) (send) - %s", this, m_socketId, ec.message().c_str());
+		}
+	}
 
 	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
 		boost::system::error_code ec;
@@ -596,7 +644,9 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 				break;
 			}
 
-			LogDebug("Socket::HandleRead with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+			if(error.value() != boost::asio::error::eof && error.value() != boost::asio::error::operation_aborted) {
+				LogError("Socket::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+			}
 
 			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
 		}

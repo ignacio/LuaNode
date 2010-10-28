@@ -29,28 +29,31 @@ function test()
 			c:finish()
 		end)
 	end)
-	srv:listen(common.PORT, '127.0.0.1')
 
 	local gotUpgrade = false
-	local hc = http.createClient(common.PORT, '127.0.0.1')
-	hc:addListener('upgrade', function(self, res, socket, upgradeHead)
-		-- XXX: This test isn't fantastic, as it assumes that the entire response
-		--      from the server will arrive in a single data callback
-		assert_equal('nurtzo', upgradeHead)
+	
+	srv:listen(common.PORT, '127.0.0.1', function()
+
+		local hc = http.createClient(common.PORT, '127.0.0.1')
+		hc:addListener('upgrade', function(self, res, socket, upgradeHead)
+			-- XXX: This test isn't fantastic, as it assumes that the entire response
+			--      from the server will arrive in a single data callback
+			assert_equal('nurtzo', upgradeHead)
 		
-		for k,v in pairs(res.headers) do
-			console.log("%s - %s", k, v)
-		end
-		for k,v in pairs({ hello="world", connection= "upgrade", upgrade= "websocket" }) do
-			assert_equal(v, res.headers[k])
-		end
+			for k,v in pairs(res.headers) do
+				console.log("%s - %s", k, v)
+			end
+			for k,v in pairs({ hello="world", connection= "upgrade", upgrade= "websocket" }) do
+				assert_equal(v, res.headers[k])
+			end
 
-		socket:finish()
-		srv:close()
-
-		gotUpgrade = true
+			socket:finish()
+			srv:close()
+	
+			gotUpgrade = true
+		end)
+		hc:request('GET', '/'):finish()
 	end)
-	hc:request('GET', '/'):finish()
 
 	process:addListener('exit', function()
 		assert_true(gotUpgrade)

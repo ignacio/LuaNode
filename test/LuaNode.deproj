@@ -4,12 +4,6 @@
     <filename>..\src\node.lua</filename>
   </file>
   <file>
-    <filename>..\lib\EventEmitter.lua</filename>
-  </file>
-  <file>
-    <filename>..\lib\freelist.lua</filename>
-  </file>
-  <file>
     <filename>..\lib\path.lua</filename>
   </file>
   <file>
@@ -38,9 +32,6 @@
   </file>
   <file>
     <filename>simple\test-net-pingpong.lua</filename>
-  </file>
-  <file>
-    <filename>..\lib\LuaNode\Net.lua</filename>
   </file>
   <file>
     <filename>simple\test-http-1_0.lua</filename>
@@ -112,9 +103,72 @@
     <filename>simple\test-net-tls.lua</filename>
   </file>
   <file>
+    <filename>simple\test-net-server-max-connections.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\testlexpect.lua</filename>
+  </file>
+  <file>
+    <filename>simple\test-child-process-kill.lua</filename>
+  </file>
+  <file>
+    <filename>simple\test-net-eaddrinuse.lua</filename>
+  </file>
+  <file>
+    <filename>simple\test-event-emitter-once.lua</filename>
+  </file>
+  <file>
+    <filename>simple\test-http-tls.lua</filename>
+  </file>
+  <file>
+    <filename>simple\(fixme) test-http-expect-continue.lua</filename>
+  </file>
+  <file>
+    <filename>simple\test-net-multiple-writes-close.lua</filename>
+  </file>
+  <file>
+    <filename>simple\test-net-binary.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\Url.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\child_process.lua</filename>
+  </file>
+  <file>
     <filename>..\lib\LuaNode\Crypto.lua</filename>
   </file>
   <file>
-    <filename>simple\test-net-server-max-connections.lua</filename>
+    <filename>..\lib\LuaNode\Dns.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\event_emitter.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\free_list.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\Fs.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\Http.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\Net.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\Path.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\querystring.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\Stream.lua</filename>
+  </file>
+  <file>
+    <filename>..\lib\LuaNode\net\Timeout.lua</filename>
+  </file>
+  <file>
+    <filename>simple\test-net-isip.lua</filename>
   </file>
 </project>

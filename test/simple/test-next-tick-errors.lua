@@ -1,3 +1,5 @@
+--este test esta deshabilitado porque no llamo los event handlers con pcall (para facilitar el debug)
+
 module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")

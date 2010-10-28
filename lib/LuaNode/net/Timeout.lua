@@ -3,7 +3,7 @@ local Timer = process.Timer	-- TODO: change this to require
 
 module(..., package.seeall)
 
--- This iffers with node.js implementationin that it is not intrusive. It won't add stuff to sockets
+-- This differs with node.js implementationin that it is not intrusive. It won't add stuff to sockets
 
 local sockets = {}
 -- make it weak-keyed, so the sockets can be collected
@@ -18,7 +18,7 @@ setmetatable(sockets, {__mode = "k"})
 -- and a linked list. This technique is described in the libev manual:
 -- http://pod.tst.eu/http://cvs.schmorp.de/libev/ev.pod#Be_smart_about_timeouts
 
-local Timeout = {}
+local Timers = {}
 
 local lists = {}
 
@@ -122,7 +122,7 @@ end
 
 
 
-Timeout.Unenroll = function(socket)
+Timers.Unenroll = function(socket)
 	local wrapper = sockets[socket]
 	if wrapper then
 	--if socket._idleNext then
@@ -139,11 +139,11 @@ Timeout.Unenroll = function(socket)
 end
 
 -- does not start the time, just sets up the members needed
-Timeout.Enroll = function(socket, msecs)
+Timers.Enroll = function(socket, msecs)
 	local wrapper = sockets[socket]
 	-- if this socket was already in a list somewhere then we should unenroll it from that
 	if wrapper then
-		Timeout.Unenroll(wrapper.socket)
+		Timers.Unenroll(wrapper.socket)
 	end
 	wrapper = { socket = socket }
 	sockets[socket] = wrapper
@@ -154,7 +154,7 @@ Timeout.Enroll = function(socket, msecs)
 	
 	--[[
 	if socket._idleNext then
-		Timeout.Unenroll(socket)
+		Timers.Unenroll(socket)
 	end
 	
 	socket._idleTimeout = msecs
@@ -163,8 +163,8 @@ Timeout.Enroll = function(socket, msecs)
 	--]]
 end
 
--- call this whenever the socket is active (not idle) it will reset its timeout.
-Timeout.Active = function(socket)
+-- call this whenever the socket is active (not idle) it will reset its Timers.
+Timers.Active = function(socket)
 	local wrapper = sockets[socket]
 	if not wrapper then
 		return
@@ -188,4 +188,4 @@ Timeout.Active = function(socket)
 	end
 end
 
-return Timeout
+return Timers

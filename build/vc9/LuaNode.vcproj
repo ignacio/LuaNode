@@ -543,17 +543,13 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lib\LuaNode\Timers.lua"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\LuaNode\url.lua"
 				>
 			</File>
-			<Filter
-				Name="net"
-				>
-				<File
-					RelativePath="..\..\lib\LuaNode\net\timeout.lua"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="libeio"

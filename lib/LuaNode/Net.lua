@@ -1,14 +1,9 @@
 --local util = require "util"		--var util = require("util");
---local fs = require "fs"			--var fs = require("fs");
 local EventEmitter = require "luanode.event_emitter"
 local stream = require "luanode.stream"
-
+local Timers = require "luanode.timers"
 
 -- TODO: arreglar el despelote de los fd's
-
---require "luarocks.require"
---local LuaSocket = require "socket"
-local Timeout = require "luanode.net.timeout"
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
@@ -275,6 +270,8 @@ function Stream:new(fd, kind)
 	newStream.fd = nil
 	newStream.kind = kind
 	newStream.secure = false
+	newStream._EOF_inserted = false	-- signals when we called 'finish' on the stream
+									-- but the underlying socket is not closed yet
 	
 	setImplmentationMethods(newStream)
 	
@@ -291,7 +288,7 @@ function Stream:new(fd, kind)
 	if getmetatable(fd) == process.Socket then
 		-- TODO: chequear que no este causando algo que no se lo pueda llevar el gc
 		--fd.owner = newStream
-		--fd._stream = newStream
+		fd._stream = newStream
 		newStream._stream = fd
 		--newStream:open(fd, kind)	-- esto se hace mas adelante
 		return newStream
@@ -331,6 +328,7 @@ function Stream:setSecure(credentials)
 	-- me copio los callbacks
 	self._stream.read_callback = oldStream.read_callback
 	self._stream.write_callback = oldStream.write_callback
+	self._stream._stream = self
 	-- mmm, disgusting...
 	self.__old_stream = oldStream
 	--self._stream = self
@@ -431,7 +429,7 @@ local function initStream(self)
 			--end
 		elseif #data > 0 then
 			if self._stream then	-- the stream may have been closed on Stream.destroy
-				Timeout.Active(self)
+				Timers.Active(self)
 			end
 			
 			if self._decoder then
@@ -447,7 +445,7 @@ local function initStream(self)
 				--self.ondata(pool, start, end)
 				self:ondata(data)
 			end
-			if self._stream then	-- the stream may have been closed on Stream.destroy
+			if self._stream and not self._dont_read then	-- the stream may have been closed on Stream.destroy
 				--self._stream:read()	-- issue another async read
 				self:_readImpl()
 			end
@@ -484,10 +482,10 @@ end
 function Stream:readyState()
 	if self._connecting then
 		return "opening"
-	elseif self.readable and self.writable then
+	elseif self.readable and (self.writable and not self._EOF_inserted) then
 		--assert(type(self.fd) == "number")	-- en nodejs no estan comentados
 		return "open"
-	elseif self.readable and not self.writable then
+	elseif self.readable and (not self.writable or self._EOF_inserted) then
 		--assert(type(self.fd) == "number")
 		return "readOnly"
 	elseif not self.readable and self.writable then
@@ -546,11 +544,31 @@ function Stream:_writeOut(data, encoding, fd)
 	-- por ahora, escribo derecho
 	--self._stream:write(data)
 	--local bytesWritten = self:_writeImpl(buffer, off, len, fd, 0);
-	local bytesWritten = self:_writeImpl(data)
+	local couldWrite = self:_writeImpl(data)
 	
-	Timeout.Active(self)
+	Timers.Active(self)
 	
-	return true
+	if not couldWrite then
+		-- encolar data, encoding y fd en los buffers
+		if not self._writeQueue then
+			self._writeQueue = {}
+			self._writeQueueEncoding = {}
+			self._writeQueueFD = {}
+		end
+		-- Slow. There is already a write queue, so let's append to it.
+		if type(data) == "string" and #self._writeQueue > 0 and 
+			type(self._writeQueue[#self._writeQueue]) == "string" and
+			self._writeQueueEncoding[#self._writeQueueEncoding] == encoding
+		then
+			-- optimization - concat onto last
+			self._writeQueue[#self._writeQueue] = self._writeQueue[#self._writeQueue] .. data
+		else
+			table.insert(self._writeQueue, 1, data)
+			table.insert(self._writeQueueEncoding, 1, encoding)
+		end
+	end
+	
+	return couldWrite
 end
 
 -- 
@@ -565,9 +583,10 @@ function Stream:flush()
 			self:_shutdown()
 			return true
 		end
-		
 		local flushed = self:_writeOut(data, encoding, fd)
-		if not flushed then return false end
+		if not flushed then
+			return false
+		end
 	end
 	
 	if self._writeWatcher then
@@ -640,7 +659,7 @@ function Stream:connect(port, host)
 	if self.fd then error("Stream already opened") end
 	--if not self._stream.read_callback then error("No read_callback") end
 	
-	Timeout.Active(self)	-- ver cómo
+	Timers.Active(self)	-- ver cómo
 	self._connecting = true	--set false in doConnect
 	self.writable = true
 	if type(port) == "string" and not tonumber(port) then
@@ -668,6 +687,7 @@ function Stream:connect(port, host)
 				else
 					self.kind = (address.family == 6 and "tcp6") or (address.family == 4 and "tcp4") or error("unknown address family" .. tostring(address.family))
 					self._stream = process.Socket(self.kind)
+					self._stream._stream = self
 					initStream(self)
 					if not self._stream.read_callback then error("No read_callback") end
 					doConnect(self, port, address.address)
@@ -712,12 +732,12 @@ end
 
 function Stream:setTimeout(msecs)
 	if msecs > 0 then
-		Timeout.Enroll(self, msecs)
+		Timers.Enroll(self, msecs)
 		if self._stream then
-			Timeout.Active(self)
+			Timers.Active(self)
 		end
 	elseif msecs == 0 then
-		Timeout.Unenroll(self)
+		Timers.Unenroll(self)
 	end
 end
 
@@ -765,7 +785,7 @@ function Stream:destroy (exception)
 		--self._readWatcher = nil
 	--end
 
-	Timeout.Unenroll(self)
+	Timers.Unenroll(self)
 
 	-- not necessary, asio does it
 	--if self.secure then
@@ -816,11 +836,16 @@ function Stream:finish(data, encoding)
 		end
 		if self:_writeQueueLast() ~= END_OF_FILE then
 			table.insert(self._writeQueue, END_OF_FILE)
+			self._EOF_inserted = true
 			if not self._connecting then
 				self:flush()
 			end
 		end
 	end
+end
+
+function Stream:_onTimeout ()
+	self:emit("timeout")
 end
 
 --
@@ -899,6 +924,10 @@ function Server:new(listener)
 	newServer.acceptor.callback = function(peer)
 		if newServer.maxConnections and newServer.connections >= newServer.maxConnections then
 			peer.socket:close()
+			if newServer.acceptor then
+				newServer.acceptor:accept()
+			end
+			return
 		end
 		
 		newServer.connections = newServer.connections + 1
@@ -971,14 +1000,7 @@ function Server:listen (port, host, callback)
 		-- The port can be found with server.address()
 		self.type = "tcp4"
 		self.acceptor:open(self.type)
-		local ok, err = bind(self.acceptor, 0)
-		if not ok then
-			self:emit("error", err)
-			return false
-		end
-		process.nextTick(function()
-			self:_doListen()
-		end)
+		self:_doListen(port, ip)
 	else
 		local ip = host or "0.0.0.0"
 		local port = tonumber(port)
@@ -992,14 +1014,7 @@ function Server:listen (port, host, callback)
 			else
 				self.kind = (address.family == 6 and "tcp6") or (address.family == 4 and "tcp4") or error("unknown address family" .. tostring(address.family))
 				self.acceptor:open(self.kind)
-				local ok, err, msg = bind(self.acceptor, port, ip)
-				if not ok then
-					self:emit("error", err, msg)
-					return
-				end
-				process.nextTick(function ()
-					self:_doListen()
-				end)
+				self:_doListen(port, ip)
 			end
 		end)
 		--[[
@@ -1042,18 +1057,29 @@ function Server:listen (port, host, callback)
 	end
 end
 
-function Server:_doListen()
-	if not self.acceptor then
-		-- was closed before started listening?
-		return
-	end
-	
-	local ok, err = self.acceptor:listen(self._backlog or 128)	-- el backlog
+function Server:_doListen(port, ip)
+	local ok, err = bind(self.acceptor, port, ip)
 	if not ok then
-		error( console.error("listen() failed with error: %s", err) )
+		self:emit("error", err)
+		return false
 	end
+	process.nextTick(function()
+		if not self.acceptor then
+			-- was closed before started listening?
+			return
+		end
+		-- It could be that server.close() was called between the time the
+		-- original listen command was issued and this. Bail if that's the case.
+		-- See test/simple/test-net-eaddrinuse.js
+		local ok, err = self.acceptor:listen(self._backlog or 128)	-- el backlog
+		if not ok then
+			self:emit("error", err)
+			--error( console.error("listen() failed with error: %s", err) )
+			return
+		end
 
-	self:_startWatcher()
+		self:_startWatcher()
+	end)
 end
 
 function Server:_startWatcher()
