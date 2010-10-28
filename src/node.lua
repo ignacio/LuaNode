@@ -9,6 +9,8 @@ if DEBUG then
 	package.cpath = [[.\?.dll;C:\LuaRocks\1.0\?.dll;C:\LuaRocks\1.0\loadall.dll;]] .. package.cpath
 end
 
+package.path = ([[%s\?\init.lua;%s\?.lua;]]):format( process.cwd(), process.cwd() )  .. package.path
+
 --[[
 -- Insert a loader that allows me to require luanode.* as if they were on a (case insensitive) filesystem
 table.insert(package.loaders, function(name)
@@ -184,6 +186,7 @@ end
 console = require "luanode.console"
 
 function console.log (fmt, ...)
+	assert(type(fmt) == "string", "format must be a string")
 	local msg = string.format(fmt, LogArgumentsFormatter(...))
 	--print(msg) --scriptLogger.LogDebug(msg)
 	io.write(msg)
@@ -258,8 +261,8 @@ console.assert = assert
 --
 --
 process.exit = function(code)
-	process:emit("exit")
-	--process.reallyExit(code)
+	process:emit("exit", code or 0)
+	--process.reallyExit(code, code or 0)
 end
 
 --
