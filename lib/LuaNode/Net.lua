@@ -263,7 +263,6 @@ end
 
 function Stream:new(fd, kind)
 	-- http.Client llama acá sin socket. Conecta luego.
-	--local newStream = EventEmitter:new()
 	local newStream = stream.Stream:new()
 	setmetatable(newStream, Stream)
 	

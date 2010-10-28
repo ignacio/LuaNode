@@ -21,6 +21,8 @@ public:
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Socket);
 
+	static int tostring_T(lua_State* L);
+
 	int SetOption(lua_State* L);
 
 	int VerifyPeer(lua_State* L);
