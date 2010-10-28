@@ -55,7 +55,7 @@ server:listen(common.PORT, function (self)
 
 	client:addListener("close", function ()
 		console.log("client.end")
-		--assert_true(huge_data == table.concat(data))
+		assert_true(huge_data == table.concat(data))
 		if(#huge_data ~= #table.concat(data)) then
 			console.error("no matchean")
 		end

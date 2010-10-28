@@ -674,6 +674,7 @@ function Stream:connect(port, host)
 		-- TODO: por ahora asumo que es siempre una ip x.x.x.x
 		local ip = host or "127.0.0.1"
 		local port = tonumber(port)
+		assert(type(port) == "number", "missing port")
 		assert(port >= 0 and port <= 65535, "port number out of range")
 		---[[
 			-- TODO: fixme: no estoy escuchando en ipv6 !
@@ -742,6 +743,7 @@ end
 
 function Stream:pause()
 	error("not implemented")
+	-- maybe just set a flag and don't issue a read
 end
 
 --
