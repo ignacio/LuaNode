@@ -116,6 +116,23 @@ setmetatable(process, {__index = events:new() })
 })();
 --]=]
 
+-- 
+-- Calls 
+process._postBackToModule = function(moduleName, functionName, key, ...)
+	LogDebug("%s:%s:%d", moduleName, functionName, key)
+	
+	local ok, m = pcall(require, moduleName)
+	if not ok then
+		console.error(m)
+		return
+	end
+	local f = m[functionName]
+	if type(f) == "function" then
+		pcall(f, key, ...)
+	end
+end
+
+
 local Timers = require "luanode.timers"
 
 
@@ -140,45 +157,73 @@ local function LogArgumentsFormatter(...)
 	return unpack(args)
 end
 
+local function ArgumentsToStrings(t, ...)
+	for i=1, select("#", ...)  do
+		local arg = select(i, ...)
+		local arg_type = type(arg)
+		if arg_type ~= "string" and arg_type ~= "number" then
+			t[#t + 1] = tostring(arg)
+		else
+			t[#t + 1] = arg
+		end
+	end
+	return t
+end
+
+local function BuildMessage(fmt, ...)
+	local msg
+	if type(fmt) ~= "string" then
+		msg = {}
+		msg[#msg + 1] = tostring(fmt)
+		ArgumentsToStrings(msg, ...)
+		msg = table.concat(msg, "\t")
+	else
+		if fmt:find("%%") then
+			msg = string.format(fmt, LogArgumentsFormatter(...))
+		else
+			msg = {}
+			msg[#msg + 1] = fmt
+			ArgumentsToStrings(msg, ...)
+			msg = table.concat(msg, "\t")
+		end
+	end
+	return msg
+end
+
 function LogDebug(fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogDebug(msg)
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
 
 function LogInfo(fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogInfo(msg)
-	--io.write(msg)
-	--io.write("\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
 
 function LogWarning(fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogWarning(msg)
-	io.write(msg)
-	io.write("\r\n")
+	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
 end
 
 function LogError(fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogError(msg)
-	io.write(msg)
-	io.write("\r\n")
+	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
 	return msg
 end
 
 function LogFatal(fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogFatal(msg)
-	io.write(msg)
-	io.write("\r\n")
+	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[FATAL] " .. msg) end
 	return msg
 end
@@ -186,26 +231,25 @@ end
 console = require "luanode.console"
 
 function console.log (fmt, ...)
-	assert(type(fmt) == "string", "format must be a string")
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogDebug(msg)
-	io.write(msg)
-	io.write("\r\n")
+	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
 
+console.debug = console.log
+
 function console.info (fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogInfo(msg)
-	io.write(msg)
-	io.write("\r\n")
+	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
 
 function console.warn (fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogWarning(msg)
 	console.color("yellow")
 	io.write(msg)
@@ -216,7 +260,7 @@ function console.warn (fmt, ...)
 end
 
 console["error"] = function (fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogError(msg)
 	console.color("lightred")
 	io.write(msg)
@@ -227,7 +271,7 @@ console["error"] = function (fmt, ...)
 end
 
 function console.fatal (fmt, ...)
-	local msg = string.format(fmt, LogArgumentsFormatter(...))
+	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogFatal(msg)
 	console.color("lightred")
 	console.bgcolor("white")

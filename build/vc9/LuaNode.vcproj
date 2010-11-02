@@ -304,6 +304,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_module_api.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_net.cpp"
 				>
 			</File>
@@ -370,6 +374,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\luanode_api.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_child_process.h"
 				>
 			</File>
@@ -387,6 +395,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_http_parser.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_module_api.h"
 				>
 			</File>
 			<File

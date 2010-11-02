@@ -21,6 +21,7 @@
 #include "luanode_dns.h"
 #include "luanode_crypto.h"
 #include "luanode_child_process.h"
+#include "luanode_module_api.h"
 
 #ifdef _WIN32
 #include "luanode_file_win32.h"
@@ -525,6 +526,9 @@ static int Load(int argc, char *argv[]) {
 
 	lua_pushinteger(L, _getpid());
 	lua_setfield(L, table, "pid");
+
+	// module api
+	LuaNode::ModuleApi::Register(L, table);
 
 	// TODO:
 	size_t size = 2 * MAX_PATH;
