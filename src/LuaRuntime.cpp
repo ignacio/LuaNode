@@ -3,6 +3,8 @@
 #include "blogger.h"
 #include "ToDo.h"
 #include <assert.h>
+
+#ifdef COMPILE_THIS
 #include <supportLib/bstring/bstrwrap.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -431,10 +433,12 @@ CBString redirected_print_formatter(lua_State* L) {
 	return text;
 }
 
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 /// Función para reemplazar el 'print' de Lua. Redirige la salida a
 /// LogInfo
-int redirected_print(lua_State* L) {
+/*int redirected_print(lua_State* L) {
 	printf("%s\r\n", (const char*)redirected_print_formatter(L));
 	return 0;
-}
+}*/

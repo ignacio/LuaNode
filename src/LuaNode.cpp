@@ -589,6 +589,17 @@ static int Load(int argc, char *argv[]) {
 
 	int extension_status;
 
+	// Load modules that need to be loaded before LuaNode ones
+	PreloadAdditionalModules(L);
+
+	// load stacktraceplus and use it as our error handler
+	lua_getfield(L, LUA_GLOBALSINDEX, "require");
+	lua_pushliteral(L, "stacktraceplus");
+	lua_call(L, 1, 1);
+	lua_getfield(L, -1, "stacktrace");
+	int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+	eval.setErrorHandler(ref);		// TODO: maybe add a flag to disable it?
+
 	if(!debug_mode) {
 		PreloadModules(L);
 

@@ -1,0 +1,19 @@
+Debug
+Release
+ReleaseMinDependency
+Release Debuggable
+test/fixtures
+LuaNode.deuser
+*_i.h
+*_i.c
+*_p.c
+*.dsw
+*.user
+*.tlh
+*.tli
+*.ncb
+*.positions
+*.suo
+*.opt
+*.vs*scc
+*.precomp

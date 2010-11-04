@@ -1,13 +1,14 @@
 #include "stdafx.h"
-#include <supportLib/bstring/bstrwrap.h>
+//#include <supportLib/bstring/bstrwrap.h>
 #include "EvaluadorLUA.h"
 //#include <supportLib/support.h>
 #include "blogger.h"
 #include <assert.h>
+#include <string>
 
-extern int redirected_print(lua_State* L);
+//extern int redirected_print(lua_State* L);
 
-extern CBString InternalStackTrace(lua_State* L, int startLevel, bool traverseInDepth);
+//extern CBString InternalStackTrace(lua_State* L, int startLevel, bool traverseInDepth);
 
 long CEvaluadorLua::s_nextID = 0;
 
@@ -37,8 +38,8 @@ CEvaluadorLua::CEvaluadorLua(/*IHostVirtualMachine& vmHost*/) :
 	lua_setglobal(m_L, "decoda_name");
 
 	// redirect the 'print' function
-	lua_pushcfunction(m_L, redirected_print);
-	lua_setfield(m_L, LUA_GLOBALSINDEX, "print");
+	//lua_pushcfunction(m_L, redirected_print);
+	//lua_setfield(m_L, LUA_GLOBALSINDEX, "print");
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -80,40 +81,37 @@ int CEvaluadorLua::OnPanic(lua_State* L) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// Muestra el error de lua en un messagebox y además loguea un stack trace
-/// con la información disponible.
+/// Logs a stack trace with the available information
 int CEvaluadorLua::OnError(bool hasStackTrace) const {
-	char* luaErrorMessage = NULL;
-	CBString errorMessage;
+	std::string errorMessage;
 
 	if(hasStackTrace) {
-		luaErrorMessage = _strdup(lua_tostring(m_L, -1));
-		errorMessage = luaErrorMessage;
-		errorMessage += "\n\r";
+		errorMessage = lua_tostring(m_L, -1);
+		errorMessage += "\r\n";
 	}
 	else {
 		if(lua_isstring(m_L, -1)) {
-			luaErrorMessage = _strdup(lua_tostring(m_L, -1));
-			errorMessage += luaErrorMessage;
-			errorMessage += "\n\r";
+			errorMessage = lua_tostring(m_L, -1);
+			errorMessage += "\r\n";
 		}
 		errorMessage += "Stack Traceback\n===============\n\r";
-		errorMessage += InternalStackTrace(m_L, 0, true);
+		// TODO: add something meaningfull here
+		//errorMessage += InternalStackTrace(m_L, 0, true);
 	}
 
-	lua_getglobal(m_L, "LogError");
+	lua_getfield(m_L, LUA_GLOBALSINDEX, "console");
+	lua_getfield(m_L, -1, "error");
 	if(lua_type(m_L, -1) == LUA_TFUNCTION) {
 		lua_pushstring(m_L, "%s");
-		lua_pushstring(m_L, (const char*)errorMessage);
+		lua_pushlstring(m_L, errorMessage.c_str(), errorMessage.length());
 		lua_call(m_L, 2, 0);
 	}
 	else {
-		fprintf(stderr, "%s\n", (const char*)errorMessage);
+		fprintf(stderr, "%s\n", errorMessage.c_str());
+		lua_pop(m_L, 1);
 	}
+	lua_pop(m_L, 1);
 
-	if(luaErrorMessage) {
-		LogError("%s", luaErrorMessage);
-		free(luaErrorMessage);
-	}
+	LogError("%s", errorMessage.c_str());
 	return 1;
 }

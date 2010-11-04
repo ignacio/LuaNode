@@ -7,13 +7,13 @@
 
 #include "../../../packages/lua5.1/include/lua.hpp"
 
-extern int CollectTraceback(lua_State* L);	// función para obtener stacktraces cuando hay errores
+//extern int CollectTraceback(lua_State* L);	// función para obtener stacktraces cuando hay errores
 
 template <typename TBase>
 class CLuaRuntime
 {
 public:
-	CLuaRuntime() : m_owner(true) {
+	CLuaRuntime() : m_owner(true), m_error_handler(LUA_NOREF) {
 		m_L = lua_open();
 		if(m_L) {
 			static_cast<TBase*>(this)->Initialize();
@@ -101,9 +101,28 @@ public:
 		return iRet;
 	}
 
+	// sets the error handler we'll use
+	void setErrorHandler(int reference) {
+		m_error_handler = reference;
+	}
+
+	// pushes the error handler on the stack
+	void pushErrorHandler() {
+		if(m_error_handler != LUA_NOREF) {
+			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_error_handler);
+		}
+		else {
+			lua_getfield(m_L, LUA_GLOBALSINDEX, "debug");
+			lua_getfield(m_L, -1, "traceback");
+			m_error_handler = luaL_ref(m_L, LUA_REGISTRYINDEX);
+			lua_pop(m_L, 1);
+			pushErrorHandler();
+		}
+	}
+
 	int call(int params, int returns) {
 		int base = lua_gettop(m_L) - params;  /* function index */
-		lua_pushcfunction(m_L, CollectTraceback);  /* push traceback function */
+		pushErrorHandler();			/* push traceback function */
 		lua_insert(m_L, base);  /* put it under chunk and args */
    		int iRet = lua_pcall(m_L, params, returns, base);
 		if(iRet != 0) {
@@ -147,6 +166,7 @@ public:
 
 protected:
 	lua_State* m_L;
+	int m_error_handler;
 private:
 	bool m_owner;
 };
