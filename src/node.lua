@@ -119,7 +119,7 @@ setmetatable(process, {__index = events:new() })
 -- 
 -- Calls 
 process._postBackToModule = function(moduleName, functionName, key, ...)
-	LogDebug("%s:%s:%d", moduleName, functionName, key)
+	LogDebug("_postBackToModule: %s:%s:%d", moduleName, functionName, key)
 	
 	local ok, m = pcall(require, moduleName)
 	if not ok then
@@ -302,10 +302,18 @@ end
 console.assert = assert
 
 
+-- TODO: documentar
+-- los modulos deben usar esta funcion como handler de sus lua_pcall
+process.traceback = function()
+	console.error(debug.traceback("traceback", 2))
+end
+
 --
 --
 process.exit = function(code)
 	process:emit("exit", code or 0)
+	
+	-- TODO: hacer el reallyExit
 	--process.reallyExit(code, code or 0)
 end
 
