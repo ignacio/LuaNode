@@ -1,73 +1,53 @@
 #include "stdafx.h"
-//#include <supportLib/bstring/bstrwrap.h>
-#include "EvaluadorLUA.h"
-//#include <supportLib/support.h>
+#include "LuaVM.h"
 #include "blogger.h"
 #include <assert.h>
 #include <string>
 
-//extern int redirected_print(lua_State* L);
-
-//extern CBString InternalStackTrace(lua_State* L, int startLevel, bool traverseInDepth);
-
-long CEvaluadorLua::s_nextID = 0;
+long CLuaVM::s_nextID = 0;
 
 
 //////////////////////////////////////////////////////////////////////
 // Constructor
-CEvaluadorLua::CEvaluadorLua(/*IHostVirtualMachine& vmHost*/) :
+CLuaVM::CLuaVM(/*IHostVirtualMachine& vmHost*/) :
 	//m_vmHost(vmHost),
 	////Pm_ID(InterlockedIncrement(&s_nextID)),
-	m_ID(++s_nextID),	// hasta que no tenga funciones para incrementar atómicamente
+	m_ID(++s_nextID),
 	////Pm_timestampLastUsed(GetTickCount())
-	m_timestampLastUsed(0)	// hasta que no tenga una función equivalente
+	m_timestampLastUsed(0)	// until no equivalent function available
 {
 	lua_atpanic(m_L, OnPanic);
 
-	// para testear los scripts, expongo una variable que indica si estoy en release o debug
-#ifdef _DEBUG
-	//lua_pushboolean(m_L, true);
-	lua_pushboolean(m_L, false);
-#else
-	lua_pushboolean(m_L, false);
-#endif
-	lua_setfield(m_L, LUA_GLOBALSINDEX, "debug_executable");
-
-	// si está Decoda presente, seteamos el nombre de la VM
-	lua_pushfstring(m_L, "CEvaluadorLua (%p)", this);
+	// If running under Decoda give the VM a name
+	lua_pushfstring(m_L, "Lua VM (%p)", this);
 	lua_setglobal(m_L, "decoda_name");
-
-	// redirect the 'print' function
-	//lua_pushcfunction(m_L, redirected_print);
-	//lua_setfield(m_L, LUA_GLOBALSINDEX, "print");
 }
 
 //////////////////////////////////////////////////////////////////////
 // Destructor
-CEvaluadorLua::~CEvaluadorLua() {
-	LogDebug("CEvaluadorLua::~CEvaluadorLua");
+CLuaVM::~CLuaVM() {
+	LogDebug("CLuaVM::~CLuaVM");
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-long CEvaluadorLua::GetID() const {
+long CLuaVM::GetID() const {
 	return m_ID;
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-void CEvaluadorLua::UpdateTimestampLastUse() {
+void CLuaVM::UpdateTimestampLastUse() {
 	////Pm_timestampLastUsed = GetTickCount();
 	m_timestampLastUsed = 0;
 }
-unsigned int CEvaluadorLua::GetTimestampOfLastUse() const {
+unsigned int CLuaVM::GetTimestampOfLastUse() const {
 	return m_timestampLastUsed;
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// Si es necesario, agrego cosas acá, funciones, etc
-/// Estas funciones serían aplicables para todos los usos (introspection, web, etc)
-bool CEvaluadorLua::SetupEnvironment() {
+/// If neccesarry, add additional stuff here
+bool CLuaVM::SetupEnvironment() {
 	//lua_State* L = m_L;
 
 	return true;
@@ -75,14 +55,14 @@ bool CEvaluadorLua::SetupEnvironment() {
 
 //////////////////////////////////////////////////////////////////////////
 ///
-int CEvaluadorLua::OnPanic(lua_State* L) {
+int CLuaVM::OnPanic(lua_State* L) {
 	LogFatal("PANIC!!!!\r\n%s", lua_tostring(L, -1));
 	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// Logs a stack trace with the available information
-int CEvaluadorLua::OnError(bool hasStackTrace) const {
+int CLuaVM::OnError(bool hasStackTrace) const {
 	std::string errorMessage;
 
 	if(hasStackTrace) {
@@ -95,7 +75,7 @@ int CEvaluadorLua::OnError(bool hasStackTrace) const {
 			errorMessage += "\r\n";
 		}
 		errorMessage += "Stack Traceback\n===============\n\r";
-		// TODO: add something meaningfull here
+		// TODO: add something meaningfull here ?
 		//errorMessage += InternalStackTrace(m_L, 0, true);
 	}
 

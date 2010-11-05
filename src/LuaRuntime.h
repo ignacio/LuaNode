@@ -56,7 +56,7 @@ public:
 		int iRet = luaL_loadstring(m_L, s);
 		if(iRet == 0) {
 			int base = lua_gettop(m_L);  /* function index */
-			lua_pushcfunction(m_L, CollectTraceback);  /* push traceback function */
+			pushErrorHandler();		/* push traceback function */
 			lua_insert(m_L, base);  /* put it under chunk and args */
    			iRet = lua_pcall(m_L, 0, LUA_MULTRET, base);
 			if(iRet != 0) {
@@ -76,7 +76,7 @@ public:
 		int iRet = luaL_loadfile(m_L, filename);
 		if(iRet == 0) {
 			int base = lua_gettop(m_L);  /* function index */
-			lua_pushcfunction(m_L, CollectTraceback);  /* push traceback function */
+			pushErrorHandler();		/* push traceback function */
 			lua_insert(m_L, base);  /* put it under chunk and args */
    			iRet = lua_pcall(m_L, 0, LUA_MULTRET, base);
 			if(iRet != 0) {

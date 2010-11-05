@@ -1,17 +1,17 @@
-#ifndef EVALUADOR_LUA__H
-#define EVALUADOR_LUA__H
+#ifndef _LUA_VM__H_
+#define _LUA_VM__H_
 
 #include "LuaRuntime.h"
 
-class CEvaluadorLua :
-	public CLuaRuntime<CEvaluadorLua>
+class CLuaVM :
+	public CLuaRuntime<CLuaVM>
 {
 public:
-	CEvaluadorLua();
-	virtual ~CEvaluadorLua();
+	CLuaVM();
+	virtual ~CLuaVM();
 
 public:
-	int OnError(bool hasStackTrace) const; // por defecto, manda el string de error a la consola
+	int OnError(bool hasStackTrace) const; // sends the error string to the console by default
 	virtual bool SetupEnvironment();
 
 	long GetID() const;

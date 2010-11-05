@@ -247,7 +247,7 @@ void Socket::HandleHandshake(int reference, const boost::system::error_code& err
 		lua_getfield(L, 1, "handshake_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			LuaNode::GetLuaEval().call(1, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(1, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
@@ -284,7 +284,7 @@ void Socket::HandleHandshake(int reference, const boost::system::error_code& err
 				break;
 			}
 
-			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
@@ -342,7 +342,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			LuaNode::GetLuaEval().call(1, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(1, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
@@ -379,7 +379,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 				break;
 			}
 
-			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
@@ -497,7 +497,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 			const char* data = (const char*)buffer_cast_helper(m_inputBuffer.data());
 			lua_pushlstring(L, data, m_inputBuffer.size());
 			m_inputBuffer.consume(m_inputBuffer.size());	// its safe to consume, the string has already been interned
-			LuaNode::GetLuaEval().call(2, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
@@ -538,7 +538,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 				break;
 			}
 
-			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
@@ -586,7 +586,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 			lua_pushvalue(L, 1);
 			const char* data = m_inputArray.c_array();
 			lua_pushlstring(L, data, bytes_transferred);
-			LuaNode::GetLuaEval().call(2, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
@@ -626,7 +626,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 				break;
 			}
 
-			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
@@ -717,7 +717,7 @@ void Socket::HandleShutdown(int reference, const boost::system::error_code& erro
 			lua_pushvalue(L, 1);
 			lua_pushnil(L);
 			lua_pushliteral(L, "eof");
-			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
@@ -732,7 +732,7 @@ void Socket::HandleShutdown(int reference, const boost::system::error_code& erro
 			lua_pushnil(L);
 			lua_pushliteral(L, "eof");
 
-			LuaNode::GetLuaEval().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {

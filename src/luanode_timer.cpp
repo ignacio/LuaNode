@@ -27,7 +27,7 @@ const Timer::RegType Timer::getters[] = {
 
 // ojo acá que si el código está ejecutando en una corutina, L no es mi main state, sino la propia Corutina
 Timer::Timer(lua_State* L) : 
-	m_L( LuaNode::GetLuaEval() ),
+	m_L( LuaNode::GetLuaVM() ),
 	m_repeats(false),
 	m_after(0)
 {
@@ -114,7 +114,7 @@ void Timer::OnTimeout(int reference, const boost::system::error_code& ec) {
 		
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
-			LuaNode::GetLuaEval().call(0, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(0, LUA_MULTRET);
 
 			if(m_repeats) {
 				// since a new timer could be setup in the callback, grab a new reference and pass that

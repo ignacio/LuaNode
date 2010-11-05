@@ -58,7 +58,7 @@ static bool need_tick_cb = false;
 static int tickCallback = LUA_NOREF;
 
 static boost::asio::io_service io_service;
-static CEvaluadorLua eval;
+static CLuaVM luaVm;
 
 /*static ev_async eio_want_poll_notifier;
 static ev_async eio_done_poll_notifier;
@@ -72,8 +72,8 @@ static ev_idle  eio_poller;*/
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-/*static*/ CEvaluadorLua& GetLuaEval() {
-	return eval;
+/*static*/ CLuaVM& GetLuaVM() {
+	return luaVm;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -152,17 +152,17 @@ static void EIODonePoll(void) {
 /// 
 static void Tick() {
 	need_tick_cb = false;
-	CEvaluadorLua& eval = LuaNode::GetLuaEval();
-	//lua_getfield(eval, LUA_GLOBALSINDEX, "process");			// process
-	//lua_getfield(eval, -1, "_tickcallback");					// process, function
+	CLuaVM& vm = LuaNode::GetLuaVM();
+	//lua_getfield(vm, LUA_GLOBALSINDEX, "process");			// process
+	//lua_getfield(vm, -1, "_tickcallback");					// process, function
 	//int _tickCallback = luaL_ref(L, LUA_REGISTRYINDEX);
-	//eval.call(0, LUA_MULTRET);
+	//vm.call(0, LUA_MULTRET);
 
 	// I'd previously stored the callback in the registry
-	lua_rawgeti(eval, LUA_REGISTRYINDEX, tickCallback);
-	eval.call(0, LUA_MULTRET);
+	lua_rawgeti(vm, LUA_REGISTRYINDEX, tickCallback);
+	vm.call(0, LUA_MULTRET);
 
-	lua_settop(eval, 0);
+	lua_settop(vm, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,7 +231,7 @@ static int Loop(lua_State* L) {
 	/*while(io_service.run_one(ec)) {
 		if(LuaNode::need_tick_cb) {
 			lua_rawgeti(L, LUA_REGISTRYINDEX, tickCallback);
-			LuaNode::GetLuaEval().call(0, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(0, LUA_MULTRET);
 		}
 	}*/
 
@@ -276,7 +276,7 @@ static void lstop (lua_State *L, lua_Debug *ar) {
 static void laction (int i) {
 	signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
 							terminate process (default action) */
-	lua_sethook(LuaNode::eval, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+	lua_sethook(LuaNode::luaVm, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 }
 
 
@@ -459,7 +459,7 @@ static int handle_luainit (lua_State *L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static int Load(int argc, char *argv[]) {
-	lua_State* L = LuaNode::eval;
+	lua_State* L = LuaNode::luaVm;
 	
 	int status = handle_luainit(L);
 	if(status != 0) return EXIT_FAILURE;
@@ -598,7 +598,7 @@ static int Load(int argc, char *argv[]) {
 	lua_call(L, 1, 1);
 	lua_getfield(L, -1, "stacktrace");
 	int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-	eval.setErrorHandler(ref);		// TODO: maybe add a flag to disable it?
+	LuaNode::luaVm.setErrorHandler(ref);		// TODO: maybe add a flag to disable it?
 
 	if(!debug_mode) {
 		PreloadModules(L);
@@ -611,10 +611,10 @@ static int Load(int argc, char *argv[]) {
 	else {
 		lua_pushboolean(L, true);
 		lua_setfield(L, LUA_GLOBALSINDEX, "DEBUG"); // esto es temporal
-		eval.loadfile("d:/trunk_git/sources/luanode/src/node.lua");
+		LuaNode::luaVm.loadfile("d:/trunk_git/sources/luanode/src/node.lua");
 	}
 
-	eval.call(0, 1);
+	LuaNode::luaVm.call(0, 1);
 
 	int function = lua_gettop(L);
 	if(lua_type(L, function) != LUA_TFUNCTION) {
@@ -624,7 +624,7 @@ static int Load(int argc, char *argv[]) {
 	}
 	lua_pushvalue(L, table);
 
-	eval.call(1, LUA_MULTRET);
+	LuaNode::luaVm.call(1, LUA_MULTRET);
 	if(lua_type(L, -1) == LUA_TNUMBER) {
 		return lua_tointeger(L, -1);
 	}

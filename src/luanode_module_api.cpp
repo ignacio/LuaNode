@@ -11,8 +11,8 @@ static int postbackCallback = LUA_NOREF;
 //////////////////////////////////////////////////////////////////////////
 /// 
 static void HandleModuleCallback(const char* module_name, const char* function_name, int key, void* userdata) {
-	CEvaluadorLua& eval = LuaNode::GetLuaEval();
-	lua_State* L = eval;
+	CLuaVM& vm = LuaNode::GetLuaVM();
+	lua_State* L = vm;
 
 	if(postbackCallback == LUA_NOREF) {
 		lua_getfield(L, LUA_GLOBALSINDEX, "process");
@@ -21,15 +21,15 @@ static void HandleModuleCallback(const char* module_name, const char* function_n
 		lua_pop(L, 1);
 	}
 	// I'd previously stored the callback in the registry
-	lua_rawgeti(eval, LUA_REGISTRYINDEX, postbackCallback);
+	lua_rawgeti(vm, LUA_REGISTRYINDEX, postbackCallback);
 	
 	lua_pushstring(L, module_name);
 	lua_pushstring(L, function_name);
 	lua_pushinteger(L, key);
 	lua_pushlightuserdata(L, userdata);
-	eval.call(4, LUA_MULTRET);
+	vm.call(4, LUA_MULTRET);
 
-	lua_settop(eval, 0);
+	lua_settop(vm, 0);
 };
 
 //////////////////////////////////////////////////////////////////////////

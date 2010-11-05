@@ -227,7 +227,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lua5.1.lib Support_vc9.lib libblogger2.lib ssleay32.lib libeay32.lib pthreadVC2.lib"
+				AdditionalDependencies="lua5.1.lib libblogger2.lib ssleay32.lib libeay32.lib pthreadVC2.lib"
 				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\stage\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\pthreads-win32-2.8.0&quot;"
@@ -276,10 +276,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\EvaluadorLUA.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\LuaNode.cpp"
 				>
 			</File>
@@ -320,7 +316,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\LuaRuntime.cpp"
+				RelativePath="..\..\src\LuaVM.cpp"
 				>
 			</File>
 			<File
@@ -370,10 +366,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\EvaluadorLUA.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\luanode_api.h"
 				>
 			</File>
@@ -419,6 +411,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\LuaStackChecker.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\LuaVM.h"
 				>
 			</File>
 			<File
@@ -562,6 +558,14 @@
 				RelativePath="..\..\lib\LuaNode\url.lua"
 				>
 			</File>
+			<Filter
+				Name="StackTracePlus"
+				>
+				<File
+					RelativePath="..\..\deps\StackTracePlus\src\StackTracePlus.lua"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="libeio"

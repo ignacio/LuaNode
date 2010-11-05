@@ -188,7 +188,7 @@ void Acceptor::HandleAccept(int reference, boost::asio::ip::tcp::socket* socket,
 			lua_pushnumber(L, socket->remote_endpoint().port());
 			lua_rawset(L, peer);
 
-			LuaNode::GetLuaEval().call(1, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(1, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
