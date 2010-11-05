@@ -1,7 +1,7 @@
 #pragma once
 
-#include <luacppbridge51/lcbHybridObjectWithProperties.h>
-#include "..\deps\http-parser\http_parser.h"
+#include "../deps/luacppbridge51/lcbHybridObjectWithProperties.h"
+#include "../deps/http-parser/http_parser.h"
 
 namespace LuaNode {
 

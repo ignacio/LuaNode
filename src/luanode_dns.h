@@ -1,6 +1,6 @@
 #pragma once
 
-#include <luacppbridge51/lcbHybridObjectWithProperties.h>
+#include "../deps/luacppbridge51/lcbHybridObjectWithProperties.h"
 
 #include <boost/asio/ip/tcp.hpp>
 
