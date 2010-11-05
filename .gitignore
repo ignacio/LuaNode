@@ -3,6 +3,10 @@ Release
 ReleaseMinDependency
 Release Debuggable
 test/fixtures
+src/Network_old
+deps/libeio
+deps/dirent.?
+deps/win32fixes.c
 LuaNode.deuser
 *_i.h
 *_i.c

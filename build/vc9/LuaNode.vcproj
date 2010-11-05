@@ -426,19 +426,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\SocketServer.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\stdafx.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\src\targetver.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\Todo.h"
 				>
 			</File>
 		</Filter>

@@ -7,7 +7,7 @@
 #include <boost/asio/read_until.hpp>
 
 #include <boost/bind.hpp>
-#include "Network/shared_const_buffer.h"
+#include "shared_const_buffer.h"
 
 
 using namespace LuaNode::Crypto;

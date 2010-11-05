@@ -8,7 +8,7 @@
 #include <boost/asio/placeholders.hpp>
 
 #include <boost/bind.hpp>
-#include "Network/shared_const_buffer.h"
+#include "shared_const_buffer.h"
 
 // this is needed for tcp_keepalive definition
 #ifdef _WIN32
