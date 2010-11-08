@@ -2,7 +2,7 @@
 #define _LUANODE_API_H_
 
 #include "../luanode_api.h"
-#include "../deps/luacppbridge51/luaIncludes.h"
+#include <lua.hpp>
 
 namespace LuaNode {
 

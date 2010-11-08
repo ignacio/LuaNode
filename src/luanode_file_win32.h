@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../deps/luacppbridge51/luaIncludes.h"
+#include <lua.hpp>
 
 
 namespace LuaNode {
