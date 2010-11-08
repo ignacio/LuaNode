@@ -21,7 +21,7 @@ end
 --
 --
 function _M:emit(kind, ...)
-	assert(type(self) == "table")
+	assert(type(self) == "table" or type(self) == "userdata")
 	-- If there is no 'error' event listener then throw.
 	if kind == "error" then
 		if not self._events or not self._events.error or 
