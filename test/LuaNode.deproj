@@ -171,4 +171,7 @@
   <file>
     <filename>simple\test-net-isip.lua</filename>
   </file>
+  <file>
+    <filename>simple\test-net-huge-write-finish.lua</filename>
+  </file>
 </project>

@@ -126,7 +126,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\sources\LuaNode\deps\http-parser&quot;"
+				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\sources\LuaNode\deps\http-parser&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;;&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -145,10 +145,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lua5.1.lib Support_vc9.lib libblogger2.lib"
+				AdditionalDependencies="lua5.1.lib libblogger2.lib ssleay32.lib libeay32.lib"
 				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib;$(INCONCERT_DEVEL)\packages\Lua5.1\lib;$(INCONCERT_DEVEL)\lib"
+				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -208,7 +208,7 @@
 				Optimization="0"
 				EnableIntrinsicFunctions="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\sources\LuaNode\deps\http-parser&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;;&quot;$(INCONCERT_DEVEL)\packages\pthreads-win32-2.8.0&quot;"
+				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\sources\LuaNode\deps\http-parser&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;;&quot;$(INCONCERT_DEVEL)\sources&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -227,10 +227,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lua5.1.lib libblogger2.lib ssleay32.lib libeay32.lib pthreadVC2.lib"
+				AdditionalDependencies="lua5.1.lib libblogger2.lib ssleay32.lib libeay32.lib"
 				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\stage\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\pthreads-win32-2.8.0&quot;"
+				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\stage\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(INCONCERT_DEVEL)\bin\$(TargetName).pdb"
 				SubSystem="1"
