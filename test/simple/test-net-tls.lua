@@ -43,13 +43,15 @@ local secureServer = net.createServer(function (self, connection)
 		gotSecureServer = true
 		local verified = connection:verifyPeer()
 		local peerDN = connection:getPeerCertificate()
-		assert_equal(verified, true)
-		assert_equal(peerDN.subject, "/C=UK/ST=Acknack Ltd/L=Rhys Jones/O=node.js/OU=Test TLS Certificate/CN=localhost")
-		assert_equal(peerDN.issuer, "/C=UK/ST=Acknack Ltd/L=Rhys Jones/O=node.js/OU=Test TLS Certificate/CN=localhost")
+		assert_equal(true, verified)
 
-		assert_equal(peerDN.valid_from, "Nov 11 09:52:22 2009 GMT")
-		assert_equal(peerDN.valid_to, "Nov  6 09:52:22 2029 GMT")
-		assert_equal(peerDN.fingerprint, "2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF")	
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.subject)
+		assert_equal("/C=UY/ST=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.issuer)
+
+		assert_equal("Nov  9 15:44:54 2010 GMT", peerDN.valid_from)
+		assert_equal("Nov  9 15:44:54 2011 GMT", peerDN.valid_to)	-- should extend this
+		
+		assert_equal("A1:2F:6E:F0:DE:10:CB:CC:2E:DC:4A:31:AC:F7:B6:9D:E3:98:B5:58", peerDN.fingerprint)
 	end)
 
 	connection:addListener("data", function (self, chunk)
@@ -77,13 +79,13 @@ secureServer:addListener("listening", function()
 		gotSecureClient = true
 		local verified = secureClient:verifyPeer()
 		local peerDN = secureClient:getPeerCertificate()
-		assert_equal(verified, true)
-		assert_equal(peerDN.subject, "/C=UK/ST=Acknack Ltd/L=Rhys Jones/O=node.js/OU=Test TLS Certificate/CN=localhost")
-		assert_equal(peerDN.issuer, "/C=UK/ST=Acknack Ltd/L=Rhys Jones/O=node.js/OU=Test TLS Certificate/CN=localhost")
+		assert_equal(true, verified)
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.subject)
+		assert_equal("/C=UY/ST=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.issuer)
 
-		assert_equal(peerDN.valid_from, "Nov 11 09:52:22 2009 GMT")
-		assert_equal(peerDN.valid_to, "Nov  6 09:52:22 2029 GMT")
-		assert_equal(peerDN.fingerprint, "2A:7A:C2:DD:E5:F9:CC:53:72:35:99:7A:02:5A:71:38:52:EC:8A:DF")
+		assert_equal("Nov  9 15:44:54 2010 GMT", peerDN.valid_from)
+		assert_equal("Nov  9 15:44:54 2011 GMT", peerDN.valid_to)	-- should extend this
+		assert_equal("A1:2F:6E:F0:DE:10:CB:CC:2E:DC:4A:31:AC:F7:B6:9D:E3:98:B5:58", peerDN.fingerprint)
 
 		secureClient:write(testData)
 		secureClient:finish()
