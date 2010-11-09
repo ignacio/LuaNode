@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "blogger.h"
+
+#ifdef ENABLE_LIBBLOGGER
 extern "C" {
 #include <libBlogger2/libblogger2.h>
 }
@@ -111,3 +113,110 @@ void LogFatal(const char* strFormat, ...) {
 	liblogger_FatalV(objLog, strFormat, argptr);
 	va_end(argptr);
 }
+
+#else
+
+#include <stdarg.h>
+
+static bool bFirstRun = true;
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+//extern BOOL WINAPI ConsoleControlHandler(DWORD ctrlType);
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static void Initialize() {
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+void LogFree() {
+	
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+void LogDebug(const char* strFormat, ...) {
+	/*if(bFirstRun) {
+		Initialize();
+		bFirstRun = false;
+	}
+	va_list argptr;
+	va_start(argptr, strFormat);
+	vfprintf(stderr, strFormat, argptr);
+	fprintf(stderr, "\r\n");
+	va_end(argptr);*/
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+void LogInfo(const char* strFormat, ...) {
+	/*if(bFirstRun) {
+		Initialize();
+		bFirstRun = false;
+	}
+	va_list argptr;
+	va_start(argptr, strFormat);
+	vfprintf(stderr, strFormat, argptr);
+	fprintf(stderr, "\r\n");
+	va_end(argptr);*/
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+void LogProfile(const char* strFormat, ...) {
+	if(bFirstRun) {
+		Initialize();
+		bFirstRun = false;
+	}
+	va_list argptr;
+	va_start(argptr, strFormat);
+	vfprintf(stderr, strFormat, argptr);
+	fprintf(stderr, "\r\n");
+	va_end(argptr);
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+void LogWarning(const char* strFormat, ...) {
+	if(bFirstRun) {
+		Initialize();
+		bFirstRun = false;
+	}
+	va_list argptr;
+	va_start(argptr, strFormat);
+	vfprintf(stderr, strFormat, argptr);
+	fprintf(stderr, "\r\n");
+	va_end(argptr);
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+void LogError(const char* strFormat, ...) {
+	if(bFirstRun) {
+		Initialize();
+		bFirstRun = false;
+	}
+	va_list argptr;
+	va_start(argptr, strFormat);
+	vfprintf(stderr, strFormat, argptr);
+	fprintf(stderr, "\r\n");
+	va_end(argptr);
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+void LogFatal(const char* strFormat, ...) {
+	if(bFirstRun) {
+		Initialize();
+		bFirstRun = false;
+	}
+	va_list argptr;
+	va_start(argptr, strFormat);
+	vfprintf(stderr, strFormat, argptr);
+	fprintf(stderr, "\r\n");
+	va_end(argptr);
+}
+#endif
