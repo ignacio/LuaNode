@@ -126,7 +126,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;;&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;"
+				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;;&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -326,6 +326,14 @@
 			<File
 				RelativePath="..\..\lib\preloader.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\src\stdafx.cpp"
@@ -426,6 +434,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\shared_const_buffer.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\stdafx.h"
 				>
 			</File>
@@ -439,14 +451,6 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-		</Filter>
-		<Filter
-			Name="Network"
-			>
-			<File
-				RelativePath="..\..\src\Network\shared_const_buffer.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="http-parser"

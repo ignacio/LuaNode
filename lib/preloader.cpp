@@ -1,4 +1,3 @@
-#include <stdafx.h>
 #include "preloader.h"
 
 static int luaopen_LuaNode_ChildProcess(lua_State* L) {
@@ -197,7 +196,7 @@ static int luaopen_StackTracePlus(lua_State* L) {
 
 void PreloadModules(lua_State* L) {
 	luaL_findtable(L, LUA_GLOBALSINDEX, "package.preload", 1);
-	int preload = lua_gettop(L);
+	//int preload = lua_gettop(L);
 
 	lua_pushcfunction(L, luaopen_LuaNode_ChildProcess);
 	lua_setfield(L, -2, "luanode.child_process");
@@ -248,7 +247,7 @@ void PreloadModules(lua_State* L) {
 /// 
 void PreloadAdditionalModules(lua_State* L) {
 	luaL_findtable(L, LUA_GLOBALSINDEX, "package.preload", 1);
-	int preload = lua_gettop(L);
+	//int preload = lua_gettop(L);
 
 	lua_pushcfunction(L, luaopen_StackTracePlus);
 	lua_setfield(L, -2, "stacktraceplus");
