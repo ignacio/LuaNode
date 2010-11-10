@@ -1,6 +1,6 @@
 module(..., lunit.testcase, package.seeall)
 
-local timers = require("luanode.net.timeout")
+local timers = require("luanode.timers")
 
 function test()
 
