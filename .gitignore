@@ -8,6 +8,8 @@ deps/libeio
 deps/dirent.?
 deps/win32fixes.c
 LuaNode.deuser
+*.rnd
+*.o
 *_i.h
 *_i.c
 *_p.c
