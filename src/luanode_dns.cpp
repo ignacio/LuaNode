@@ -66,8 +66,8 @@ int Resolver::Lookup(lua_State* L) {
 
 	boost::asio::ip::tcp::resolver::query query(domain, service);
 
-	// TODO: No hacer que esto sea una clase, sino un par de funciones est·ticas
-	// No pasar el this en el handler (el resolver podrÌa ser gc'ed mientras hay un async_resolve flying...
+	// TODO: No hacer que esto sea una clase, sino un par de funciones est√°ticas
+	// No pasar el this en el handler (el resolver podr√≠a ser gc'ed mientras hay un async_resolve flying...
 	// o sino, guardo una ref en la registry mientras tanto...
 	m_resolver.async_resolve(query, 
 		boost::bind(&Resolver::HandleResolve, this, callback, domain, boost::asio::placeholders::error, boost::asio::placeholders::iterator)
@@ -102,12 +102,12 @@ void Resolver::HandleResolve(int callback, std::string domain, const boost::syst
 	// Las lineas comentadas son si quiero devolver hacia lua todos los endpoints posibles o solo el primero, como node.js
 	lua_pushnil(L);
 	//lua_newtable(L);
-	int table = lua_gettop(L);
-	int i = 0;
+	//int table = lua_gettop(L);
+	//int i = 0;
 	//while(iter != end) {
 		boost::asio::ip::tcp::endpoint endpoint = *iter++;
 
-		boost::asio::ip::address& address = endpoint.address();
+		const boost::asio::ip::address& address = endpoint.address();
 		std::string s = endpoint.address().to_string();
 		lua_newtable(L);
 		lua_pushstring(L, address.to_string().c_str());

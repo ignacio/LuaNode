@@ -1,4 +1,4 @@
-#include <stdafx.h>
+#include "stdafx.h"
 #include "LuaNode.h"
 #include "luanode_file_win32.h"
 #include <sys/types.h>

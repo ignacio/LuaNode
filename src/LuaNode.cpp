@@ -50,9 +50,9 @@ static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
 static int option_end_index = 0;
 static bool debug_mode = false;
-static bool use_debug_agent = false;
-static bool debug_wait_connect = false;
-static int debug_port = 5858;
+//static bool use_debug_agent = false;
+//static bool debug_wait_connect = false;
+//static int debug_port = 5858;
 
 static bool need_tick_cb = false;
 static int tickCallback = LUA_NOREF;
@@ -223,7 +223,7 @@ static int Loop(lua_State* L) {
 
 
 	// TODO: Ver si esto no jode. Estoy sacando la tabla process del stack de C. Es seguro hacer esto porque en node.lua 
-	// guardé una referencia en _G
+	// guardÃ© una referencia en _G
 	lua_settop(L, 0);
 
 	LogDebug("LuaNode.exe: Loop - begin");
@@ -249,14 +249,14 @@ static int Loop(lua_State* L) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-static void OnFatalError(const char* location, const char* message) {
+/*static void OnFatalError(const char* location, const char* message) {
 	if (location) {
 		fprintf(stderr, "FATAL ERROR: %s %s\n", location, message);
 	} else {
 		fprintf(stderr, "FATAL ERROR: %s\n", message);
 	}
 	exit(1);
-}
+}*/
 
 //////////////////////////////////////////////////////////////////////////
 /// 

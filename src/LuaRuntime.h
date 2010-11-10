@@ -7,7 +7,7 @@
 
 #include "../../../packages/lua5.1/include/lua.hpp"
 
-//extern int CollectTraceback(lua_State* L);	// función para obtener stacktraces cuando hay errores
+//extern int CollectTraceback(lua_State* L);	// funciÃ³n para obtener stacktraces cuando hay errores
 
 template <typename TBase>
 class CLuaRuntime
@@ -29,7 +29,7 @@ public:
 	}
 
 protected:
-	// por defecto, abre todas las librerías
+	// por defecto, abre todas las librerÃ­as
 	void Initialize() {
 		luaL_openlibs(m_L);
 	};
@@ -163,12 +163,11 @@ public:
 		}
 		return ret;
 	}
-
+private:
+	bool m_owner;
 protected:
 	lua_State* m_L;
 	int m_error_handler;
-private:
-	bool m_owner;
 };
 
 #endif // !defined(AFX_LUARUNTIME_H__5E316F4C_EE73_4483_B0F0_6619A9D7C653__INCLUDED_)

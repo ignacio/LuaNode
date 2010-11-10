@@ -25,7 +25,7 @@ const Timer::RegType Timer::getters[] = {
 	{0}
 };
 
-// ojo ac· que si el cÛdigo est· ejecutando en una corutina, L no es mi main state, sino la propia Corutina
+// ojo ac√° que si el c√≥digo est√° ejecutando en una corutina, L no es mi main state, sino la propia Corutina
 Timer::Timer(lua_State* L) : 
 	m_L( LuaNode::GetLuaVM() ),
 	m_repeats(false),
@@ -110,7 +110,7 @@ void Timer::OnTimeout(int reference, const boost::system::error_code& ec) {
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
 	if(boost::asio::error::operation_aborted != ec) {
-		bool repeats = m_repeats;	// might change during the callback
+		//bool repeats = m_repeats;	// might change during the callback
 		
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {

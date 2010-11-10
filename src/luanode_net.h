@@ -14,7 +14,7 @@ namespace Net {
 
 void RegisterFunctions(lua_State* L);
 
-static int IsIP(lua_State* L);
+int IsIP(lua_State* L);
 
 
 class Socket : public LuaCppBridge::HybridObjectWithProperties<Socket>
@@ -56,21 +56,21 @@ private:
 	void HandleConnect(int reference, const boost::system::error_code& error);
 
 private:
-	boost::shared_ptr< boost::asio::ip::tcp::socket > m_socket;
+	lua_State* m_L;
 	const unsigned long m_socketId;
+	bool m_close_pending;
+	//bool m_read_shutdown_pending;
+	bool m_write_shutdown_pending;
+	unsigned long m_pending_writes;
+	unsigned long m_pending_reads;
+	
+	boost::shared_ptr< boost::asio::ip::tcp::socket > m_socket;
 	boost::asio::streambuf m_inputBuffer;
 	//boost::array<char, 4> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 32> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 64> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 128> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
 	boost::array<char, 8192> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
-	lua_State* m_L;
-
-	bool m_close_pending;
-	//bool m_read_shutdown_pending;
-	bool m_write_shutdown_pending;
-	unsigned long m_pending_writes;
-	unsigned long m_pending_reads;
 };
 
 }

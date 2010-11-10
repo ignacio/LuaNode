@@ -242,7 +242,7 @@ int Socket::SetOption(lua_State* L) {
 				{
 					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive on win32 native socket - %d", this, WSAGetLastError());
 				}
-#else // TODO: que ifdef iría acá cuando winkler me preste la mac?
+#else // TODO: que ifdef irÃ­a acÃ¡ cuando winkler me preste la mac?
 				if( setsockopt(m_socket->native(), SOL_TCP, TCP_KEEPIDLE, (void *)&time, sizeof(time)) ) {
 					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive (TCP_KEEPIDLE) on win32 native socket - %d", this, errno);
 				}
@@ -484,7 +484,7 @@ int Socket::Read(lua_State* L) {
 		);
 	}
 	else if(!lua_isnumber(L, 2)) {
-		const char* p = luaL_optstring(L, 2, "*l");
+		//const char* p = luaL_optstring(L, 2, "*l");
 		std::string delimiter = "\r\n";
 
 		LogDebug("Socket::Read (%p) (id=%d) - ReadLine", this, m_socketId);
@@ -520,7 +520,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			const char* data = (const char*)buffer_cast_helper(m_inputBuffer.data());
+			const char* data = (const char*)boost::asio::detail::buffer_cast_helper(m_inputBuffer.data());
 			lua_pushlstring(L, data, m_inputBuffer.size());
 			m_inputBuffer.consume(m_inputBuffer.size());	// its safe to consume, the string has already been interned
 			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
@@ -593,7 +593,6 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 	
 	m_pending_reads--;
-	const char* data = m_inputArray.c_array();
 	if(!error) {
 		LogInfo("Socket::HandleReadSome (%p) (id=%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
 		lua_getfield(L, 1, "read_callback");

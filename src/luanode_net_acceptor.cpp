@@ -40,8 +40,8 @@ const Acceptor::RegType Acceptor::getters[] = {
 
 Acceptor::Acceptor(lua_State* L) : 
 	m_L(L),
-	m_acceptor( GetIoService() ),
-	m_acceptorId(++s_nextAcceptorId)
+	m_acceptorId(++s_nextAcceptorId),
+	m_acceptor( GetIoService() )
 {
 	s_acceptorCount++;
 	LogDebug("Constructing Acceptor (%p) (id=%d). Current acceptor count = %d", this, m_acceptorId, s_acceptorCount);

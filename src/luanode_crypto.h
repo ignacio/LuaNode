@@ -49,22 +49,24 @@ private:
 	void HandleShutdown(int reference, const boost::system::error_code& error);
 
 private:
-	boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>* m_ssl_socket;
+	lua_State* m_L;
 	const unsigned long m_socketId;
+	bool m_shutdown_pending;
+	bool m_close_pending;
+	unsigned long m_pending_writes;
+	unsigned long m_pending_reads;
+	
+	boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>* m_ssl_socket;
+	
 	boost::asio::streambuf m_inputBuffer;
 	//boost::array<char, 4> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 32> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 64> m_inputArray;	// agrandar esto y poolearlo
 	boost::array<char, 128> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
-	lua_State* m_L;
+	
 	boost::asio::ssl::stream_base::handshake_type m_handshake_type;
 	bool m_should_verify;
-
-	bool m_shutdown_pending;
-	bool m_close_pending;
 	bool m_shutdown_send;
-	unsigned long m_pending_writes;
-	unsigned long m_pending_reads;
 };
 
 
