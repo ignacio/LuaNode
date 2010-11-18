@@ -74,13 +74,15 @@ IncomingMessage = stream.Stream:new()
 IncomingMessage.__index = IncomingMessage
 
 function IncomingMessage:new(socket)
-	--events.EventEmitter.call(this) -- que hace esto?
 	--local newMessage = setmetatable( EventEmitter:new() , IncomingMessage)
 	local newMessage = setmetatable( stream.Stream:new(), IncomingMessage)
 
 	-- TODO: Remove one of these eventually.
 	newMessage.socket = socket
 	newMessage.connection = socket
+	
+	newMessage.paused = false
+	newMessage._eventQueue = {}
 
 	newMessage.httpVersion = nil
 	newMessage.complete = false
@@ -117,13 +119,32 @@ end
 
 --
 --
+function IncomingMessage:_emit(...)
+	if self.paused then
+		self._eventQueue[#self._eventQueue + 1] = {...}
+	else
+		self:emit(...)
+	end
+end
+
+--
+--
 function IncomingMessage:pause()
+	self.paused = true
 	self.socket:pause()
 end
 
 --
 --
 function IncomingMessage:resume()
+	self.paused = false
+	
+	if #self._eventQueue > 0 then
+		for i, arguments in ipairs(self._eventQueue) do
+			self:emit( unpack(arguments) )
+		end
+		self._eventQueue = {}
+	end
 	self.socket:resume()
 end
 
@@ -827,10 +848,10 @@ parsers = FreeList.new("parsers", 1000, function ()
 		--local slice = b.slice(start, start + len)
 		local slice = b
 		if parser.incoming._decoder then
-			local s = parser.incoming._decoder:write(slice)
-			if #s then parser.incoming:emit("data", s) end
+			local string = parser.incoming._decoder:write(slice)
+			if #string then parser.incoming:_emit("data", string) end
 		else
-			parser.incoming:emit("data", slice)
+			parser.incoming:_emit("data", slice)
 		end
 	end
 	
@@ -841,7 +862,7 @@ parsers = FreeList.new("parsers", 1000, function ()
 		end
 		if not parser.incoming.upgrade then
 			-- For upgraded connections, also emit this after parser.execute
-			parser.incoming:emit("end")
+			parser.incoming:_emit("end")
 		end
 	end
 	

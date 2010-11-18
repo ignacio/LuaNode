@@ -51,6 +51,11 @@ static inline const char* method_to_str(unsigned short m) {
 		case HTTP_MKACTIVITY: return "MKACTIVITY";
 		case HTTP_CHECKOUT:   return "CHECKOUT";
 		case HTTP_MERGE:      return "MERGE";
+		/*case HTTP_MSEARCH:    return "M-SEARCH";
+		case HTTP_NOTIFY:     return "NOTIFY";
+		case HTTP_SUBSCRIBE:  return "SUBSCRIBE";
+		case HTTP_UNSUBSCRIBE:return "UNSUSCRIBE";*/
+
 		default:              return "UNKNOWN";
 	}
 }

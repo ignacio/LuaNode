@@ -66,8 +66,13 @@ int CLuaVM::OnError(bool hasStackTrace) const {
 	std::string errorMessage;
 
 	if(hasStackTrace) {
-		errorMessage = lua_tostring(m_L, -1);
-		errorMessage += "\r\n";
+		if(lua_isstring(m_L, -1)) {
+			errorMessage = lua_tostring(m_L, -1);
+			errorMessage += "\r\n";
+		}
+		else {
+			errorMessage = "(error object is not a string)";
+		}
 	}
 	else {
 		if(lua_isstring(m_L, -1)) {
