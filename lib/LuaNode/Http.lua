@@ -896,10 +896,8 @@ local function connectionListener (server, socket)
 			-- the upgradeHead from the closing lines of the headers
 			local upgradeHead = d:sub(bytesParsed + 2)
 			
-			if #server:listeners("upgrade") > 0 then
-				server:emit("upgrade", req, req.socket, upgradeHead)
-			else
-				-- got upgrade header, but have no handler
+			if not server:emit("upgrade", req, req.socket, upgradeHead) then
+				-- got upgrade header, but haven't catched it.
 				socket:destroy()
 			end
 		end
@@ -1034,9 +1032,8 @@ function Client:new ()
 			local req = self.parser.incoming
 			local upgradeHead = d:sub(bytesParsed + 2)
 			
-			if #newClient:listeners("upgrade") > 0 then
-				newClient:emit("upgrade", req, newClient, upgradeHead)
-			else
+			if not newClient:emit("upgrade", req, newClient, upgradeHead) then
+				-- got upgrade header, but haven't catched it.
 				newClient:destroy()
 			end
 		end

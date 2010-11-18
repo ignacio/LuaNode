@@ -38,11 +38,13 @@ function _M:emit(kind, ...)
 	local handler = self._events[kind]
 	if not handler then return false end
 	
+	local result
+	
 	if type(handler) == "function" then
 		local num_args = select("#", ...)
 		if num_args == 0 then
 			--print("before emitting " .. kind)
-			handler(self)
+			result = handler(self)
 			--print("after emitting " .. kind)
 		elseif num_args <= 2 then
 			-- TODO: consolidar en uno solo? esto como que no aplica en Lua...
@@ -51,12 +53,12 @@ function _M:emit(kind, ...)
 			local arg2 = select(2, ...)
 			--print("before emitting " .. kind)
 			--print(type(handler))
-			handler(self, arg1, arg2)
+			result = handler(self, arg1, arg2)
 			--print("after emitting " .. kind)
 		else
 			-- slow case
 			--print("before emitting " .. kind)
-			handler(self, ...)
+			result = handler(self, ...)
 			--print("after emitting " .. kind)
 		end
 		
@@ -65,13 +67,17 @@ function _M:emit(kind, ...)
 		for k,v in ipairs(handler) do listeners[k] = v end
 		--print("before emitting " .. kind)
 		for i = 1, #listeners do
-			listeners[i](self, ...)
+			result = listeners[i](self, ...)
+			-- Stop propagating if listener returned false
+			if result == false then break end
 		end
 		--print("after emitting " .. kind)
-		return true
+		--return true
 	else
-		return false
+		--return false
 	end
+	
+	return result == false
 end
 
 --

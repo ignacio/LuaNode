@@ -51,6 +51,10 @@ function test()
 			srv:close()
 	
 			gotUpgrade = true
+			
+			-- Stop propagation and notify node, that "upgrade" event was caught
+			-- Otherwise socket will be destroyed
+			return false
 		end)
 		hc:request('GET', '/'):finish()
 	end)

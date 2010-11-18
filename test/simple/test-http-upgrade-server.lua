@@ -38,6 +38,10 @@ function createTestServer()
 				socket:write(data, "utf8")
 			end
 		end
+		
+		-- Stop propagation and notify that "upgrade" event was caught
+		-- Otherwise socket will be destroyed
+		return false
 	end)
 		
 	return server

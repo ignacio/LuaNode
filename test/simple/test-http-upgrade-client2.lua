@@ -28,6 +28,10 @@ local function upgradeRequest(client, fn)
 			
 			self:removeListener('upgrade', onUpgrade)
 			socket:finish()
+			
+			-- Stop propagation and notify that "upgrade" event was caught
+			-- Otherwise socket will be destroyed
+			return false
 		end
 		
 		function onEnd()
