@@ -206,6 +206,7 @@ function OutgoingMessage:new (socket)
 	newMessage.chunkedEncoding = false
 	newMessage.shouldKeepAlive = true
 	newMessage.useChunkedEncodingByDefault = true
+	newMessage.shouldSendDate = false
 
 	newMessage._hasBody = true
 	newMessage._trailer = ""
@@ -299,6 +300,7 @@ function OutgoingMessage:_storeHeader (firstLine, headers)
 	local sentContentLengthHeader = false
 	local sentTransferEncodingHeader = false
 	local sentExpect = false
+	local sentDateHeader = false
 
 	-- firstLine in the case of request is: "GET /index.html HTTP/1.1\r\n"
 	-- in the case of response it is: "HTTP/1.1 200 OK\r\n"
@@ -325,6 +327,9 @@ function OutgoingMessage:_storeHeader (firstLine, headers)
 
 		elseif field:match("content%-length") then
 			sentContentLengthHeader = true
+		
+		elseif field:match("date") then
+			sentDateHeader = true
 		
 		elseif field:match("expect") then
 			sentExpect = true
@@ -376,6 +381,11 @@ function OutgoingMessage:_storeHeader (firstLine, headers)
 		end
 	end
 
+	-- Date header
+	if self.shouldSendDate and not sentDateHeader then
+		messageHeader = messageHeader .. "Date: " .. os.date("!%a, %d %b %Y %H:%M:%S GMT") .. "\r\n"
+	end
+	
 	-- keep-alive logic
 	if sentConnectionHeader == false then
 		if self.shouldKeepAlive and (sentContentLengthHeader or self.useChunkedEncodingByDefault) then
@@ -541,6 +551,8 @@ function ServerResponse:new (req)
 	if req.method == "HEAD" then
 		newResponse._hasBody = false
 	end
+	
+	newResponse.shouldSendDate = true
 	
 	if req.httpVersionMajor < 1 or req.httpVersionMinor < 1 then
 		newResponse.useChunkedEncodingByDefault = false
