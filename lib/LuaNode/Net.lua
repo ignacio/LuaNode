@@ -303,7 +303,7 @@ function Stream:new(fd, kind)
 end
 
 
-function Stream:setSecure(credentials)
+function Stream:setSecure(context)
 	-- Do we have openssl crypto?
 	local SecureContext = process.SecureContext
 	--local SecureStream = process.SecureStream
@@ -311,19 +311,26 @@ function Stream:setSecure(credentials)
 	local crypto = require("luanode.crypto")
 	self.secure = true
 	self.secureEstablished = false
-	-- If no credentials given, create a new one for just this Stream
-	if not credentials then
-		self.credentials = crypto.createCredentials()
+	-- If no secure context given, create a new one for just this Stream
+	if not context then
+		self.secureContext = crypto.createContext()
 	else
-		self.credentials = credentials
+		self.secureContext = context
 	end
-	if not self.server then
-		-- For clients, we will always have either a given ca list or the default on
-		self.credentials.shouldVerify = true
+	
+	-- Determine default value. Don't overwrite this.secureContext because the 
+	-- same context might be shared by a client and a server with different 
+	-- default values.
+	local verifyRemote
+	if self.secureContext.verifyRemote == nil then
+		-- For clients, default to verify. For servers, default to off.
+		verifyRemote = (self.server ~= nil)
+	else
+		verifyRemote = self.secureContext.verifyRemote
 	end
 	--local s = process.SecureSocket(self._stream)
 	local oldStream = self._stream
-	self._stream = process.SecureSocket(self._stream, credentials.context, self.server and true or false, self.credentials.shouldVerify)
+	self._stream = process.SecureSocket(self._stream, self.secureContext, self.server and true or false, verifyRemote)
 	-- me copio los callbacks
 	self._stream.read_callback = oldStream.read_callback
 	self._stream.write_callback = oldStream.write_callback
@@ -341,11 +348,6 @@ function Stream:setSecure(credentials)
 		end
 		stream:read()
 	end
-	--s:read()
-	--self._stream:makeSecure(credentials.context)
-	--self.secureStream = new SecureStream(this.credentials.context,
-      --                                 this.server ? true : false,
-        --                               this.credentials.shouldVerify);
 
 	setImplmentationMethods(self)
 
@@ -355,10 +357,9 @@ function Stream:setSecure(credentials)
 	end
 end
 
-function Stream:verifyPeer(credentials)
+function Stream:verifyPeer()
 	assert(self.secure, "Stream is not a secure stream.")
-	--return this.secureStream.verifyPeer(this.credentials.context);
-	return self._stream:verifyPeer(self.credentials.context)
+	return self._stream:verifyPeer(self.secureContext)
 end
 
 function Stream:_checkForSecureHandshake()
@@ -374,8 +375,7 @@ end
 
 function Stream:getPeerCertificate()
 	assert(self.secure, "Stream is not a secure stream.")
-	--return this.secureStream.verifyPeer(this.credentials.context);
-	return self._stream:getPeerCertificate(self.credentials.context)
+	return self._stream:getPeerCertificate(self.secureContext)
 end
 
 function Stream:getCipher()

@@ -21,7 +21,7 @@ local certPem = fs.readFileSync(common.fixturesDir .. "/test_cert.pem", 'ascii')
 local keyPem = fs.readFileSync(common.fixturesDir .. "/test_key.pem", 'ascii')
 
 --try{
-  local credentials = crypto.createCredentials({key=keyPem, cert=certPem, ca=caPem})
+  local context = crypto.createContext({key=keyPem, cert=certPem, ca=caPem})
 --} catch (e) {
 --  console.log("Not compiled with OPENSSL support.")
 --  process.exit()
@@ -36,7 +36,7 @@ local gotSecureClient = false
 local secureServer = net.createServer(function (self, connection)
 	local server = self
 	console.log("server got connection: remoteAddress: %s:%s", connection:remoteAddress())
-	connection:setSecure(credentials)
+	connection:setSecure(context)
 	connection:setEncoding("UTF8")
 
 	connection:addListener("secure", function ()
@@ -72,7 +72,7 @@ secureServer:addListener("listening", function()
 
 	secureClient:setEncoding("UTF8")
 	secureClient:addListener("connect", function ()
-		secureClient:setSecure(credentials)
+		secureClient:setSecure(context)
 	end)
 
 	secureClient:addListener("secure", function ()

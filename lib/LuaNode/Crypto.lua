@@ -3760,6 +3760,7 @@ local crypto = true
 }
 ]]
 
+--[==[
 local Credentials = {}
 Credentials.__index = Credentials
 
@@ -3783,40 +3784,42 @@ function Credentials:new(method)
 	t.shouldVerify = false
 	return t
 end
+--]==]
 
 
-function createCredentials(cred)
-	cred = cred or {}
-	local c = Credentials:new(cred.method or "sslv23")	-- SSL version 2 and 3 by default
+function createContext(context)
+	context = context or {}
+	local c = SecureContext:new(context.method or "sslv23")	-- SSL version 2 and 3 by default
 	--local params = {
 		--mode = "server", -- fuck!
 		--protocol = cred.method or "sslv23"
 	--}
 	local ret
-	if cred.key then
-		ret = c.context:setKey(cred.key)
+	if context.key then
+		ret = c:setKey(context.key)
 	end
-	if cred.cert then
-		ret = c.context:setCert(cred.cert)
+	if context.cert then
+		ret = c:setCert(context.cert)
 	end
-	if cred.ca then
-		c.shouldVerify = true
-		if (type(cred.ca) == "table") and #cred.ca > 0 then
-			for k,v in ipairs(cred.ca) do
-				c.context:addCACert(v)
+	if context.ca then
+		c.verifyRemote = true
+		if (type(context.ca) == "table") and #context.ca > 0 then
+			for k,v in ipairs(context.ca) do
+				c:addCACert(v)
 			end
 		else
-			ret = c.context:addCACert(cred.ca)
+			ret = c:addCACert(context.ca)
 		end
 	else
 		for k,v in ipairs(RootCaCerts) do
-			c.context:addCACert(v)
+			c:addCACert(v)
 		end
 	end
-	--c.context = ssl.newcontext(params)
+	if context.verifyRemote ~= nil then
+		c.verifyRemote = context.verifyRemote
+	end
 	return c
 end
---exports.Credentials = Credentials;
 
 --exports.Hash = Hash;
 function createHash(hash)

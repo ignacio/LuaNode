@@ -27,7 +27,7 @@ local certPem = fs.readFileSync(common.fixturesDir .. "/test_cert.pem", 'ascii')
 local keyPem = fs.readFileSync(common.fixturesDir .. "/test_key.pem", 'ascii')
 
 --try{
-	local credentials = crypto.createCredentials{key = keyPem, cert = certPem, ca = caPem}
+	local context = crypto.createContext{key = keyPem, cert = certPem, ca = caPem}
 --} catch (e) {
 --  console.log("Not compiled with OPENSSL support.");
 --  process.exit();
@@ -77,7 +77,7 @@ local https_server = http.createServer(function (self, req, res)
 	end, 1)
 end)
 
-https_server:setSecure(credentials)
+https_server:setSecure(context)
 https_server:listen(common.PORT)
 
 https_server:addListener("listening", function()
@@ -86,7 +86,7 @@ https_server:addListener("listening", function()
 	c:setEncoding("utf8")
 
 	c:addListener("connect", function ()
-		c:setSecure(credentials)
+		c:setSecure(context)
 	end)
 
 	c:addListener("secure", function ()

@@ -892,7 +892,7 @@ local function connectionListener (server, socket)
 	parser.socket = socket
 	
 	if server.secure then
-		socket:setSecure(server.credentials)
+		socket:setSecure(server.secureContext)
 	end
 	
 	socket:addListener("error", function (self, e)
@@ -1007,9 +1007,9 @@ function Server:new (requestListener)
 	return newServer
 end
 
-function Server:setSecure(credentials)
+function Server:setSecure(context)
 	self.secure = true
-	self.credentials = credentials
+	self.secureContext = context
 end
 
 --
@@ -1075,7 +1075,7 @@ function Client:new ()
 		self.onend = onEnd
 		
 		if self.https then
-			self:setSecure(self.credentials)
+			self:setSecure(self.secureContext)
 		else
 			self:_initParser()
 			LogDebug("requests: ") -- util.inspect(newClient._outgoing)
@@ -1111,12 +1111,12 @@ end
 
 --
 --
-function createClient (port, host, https, credentials)
+function createClient (port, host, https, context)
 	local c = Client:new()
 	c.port = port
 	c.host = host
 	c.https = https
-	c.credentials = credentials
+	c.secureContext = context
 	
 	return c
 end
