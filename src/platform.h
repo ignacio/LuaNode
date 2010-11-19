@@ -18,6 +18,8 @@ public:
 
 	static int SetConsoleForegroundColor(lua_State* L);
 	static int SetConsoleBackgroundColor(lua_State* L);
+
+	static bool PlatformInit();
 };
 
 

@@ -47,4 +47,9 @@ int OS::SetConsoleBackgroundColor(lua_State* L) {
 	return 0;
 }
 
+bool OS::PlatformInit() {
+	SetConsoleOutputCP(CP_UTF8);
+	return true;
+}
+
 }  // namespace LuaNode

@@ -476,6 +476,11 @@ static int Load(int argc, char *argv[]) {
 	//status = runargs(L, argv, argc);
 	if(status != 0) return EXIT_FAILURE;
 
+	if(!OS::PlatformInit()) {
+		LogError("Failed to perform platform specific initialization");
+		return EXIT_FAILURE;
+	}
+
 	// tabla 'process'
 	lua_newtable(L);
 	int table = lua_gettop(L);
