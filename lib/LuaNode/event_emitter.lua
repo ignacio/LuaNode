@@ -41,6 +41,8 @@ function _M:emit(kind, ...)
 	local result
 	
 	if type(handler) == "function" then
+		result = handler(self, ...)
+		--[[
 		local num_args = select("#", ...)
 		if num_args == 0 then
 			--print("before emitting " .. kind)
@@ -49,18 +51,22 @@ function _M:emit(kind, ...)
 		elseif num_args <= 2 then
 			-- TODO: consolidar en uno solo? esto como que no aplica en Lua...
 			--fast case
+			print("fast case, num_args == " .. num_args)
 			local arg1 = select(1, ...)
 			local arg2 = select(2, ...)
+			print(arg1, arg2)
 			--print("before emitting " .. kind)
 			--print(type(handler))
 			result = handler(self, arg1, arg2)
 			--print("after emitting " .. kind)
 		else
 			-- slow case
+			print("slow case")
 			--print("before emitting " .. kind)
 			result = handler(self, ...)
 			--print("after emitting " .. kind)
 		end
+		--]]
 		
 	elseif isArray(handler) then
 		local listeners = {}
@@ -116,7 +122,8 @@ function _M:once(kind, listener)
 	local t = {}
 	t.callback = function(...)
 		self:removeListener(kind, t.callback)
-		listener(self, ...)
+		--listener(self, ...)
+		listener(...)
 	end
 	self:on(kind, t.callback)
 end
