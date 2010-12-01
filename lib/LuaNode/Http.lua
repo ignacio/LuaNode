@@ -878,7 +878,7 @@ end)
 --
 --
 local function connectionListener (server, socket)
-	LogDebug("new http connection")
+	LogDebug("SERVER new http connection")
 	
 	httpSocketSetup(socket)
 	
@@ -1031,6 +1031,12 @@ function Client:new ()
 	local newClient = net.Stream:new()
 	setmetatable(newClient, Client)
 	
+	-- Possible states:
+	-- - disconnected
+	-- - connecting
+	-- - connected
+	self._state = "disconnected"
+	
 	httpSocketSetup(newClient)
 	
 	local function onData (self, d, start, finish)
@@ -1042,6 +1048,7 @@ function Client:new ()
 		finish = finish or #d
 		local ret, err = self.parser:execute(d, start, finish - start)
 		if not ret then
+			LogDebug("parse error")
 			newClient:destroy(err)
 		elseif self.parser.incoming and self.parser.incoming.upgrade then
 			-- TODO: fixme, esto esta mal, asume que cuando el parser ve el upgrade, los datos para el evento upgrade tambien fueron leidos
@@ -1064,42 +1071,45 @@ function Client:new ()
 		if self.parser then
 			self.parser:finish()
 		end
-		LogDebug("self got end closing. readyState = %s", newClient:readyState())
+		LogDebug("CLIENT got end closing. state = %s", newClient._state)
 		newClient:finish()
 	end
 	
 	newClient:addListener("connect", function (self)
-		LogDebug("client connected")
+		LogDebug("CLIENT connected")
 		
 		self.ondata = onData
 		self.onend = onEnd
+		
+		self._state = "connected"
 		
 		if self.https then
 			self:setSecure(self.secureContext)
 		else
 			self:_initParser()
-			LogDebug("requests: ") -- util.inspect(newClient._outgoing)
+			LogDebug("CLIENT requests: ") -- debug('CLIENT requests: ' + util.inspect(self._outgoing.map(function (r) { return r.method; })));
 			outgoingFlush(self)
 		end
 	end)
 	
 	newClient:addListener("secure", function (self)
 		self:_initParser()
-		LogDebug('requests: ')-- + util.inspect(self._outgoing));
+		LogDebug('CLIENT requests: ')-- + util.inspect(self._outgoing));
 		outgoingFlush(newClient)
 	end)
 	
 	newClient:addListener("close", function (self, e)
+		self._state = "disconnected"
 		if e then return end
 		
-		LogDebug("HTTP CLIENT onClose. readyState = %s", newClient:readyState())
+		LogDebug("CLIENT onClose. state = %s", newClient._state)
 		
 		-- finally done with the request
 		table.remove(newClient._outgoing, 1)
 		
 		-- If there are more requests to handle, reconnect
 		if #newClient._outgoing > 0 then
-			newClient:_reconnect()
+			newClient:_ensureConnection()
 		elseif self.parser then
 			parsers:free(self.parser)
 			self.parser = nil
@@ -1137,7 +1147,7 @@ function Client:_initParser ()
 		-- Responses to HEAD requests are AWFUL. Ask Ryan.
 		-- A major oversight in HTTP. Hence this nastiness.
 		local isHeadResponse = (req.method == "HEAD")
-		LogDebug("isHeadResponse %s", tostring(isHeadResponse))
+		LogDebug("CLIENT isHeadResponse %s", tostring(isHeadResponse))
 		
 		if res.statusCode == 100 then
 			-- restart the parser, as this is a continue message
@@ -1150,7 +1160,7 @@ function Client:_initParser ()
 		end
 		
 		res:addListener("end", function (response)
-			LogDebug("request complete disconnecting. readyState = %s", self:readyState())
+			LogDebug("CLIENT request complete disconnecting. state = %s", self._state)
 			-- For the moment we reconnect for every request. FIXME!
 			-- All that should be required for keep-alive is to not reconnect,
 			-- but outgoingFlush instead.
@@ -1189,17 +1199,18 @@ function Client:_onOutgoingSent (message)
 	-- Instead, we just check if the connection is closed, and if so
 	-- reconnect if we have pending messages.
 	if #self._outgoing > 0 and self:readyState() == "closed" then
-		LogDebug("HTTP client request flush. reconnect.  readyState = %s", self:readyState())
-		self:_reconnect()
+		LogDebug("CLIENT request flush. ensure connection.  state = %s", self._state)
+		self:_ensureConnection()
 	end
 end
 
 --
 --
-function Client:_reconnect ()
-	if self:readyState() == "closed" then
-		LogDebug("HTTP CLIENT: reconnecting readyState = %s", self:readyState())
+function Client:_ensureConnection ()
+	if self._state == "disconnected" then
+		LogDebug("CLIENT reconnecting state = %s", self._state)
 		self:connect(self.port, self.host)
+		self._state = "connecting"
 	end
 end
 
@@ -1215,7 +1226,7 @@ function Client:request (method, url, headers)
 	local req = ClientRequest:new(self, method, url, headers)
 	self._outgoing[#self._outgoing + 1] = req
 	if self:readyState() == 'closed' then
-		self:_reconnect()
+		self:_ensureConnection()
 	end
 	return req
 end
