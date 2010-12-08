@@ -3823,7 +3823,11 @@ end
 
 --exports.Hash = Hash;
 function createHash(hash)
-	error("createHash not implemented")
+	local ok, luacrypto = pcall(require, "crypto")
+	if not ok then
+		error("LuaCrypto noy found")
+	end
+	return luacrypto.digest.new(hash)
 end
 --exports.createHash = function(hash) {
 --  return new Hash(hash);
