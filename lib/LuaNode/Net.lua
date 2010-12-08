@@ -554,6 +554,10 @@ function Stream:_writeOut(data, encoding, fd)
 			self._writeQueueEncoding = {}
 			self._writeQueueFD = {}
 		end
+		-- Restore it back into the queue
+		table.insert(self._writeQueue, 1, data)
+		table.insert(self._writeQueueEncoding, 1, encoding)
+		--[[
 		-- Slow. There is already a write queue, so let's append to it.
 		if type(data) == "string" and #self._writeQueue > 0 and 
 			type(self._writeQueue[#self._writeQueue]) == "string" and
@@ -565,6 +569,7 @@ function Stream:_writeOut(data, encoding, fd)
 			table.insert(self._writeQueue, 1, data)
 			table.insert(self._writeQueueEncoding, 1, encoding)
 		end
+		--]]
 	end
 	
 	return couldWrite
