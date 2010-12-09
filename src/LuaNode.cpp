@@ -629,7 +629,9 @@ static int Load(int argc, char *argv[]) {
 	}
 	lua_pushvalue(L, table);
 
-	LuaNode::luaVm.call(1, LUA_MULTRET);
+	if(LuaNode::luaVm.call(1, LUA_MULTRET) != 0) {
+		return EXIT_FAILURE;
+	}
 	if(lua_type(L, -1) == LUA_TNUMBER) {
 		return lua_tointeger(L, -1);
 	}
