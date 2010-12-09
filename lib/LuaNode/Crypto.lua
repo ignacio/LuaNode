@@ -3789,7 +3789,7 @@ end
 
 function createContext(context)
 	context = context or {}
-	local c = SecureContext:new(context.method or "sslv23")	-- SSL version 2 and 3 by default
+	local c = SecureContext(context.method or "sslv23")	-- SSL version 2 and 3 by default
 	--local params = {
 		--mode = "server", -- fuck!
 		--protocol = cred.method or "sslv23"

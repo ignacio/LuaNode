@@ -9,7 +9,7 @@ local EventEmitter = require "luanode.event_emitter"
 function test()
 	local callbacks_called = {}
 
-	local e = EventEmitter:new()
+	local e = EventEmitter()
 
 	function callback1()
 		table.insert(callbacks_called, "callback1")

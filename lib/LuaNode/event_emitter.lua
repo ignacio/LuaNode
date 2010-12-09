@@ -2,9 +2,7 @@ local assert, type, error, ipairs, print, pcall = assert, type, error, ipairs, p
 local table, setmetatable = table, setmetatable
 local select = select
 
-module((...))
-
-_M.__index = _M
+local Class = require "luanode.class"
 
 --TODO: better check for array-like tables
 local function isArray(t)
@@ -14,13 +12,19 @@ local function isArray(t)
 	return false
 end
 
--- esto debe construir instancias de "EventEmitters"
+-- This constructs instances of "Event Emitters"
 
--- self._events = {}
+local EventEmitter = Class{
+	__init = function(class, t)
+		t = t or {}
+		t._events = {}
+		return Class.base.rawnew(class, t)
+	end
+}
 
 --
 --
-function _M:emit(kind, ...)
+function EventEmitter:emit(kind, ...)
 	assert(type(self) == "table" or type(self) == "userdata")
 	-- If there is no 'error' event listener then throw.
 	if kind == "error" then
@@ -88,7 +92,7 @@ end
 
 --
 --
-function _M:addListener(kind, listener)
+function EventEmitter:addListener(kind, listener)
 	if type(listener) ~= "function" then
 		error("addListener only takes functions")
 	end
@@ -116,9 +120,9 @@ end
 
 --
 --
-_M.on = _M.addListener
+EventEmitter.on = EventEmitter.addListener
 
-function _M:once(kind, listener)
+function EventEmitter:once(kind, listener)
 	local t = {}
 	t.callback = function(...)
 		self:removeListener(kind, t.callback)
@@ -130,7 +134,7 @@ end
 
 --
 --
-function _M:removeListener(kind, listener)
+function EventEmitter:removeListener(kind, listener)
 	if type(listener) ~= "function" then
 		error("removeListener only takes functions")
 	end
@@ -157,7 +161,7 @@ end
 
 --
 --
-function _M:removeAllListeners(kind)
+function EventEmitter:removeAllListeners(kind)
 	if kind and self._events and self._events[kind] then
 		self._events[kind] = nil
 	end
@@ -168,7 +172,7 @@ end
 --
 -- Returns an array of listeners for the specified event. This array can be manipulated, e.g. to 
 -- remove listeners.
-function _M:listeners(kind)
+function EventEmitter:listeners(kind)
 	self._events = self._events or {}
 	self._events[kind] = self._events[kind] or {}
 	
@@ -179,9 +183,4 @@ function _M:listeners(kind)
 	return self._events[kind]
 end
 
-
-function new()
-	local o = setmetatable({}, _M)
-	o._events = {}
-	return o
-end
+return EventEmitter

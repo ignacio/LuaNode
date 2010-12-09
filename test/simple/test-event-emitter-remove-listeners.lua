@@ -25,17 +25,17 @@ function test()
 		count = count + 1
 	end
 
-	e1 = EventEmitter:new()
+	e1 = EventEmitter()
 	e1:addListener("hello", listener1)
 	e1:removeListener("hello", listener1)
 	assert_equal(nil, e1:listeners('hello')[1])
 	
-	e2 = EventEmitter:new()
+	e2 = EventEmitter()
 	e2:addListener("hello", listener1)
 	e2:removeListener("hello", listener2)
 	assert_equal(listener1, e2:listeners('hello')[1])
 
-	e3 = EventEmitter:new()
+	e3 = EventEmitter()
 	e3:addListener("hello", listener1)
 	e3:addListener("hello", listener2)
 	e3:removeListener("hello", listener1)

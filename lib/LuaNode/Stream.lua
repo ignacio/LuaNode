@@ -1,19 +1,12 @@
+local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
 --var util = require('util');
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
--- Stream MT
-Stream = EventEmitter:new()
-Stream.__index = Stream
-
-
-function Stream:new()
-	local newStream = EventEmitter:new()
-	setmetatable(newStream, Stream)
-	return newStream
-end
+-- Stream Class
+Stream = Class.InheritsFrom(EventEmitter)
 
 --
 --

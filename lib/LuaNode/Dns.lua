@@ -5,7 +5,7 @@ local Resolver = process.Resolver
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
-local m_resolver = Resolver:new()
+local m_resolver = Resolver()
 
 --
 -- Easy DNS A/AAAA look up

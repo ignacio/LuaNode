@@ -1,3 +1,4 @@
+local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
 local Stream = require("luanode.stream").Stream
 
@@ -8,12 +9,10 @@ local InternalChildProcess = process.ChildProcess
 local constants
 
 
-ChildProcess = EventEmitter:new()
-ChildProcess.__index = ChildProcess
+ChildProcess = Class.InheritsFrom(EventEmitter)
 
-function ChildProcess:new()
-	local newProcess = EventEmitter:new()
-	setmetatable(newProcess, ChildProcess)
+function ChildProcess:__init()
+	local newProcess = Class.construct(self)
 	
 	local gotCHLD = false
 	local exitCode
@@ -21,13 +20,13 @@ function ChildProcess:new()
 	local internal = InternalChildProcess()
 	newProcess._internal = internal
 
-	local stdin = Stream:new()
+	local stdin = Stream()
 	newProcess.stdin = stdin
 	
-	local stdout = Stream:new()
+	local stdout = Stream()
 	newProcess.stdout = stdout
 	
-	local stderr = Stream:new()
+	local stderr = Stream()
 	newProcess.stderr = stderr
 	
 	local stderrClosed = false
@@ -134,7 +133,7 @@ end
 --
 --
 function spawn(...)--/*, options OR env, customFds */)
-	local child = ChildProcess:new()
+	local child = ChildProcess()
 	child:spawn(path, args)
 	return child
 end

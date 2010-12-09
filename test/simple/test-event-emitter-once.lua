@@ -5,7 +5,7 @@ common = dofile("common.lua")
 local EventEmitter = require "luanode.event_emitter"
 
 function test()
-	local e = EventEmitter:new()
+	local e = EventEmitter()
 
 	local times_hello_emited = 0
 

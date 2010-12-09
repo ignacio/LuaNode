@@ -1,5 +1,5 @@
 --var util = require('util');
-
+local Class = require "luanode.class"
 local net = require "luanode.net"
 local EventEmitter = require "luanode.event_emitter"
 local stream = require "luanode.stream"
@@ -69,13 +69,10 @@ status_codes = {
 
 -- Abstract base class for ServerRequest and ClientResponse.
 -- Public:
---IncomingMessage = EventEmitter:new()
-IncomingMessage = stream.Stream:new()
-IncomingMessage.__index = IncomingMessage
+IncomingMessage = Class.InheritsFrom(stream.Stream)
 
-function IncomingMessage:new(socket)
-	--local newMessage = setmetatable( EventEmitter:new() , IncomingMessage)
-	local newMessage = setmetatable( stream.Stream:new(), IncomingMessage)
+function IncomingMessage:__init(socket)
+	local newMessage = Class.construct(self)
 
 	-- TODO: Remove one of these eventually.
 	newMessage.socket = socket
@@ -206,13 +203,10 @@ end
 
 
 -- Public:
---OutgoingMessage = EventEmitter:new()
-OutgoingMessage = stream.Stream:new()
-OutgoingMessage.__index = OutgoingMessage
+OutgoingMessage = Class.InheritsFrom(stream.Stream)
 
-function OutgoingMessage:new (socket)
-	--local newMessage = setmetatable( EventEmitter:new(), OutgoingMessage)
-	local newMessage = setmetatable( stream.Stream:new(), OutgoingMessage)
+function OutgoingMessage:__init (socket)
+	local newMessage = Class.construct(self)
 	
 	-- TODO Remove one of these eventually.
 	newMessage.socket = socket
@@ -562,12 +556,10 @@ function OutgoingMessage:finish (data, encoding)
 end
 
 
-ServerResponse = setmetatable({}, OutgoingMessage)
-ServerResponse.__index = ServerResponse
+ServerResponse = Class.InheritsFrom(OutgoingMessage)
 
-function ServerResponse:new (req)
-	local newResponse = OutgoingMessage:new(req.socket)
-	setmetatable(newResponse, ServerResponse)
+function ServerResponse:__init (req)
+	local newResponse = Class.construct(self, req.socket)
 	
 	if req.method == "HEAD" then
 		newResponse._hasBody = false
@@ -637,14 +629,12 @@ end
 
 
 -- TODO: anda esto ??
-ClientRequest = setmetatable({}, OutgoingMessage)
-ClientRequest.__index = ClientRequest
+ClientRequest = Class.InheritsFrom(OutgoingMessage)
 
 --
 --
-function ClientRequest:new (socket, method, url, headers)
-	local newRequest = OutgoingMessage:new(socket)
-	setmetatable(newRequest, ClientRequest)
+function ClientRequest:__init (socket, method, url, headers)
+	local newRequest = Class.construct(self, socket)
 	
 	method = method:upper()
 	newRequest.method = method
@@ -740,7 +730,7 @@ parsers = FreeList.new("parsers", 1000, function ()
 	local parser = HTTPParser("request")
 	
 	parser.onMessageBegin = function (self)
-		parser.incoming = IncomingMessage:new(parser.socket)
+		parser.incoming = IncomingMessage(parser.socket)
 		parser.field = nil
 		parser.value = nil
 	end
@@ -968,7 +958,7 @@ local function connectionListener (server, socket)
 	-- new message. In this callback we setup the response object and pass it
 	-- to the user.
 	parser.onIncoming = function (self, req, shouldKeepAlive)
-		local res = ServerResponse:new(req)
+		local res = ServerResponse(req)
 		LogDebug("server response shouldKeepAlive: %s", shouldKeepAlive)
 		res.shouldKeepAlive = shouldKeepAlive
 		socket._outgoing[#socket._outgoing + 1] = res
@@ -989,14 +979,11 @@ local function connectionListener (server, socket)
 end
 
 
--- Server MT
-Server = setmetatable({}, net.Server)
-Server.__index = Server
-Server.__call = Server.new
+-- Server Class
+Server = Class.InheritsFrom(net.Server)
 
-function Server:new (requestListener)
-	local newServer = net.createServer()
-	setmetatable(newServer, Server)
+function Server:__init (requestListener)
+	local newServer = Class.construct(self)
 	
 	if requestListener then
 		newServer:addListener("request", requestListener)
@@ -1015,21 +1002,19 @@ end
 --
 --
 function createServer (requestListener)
-	return Server:new(requestListener)
+	return Server(requestListener)
 end
 
 
 
 
--- Client MT
-Client = setmetatable({}, net.Stream)
-Client.__index = Client
+-- Client Class
+Client = Class.InheritsFrom(net.Stream)
 
 --
 --
-function Client:new ()
-	local newClient = net.Stream:new()
-	setmetatable(newClient, Client)
+function Client:__init()
+	local newClient = Class.construct(self)
 	
 	-- Possible states:
 	-- - disconnected
@@ -1122,7 +1107,7 @@ end
 --
 --
 function createClient (port, host, https, context)
-	local c = Client:new()
+	local c = Client()
 	c.port = port
 	c.host = host
 	c.https = https
@@ -1223,7 +1208,7 @@ function Client:request (method, url, headers)
 		url = method
 		method = "GET"
 	end
-	local req = ClientRequest:new(self, method, url, headers)
+	local req = ClientRequest(self, method, url, headers)
 	self._outgoing[#self._outgoing + 1] = req
 	if self:readyState() == 'closed' then
 		self:_ensureConnection()

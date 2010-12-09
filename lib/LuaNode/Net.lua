@@ -1,4 +1,5 @@
 --local util = require "util"		--var util = require("util");
+local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
 local stream = require "luanode.stream"
 local Timers = require "luanode.timers"
@@ -112,10 +113,8 @@ local function bind(socket, port, ip)
 end
 
 
--- Stream MT
---Stream = EventEmitter:new()
-Stream = stream.Stream:new()
-Stream.__index = Stream
+-- Stream Class
+Stream = Class.InheritsFrom(stream.Stream)
 
 -- FIXME: tengo que guardar las conexiones en algun lado. Y eventualmente las tengo que sacar
 local m_opened_streams = {}
@@ -261,10 +260,9 @@ local function setImplmentationMethods(self)
 	--]====]
 end
 
-function Stream:new(fd, kind)
+function Stream:__init(fd, kind)
 	-- http.Client llama acá sin socket. Conecta luego.
-	local newStream = stream.Stream:new()
-	setmetatable(newStream, Stream)
+	local newStream = Class.construct(self)
 	
 	newStream.fd = nil
 	newStream.kind = kind
@@ -902,20 +900,18 @@ createConnection = function(port, host)
 		]]
 	end
 		]==]
-	local newStream = Stream:new()
+	local newStream = Stream()
 	newStream:connect(port, host)
 	return newStream
 end
 
 
 
--- Server MT
-Server = EventEmitter:new()
-Server.__index = Server
+-- Server Class
+Server = Class.InheritsFrom(EventEmitter)
 
-function Server:new(listener)
-	local newServer = EventEmitter:new()
-	setmetatable(newServer, Server)
+function Server:__init(listener)
+	local newServer = Class.construct(self)
 	
 	if listener then
 		newServer:addListener("connection", listener)
@@ -937,7 +933,7 @@ function Server:new(listener)
 		end
 		
 		newServer.connections = newServer.connections + 1
-		local s = Stream:new(peer.socket, newServer.type)
+		local s = Stream(peer.socket, newServer.type)
 		s:open(peer.socket, newServer.type) --newServer:open(fd, kind)
 		--s.remoteAddress = peer.address
 		s.remotePort = peer.port
@@ -973,7 +969,7 @@ end
 --
 --
 createServer = function(listener)
-	return Server:new(listener)
+	return Server(listener)
 end
 
 -- 

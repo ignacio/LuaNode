@@ -1,5 +1,17 @@
 #include "preloader.h"
 
+static int luaopen_LuaNode_Class(lua_State* L) {
+	int extension_status;
+	int arg = lua_gettop(L);
+	#include "../lib/LuaNode/class.precomp"
+	if(extension_status) {
+		return lua_error(L);
+	}
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
 static int luaopen_LuaNode_ChildProcess(lua_State* L) {
 	int extension_status;
 	int arg = lua_gettop(L);
@@ -197,6 +209,9 @@ static int luaopen_StackTracePlus(lua_State* L) {
 void PreloadModules(lua_State* L) {
 	luaL_findtable(L, LUA_GLOBALSINDEX, "package.preload", 1);
 	//int preload = lua_gettop(L);
+
+	lua_pushcfunction(L, luaopen_LuaNode_Class);
+	lua_setfield(L, -2, "luanode.class");
 
 	lua_pushcfunction(L, luaopen_LuaNode_ChildProcess);
 	lua_setfield(L, -2, "luanode.child_process");

@@ -4,7 +4,7 @@ local common = dofile("common.lua")
 local EventEmitter = require "luanode.event_emitter"
 
 function test()
-local e = EventEmitter:new()
+local e = EventEmitter()
 local num_args_emited = {}
 
 e:on("numArgs", function(...)

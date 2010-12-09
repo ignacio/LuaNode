@@ -63,9 +63,11 @@ process.nextTick = function(callback)
 	process._needTickCallback()
 end
 
+local Class = require "luanode.class"
 local events = require "luanode.event_emitter"
--- hacemos que process se convierta en un EventEmitter
-setmetatable(process, {__index = events:new() })
+
+-- Make 'process' become an event emitter
+setmetatable(process, events.__index)
 
 
 -- TODO: Meter la parte de Signal Handlers de node.js
