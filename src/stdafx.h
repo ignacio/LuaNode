@@ -4,11 +4,14 @@
 //
 
 #pragma once
+
+#ifdef _WIN32
 #define STRICT
 #include "targetver.h"
 
 #include <stdio.h>
 #include <tchar.h>
+#endif
 
 
 

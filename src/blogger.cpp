@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "blogger.h"
+#include <stdio.h>
 
 #ifdef ENABLE_LIBBLOGGER
 extern "C" {
@@ -139,29 +140,29 @@ void LogFree() {
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogDebug(const char* strFormat, ...) {
-	/*if(bFirstRun) {
+	if(bFirstRun) {
 		Initialize();
 		bFirstRun = false;
 	}
 	va_list argptr;
 	va_start(argptr, strFormat);
-	vfprintf(stderr, strFormat, argptr);
-	fprintf(stderr, "\r\n");
-	va_end(argptr);*/
+	//vfprintf(stderr, strFormat, argptr);
+	//fprintf(stderr, "\r\n");
+	va_end(argptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogInfo(const char* strFormat, ...) {
-	/*if(bFirstRun) {
+	if(bFirstRun) {
 		Initialize();
 		bFirstRun = false;
 	}
 	va_list argptr;
 	va_start(argptr, strFormat);
-	vfprintf(stderr, strFormat, argptr);
-	fprintf(stderr, "\r\n");
-	va_end(argptr);*/
+	//vfprintf(stderr, strFormat, argptr);
+	//fprintf(stderr, "\r\n");
+	va_end(argptr);
 }
 
 //////////////////////////////////////////////////////////////////////////

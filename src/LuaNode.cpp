@@ -9,7 +9,7 @@
 #include <assert.h>
 //#include <unistd.h>
 #include <errno.h>
-#include <direct.h>	//< contigo seguro que voy a tener problemas
+
 #include <signal.h>
 
 #include "platform.h"
@@ -23,8 +23,12 @@
 #include "luanode_child_process.h"
 #include "luanode_module_api.h"
 
-#ifdef _WIN32
-#include "luanode_file_win32.h"
+#if defined (_WIN32)
+	#include "luanode_file_win32.h"
+#elif defined(__GNUC__)
+	#include "luanode_file_linux.h"
+#else
+	#error "Unsupported platform"
 #endif
 
 #include "blogger.h"
@@ -116,7 +120,7 @@ static int RegisterSignalHandler(int sig_no, void (*handler)(int)) {
 }
 
 
-#ifndef _WIN32
+/*#ifndef _WIN32
 // EIOWantPoll() is called from the EIO thread pool each time an EIO
 // request (that is, one of the node.fs.* functions) has completed.
 static void EIOWantPoll(void) {
@@ -132,7 +136,7 @@ static void EIODonePoll(void) {
 	//ev_async_send(EV_DEFAULT_UC_ &eio_done_poll_notifier);
 	int h = 0;
 }
-#endif
+#endif*/
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 
@@ -185,15 +189,7 @@ static int NeedTickCallback(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// Retrieves the current working directory
 static int Cwd(lua_State* L) {
-	char getbuf[2048];
-	char *r = _getcwd(getbuf, sizeof(getbuf) - 1);
-	if (r == NULL) {
-		luaL_error(L, strerror(errno));
-	}
-
-	getbuf[sizeof(getbuf) - 1] = '\0';
-	lua_pushstring(L, getbuf);
-	return 1;
+	return OS::Cwd(L);
 }
 
 /*Handle<Value> Kill(const Arguments& args) {
@@ -529,14 +525,20 @@ static int Load(int argc, char *argv[]) {
 	}
 	lua_setfield(L, table, "env");
 
+#if defined(_WIN32)
 	lua_pushinteger(L, _getpid());
+#elif defined(__GNUC__)
+	lua_pushinteger(L, getpid());
+#else
+	#error "unsupported platform"
+#endif
 	lua_setfield(L, table, "pid");
 
 	// module api
 	LuaNode::ModuleApi::Register(L, table);
 
 	// TODO:
-	size_t size = 2 * MAX_PATH;
+	size_t size = 2048;
 	std::vector<char> execPath(size);
 	if (OS::GetExecutablePath(&execPath[0], &size) != 0) {
 		// as a last ditch effort, fallback on argv[0] ?
@@ -592,7 +594,7 @@ static int Load(int argc, char *argv[]) {
 
 	// The node.js file returns a function 'f'
 
-	int extension_status;
+	int extension_status = 1;
 
 	// Load modules that need to be loaded before LuaNode ones
 	PreloadAdditionalModules(L);
@@ -608,7 +610,7 @@ static int Load(int argc, char *argv[]) {
 	if(!debug_mode) {
 		PreloadModules(L);
 
-		#include "node.precomp"
+		#include "../build/temp/node.precomp"
 		if(extension_status) {
 			return lua_error(L);
 		}
@@ -681,11 +683,14 @@ static void AtExit() {
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+#else
+	printf("\033[0m");
 #endif
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// Para poder bajar el servicio, si tengo la consola habilitada
+#if defined(_WIN32)
 BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 	LogInfo("***** Console Event Detected *****");
 	switch(ctrlType) {
@@ -717,6 +722,7 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 	}
 	return FALSE;
 }
+#endif
 
 }  // namespace LuaNode
 
@@ -747,12 +753,12 @@ int main(int argc, char* argv[])
 	// Parse a few arguments which are specific to Node.
 	LuaNode::ParseArgs(&argc, argv);
 
-#ifndef _WIN32
+/*#ifndef _WIN32
 	eio_init(LuaNode::EIOWantPoll, LuaNode::EIODonePoll);
 	// Don't handle more than 10 reqs on each eio_poll(). This is to avoid
 	// race conditions. See test/simple/test-eio-race.js
 	eio_set_max_poll_reqs(10);
-#endif
+#endif*/
 
 	int result = LuaNode::Load(argc, argv);
 	LogFree();

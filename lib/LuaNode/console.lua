@@ -1,4 +1,5 @@
 local process = process
+local esc = string.char(27)
 
 module((...))
 
@@ -49,44 +50,56 @@ if process.platform == "windows" then
 		gray         = BACKGROUND_RED + BACKGROUND_GREEN + BACKGROUND_BLUE,
 		white        = BACKGROUND_RED + BACKGROUND_GREEN + BACKGROUND_BLUE + BACKGROUND_INTENSITY,
 	}
+	
+	reset_color = function()
+		process.set_console_bg_color(bg_colors.black)
+		process.set_console_fg_color(fg_colors.gray)
+	end
+	
 else
 	fg_colors = {
-		black = "\033[30m",
-		red = "\033[31m",
-		green = "\033[32m",
-		brown = "\033[33m",
-		blue = "\033[34m",
-		magenta = "\033[35m",
-		cyan = "\033[36m",
-		gray = "\033[37m",
+		black = esc.."[30m",
+		red = esc.."[31m",
+		green = esc.."[32m",
+		brown = esc.."[33m",
+		yellow = esc.."[33m",
+		blue = esc.."[34m",
+		magenta = esc.."[35m",
+		cyan = esc.."[36m",
+		gray = esc.."[37m",
 	
-		lightred = "\033[1m\033[31m",
-		lightgreen = "\033[1m\033[32m",
-		lightbrown = "\033[1m\033[33m",
-		lightblue = "\033[1m\033[34m",
-		lightmagenta = "\033[1m\033[35m",
-		lightcyan = "\033[1m\033[36m",
-		white = "\033[1m\033[37m",
+		lightred = esc.."[1m"..esc.."[31m",
+		lightgreen = esc.."[1m"..esc.."[32m",
+		lightbrown = esc.."[1m"..esc.."[33m",
+		lightblue = esc.."[1m"..esc.."[34m",
+		lightmagenta = esc.."[1m"..esc.."[35m",
+		lightcyan = esc.."[1m"..esc.."[36m",
+		white = esc.."[1m"..esc.."[37m",
 	}
 
 	bg_colors = {
-		black = "\033[40m",
-		red = "\033[41m",
-		green = "\033[42m",
-		brown = "\033[43m",
-		blue = "\033[44m",
-		magenta = "\033[45m",
-		cyan = "\033[46m",
-		gray = "\033[47m",
+		black = esc.."[40m",
+		red = esc.."[41m",
+		green = esc.."[42m",
+		brown = esc.."[43m",
+		yellow = esc.."[43m",
+		blue = esc.."[44m",
+		magenta = esc.."[45m",
+		cyan = esc.."[46m",
+		gray = esc.."[47m",
 	
-		lightred = "\033[1m\033[41m",
-		lightgreen = "\033[1m\033[42m",
-		lightbrown = "\033[1m\033[43m",
-		lightblue = "\033[1m\033[44m",
-		lightmagenta = "\033[1m\033[45m",
-		lightcyan = "\033[1m\033[46m",
-		white = "\033[1m\033[47m",
+		lightred = esc.."[1m"..esc.."[41m",
+		lightgreen = esc.."[1m"..esc.."[42m",
+		lightbrown = esc.."[1m"..esc.."[43m",
+		lightblue = esc.."[1m"..esc.."[44m",
+		lightmagenta = esc.."[1m"..esc.."[45m",
+		lightcyan = esc.."[1m"..esc.."[46m",
+		white = esc.."[1m"..esc.."[47m",
 	}
+	
+	reset_color = function()
+		process.set_console_fg_color(esc.."[0m")
+	end
 	
 	--BLACK_BACK = "\033[40m"
 	--RED_BACK = "\033[41m"
@@ -120,9 +133,4 @@ function bgcolor(value)
 	if v then
 		process.set_console_bg_color(v)
 	end
-end
-
-function reset_color()
-	process.set_console_bg_color(bg_colors.black)
-	process.set_console_fg_color(fg_colors.gray)
 end

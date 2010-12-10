@@ -358,7 +358,7 @@ end
 --]=]
 local propagate_result = 0
 if not process.argv[2] then
-	io.write("LuaNode " .. process.version)
+	io.write("LuaNode " .. process.version .. "\n")
 	-- run repl
 	process:loop()
 else

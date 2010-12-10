@@ -3,6 +3,8 @@
 #include "LuaNode.h"
 #include "platform.h"
 
+#include <direct.h>	//< contigo seguro que voy a tener problemas
+
 static HANDLE m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 static CONSOLE_SCREEN_BUFFER_INFO CConsoleGetInfo() {
@@ -51,5 +53,20 @@ bool OS::PlatformInit() {
 	SetConsoleOutputCP(CP_UTF8);
 	return true;
 }
+
+//////////////////////////////////////////////////////////////////////////
+/// Retrieves the current working directory
+int OS::Cwd(lua_State* L) {
+	char getbuf[2048];
+	char *r = _getcwd(getbuf, sizeof(getbuf) - 1);
+	if (r == NULL) {
+		luaL_error(L, strerror(errno));
+	}
+
+	getbuf[sizeof(getbuf) - 1] = '\0';
+	lua_pushstring(L, getbuf);
+	return 1;
+}
+
 
 }  // namespace LuaNode

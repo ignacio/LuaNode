@@ -1,9 +1,9 @@
 #include "preloader.h"
 
 static int luaopen_LuaNode_Class(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/class.precomp"
+	#include "../build/temp/class.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -13,9 +13,9 @@ static int luaopen_LuaNode_Class(lua_State* L) {
 }
 
 static int luaopen_LuaNode_ChildProcess(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/child_process.precomp"
+	#include "../build/temp/child_process.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -25,9 +25,9 @@ static int luaopen_LuaNode_ChildProcess(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Crypto(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/crypto.precomp"
+	#include "../build/temp/crypto.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -38,9 +38,9 @@ static int luaopen_LuaNode_Crypto(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Dns(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/dns.precomp"
+	#include "../build/temp/dns.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -51,9 +51,9 @@ static int luaopen_LuaNode_Dns(lua_State* L) {
 }
 
 static int luaopen_LuaNode_EventEmitter(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/event_emitter.precomp"
+	#include "../build/temp/event_emitter.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -63,9 +63,9 @@ static int luaopen_LuaNode_EventEmitter(lua_State* L) {
 }
 
 static int luaopen_LuaNode_FreeList(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/free_list.precomp"
+	#include "../build/temp/free_list.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -76,9 +76,9 @@ static int luaopen_LuaNode_FreeList(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Fs(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/fs.precomp"
+	#include "../build/temp/fs.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -89,9 +89,9 @@ static int luaopen_LuaNode_Fs(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Http(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/http.precomp"
+	#include "../build/temp/http.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -102,9 +102,9 @@ static int luaopen_LuaNode_Http(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Net(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/net.precomp"
+	#include "../build/temp/net.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -115,9 +115,9 @@ static int luaopen_LuaNode_Net(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Path(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/path.precomp"
+	#include "../build/temp/path.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -128,9 +128,9 @@ static int luaopen_LuaNode_Path(lua_State* L) {
 }
 
 static int luaopen_LuaNode_QueryString(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/querystring.precomp"
+	#include "../build/temp/querystring.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -141,9 +141,9 @@ static int luaopen_LuaNode_QueryString(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Stream(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/stream.precomp"
+	#include "../build/temp/stream.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -154,9 +154,9 @@ static int luaopen_LuaNode_Stream(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Url(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/url.precomp"
+	#include "../build/temp/url.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -167,9 +167,9 @@ static int luaopen_LuaNode_Url(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Timers(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/Timers.precomp"
+	#include "../build/temp/Timers.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -180,9 +180,9 @@ static int luaopen_LuaNode_Timers(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Console(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../lib/LuaNode/console.precomp"
+	#include "../build/temp/console.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}
@@ -193,9 +193,9 @@ static int luaopen_LuaNode_Console(lua_State* L) {
 }
 
 static int luaopen_StackTracePlus(lua_State* L) {
-	int extension_status;
+	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../deps/StackTracePlus/src/StackTracePlus.precomp"
+	#include "../build/temp/StackTracePlus.precomp"
 	if(extension_status) {
 		return lua_error(L);
 	}

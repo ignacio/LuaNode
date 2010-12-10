@@ -154,13 +154,13 @@ Socket::Socket(lua_State* L) :
 /// This gets called when we accept a connection
 Socket::Socket(lua_State* L, boost::asio::ip::tcp::socket* socket) :
 	m_L(L),
-	m_socket(socket),
 	m_socketId(++s_nextSocketId),
-	m_close_pending(false),
+	m_close_pending(false),	
 	//m_read_shutdown_pending(false),
 	m_write_shutdown_pending(false),
 	m_pending_writes(0),
-	m_pending_reads(0)
+	m_pending_reads(0),
+	m_socket(socket)
 {
 	s_socketCount++;
 	LogDebug("Constructing Socket (%p) (id=%d). Current socket count = %d", this, m_socketId, s_socketCount);

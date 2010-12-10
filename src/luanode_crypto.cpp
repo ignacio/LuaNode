@@ -105,7 +105,7 @@ int Socket::SetOption(lua_State* L) {
 /// 
 int Socket::VerifyPeer(lua_State* L) {
 	//lua_getfield(L, 1, "_ssl_context");
-	SecureContext* ctx = Crypto::SecureContext::check(L, 2);
+	/*SecureContext* ctx = Crypto::SecureContext::check(L, 2);*/
 
 	//boost::asio::ssl::context& context = ctx->GetContextRef();
 
