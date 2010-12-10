@@ -292,6 +292,34 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_file_linux.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Debuggable|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_file_win32.cpp"
 				>
 			</File>
@@ -318,6 +346,34 @@
 			<File
 				RelativePath="..\..\src\LuaVM.cpp"
 				>
+			</File>
+			<File
+				RelativePath="..\..\src\platform_linux.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Debuggable|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\src\platform_windows.cpp"
@@ -395,6 +451,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_dns.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_file_linux.h"
 				>
 			</File>
 			<File
@@ -504,6 +564,10 @@
 			>
 			<File
 				RelativePath="..\..\lib\LuaNode\child_process.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\Class.lua"
 				>
 			</File>
 			<File
