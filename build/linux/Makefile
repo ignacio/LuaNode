@@ -31,13 +31,13 @@ Target ?= Release
 INCLUDES = 	-I../											\
 			-I$(INCONCERT_SOURCES) 							\
 			-I$(BOOST_DIR)									\
-			-I$(PACKAGES)/Lua5.1/include					\
+			-I$(PACKAGES)/lua5.1/include					\
 			-I$(OPENSSL_INC)								\
 			-I.
 
 
 # All libs:
-LIBS = -L$(INCONCERT_LIB) -L$(BOOST_LIBS) -L$(INCONCERT_BIN) -L$(PACKAGES)/Lua5.1/src
+LIBS = -L$(INCONCERT_LIB) -L$(BOOST_LIBS) -L$(INCONCERT_BIN) -L$(PACKAGES)/lua5.1/src
 
 OUTPUT_DIR = $(INCONCERT_BIN)
 COMPILER = g++
@@ -75,7 +75,7 @@ COMPILE = $(COMPILER) $(CFLAGS) "$<" -o "$(Target)/$(*F).o" $(INCLUDES)
 LINK = $(LINKER) $(LFLAGS) -o "$(OUTPUT_FILE)" $(INCLUDES) $(LIBS) $(OBJS) $(SPECIFIC_LIBS)
 COMPILE_LUA = $(LUA) $(BIN2C) "$<" extension_status > "$(BASE_SRC_DIR)/build/temp/$(*F).precomp"
 
-OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
+OBJS = $(PACKAGES)/lua5.1/src/liblua.a \
 		$(Target)/blogger.o \
 		$(Target)/LuaNode.o \
 		$(Target)/luanode_child_process.o \
