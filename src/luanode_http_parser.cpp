@@ -10,7 +10,6 @@ using namespace LuaNode::Http;
 
 void LuaNode::Http::RegisterFunctions(lua_State* L) {
 	luaL_Reg methods[] = {
-		//{ "isIP", LuaNode::Http::IsIP },
 		{ 0, 0 }
 	};
 	luaL_register(L, "Http", methods);
@@ -458,35 +457,6 @@ int Parser::name(http_parser* p) {			\
 	}
 	lua_settop(L, 0);
 	return 0;
-
-	/*
-
-	Local<Value> cb_value = parser->handle_->Get(on_headers_complete_sym);
-	if (!cb_value->IsFunction()) return 0;
-	Local<Function> cb = Local<Function>::Cast(cb_value);
-
-
-	Local<Object> message_info = Object::New();
-
-	// VERSION
-	message_info->Set(version_major_sym, Integer::New(p->http_major));
-	message_info->Set(version_minor_sym, Integer::New(p->http_minor));
-
-	message_info->Set(should_keep_alive_sym,
-		http_should_keep_alive(p) ? True() : False());
-
-	message_info->Set(upgrade_sym, p->upgrade ? True() : False());
-
-	Local<Value> argv[1] = { message_info };
-
-	Local<Value> head_response = cb->Call(parser->handle_, 1, argv);
-
-	if (head_response.IsEmpty()) {
-		parser->got_exception_ = true;
-		return -1;
-	} else {
-		return head_response->IsTrue() ? 1 : 0;
-	}*/
 }
 
 //////////////////////////////////////////////////////////////////////////

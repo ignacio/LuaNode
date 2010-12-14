@@ -49,14 +49,11 @@
 namespace LuaNode {
 
 static const char* LUANODE_PROGNAME = "LuaNode";
-static const char* LUANODE_VERSION = "0.0.1";
+static const char* LUANODE_VERSION = "0.0.1pre";
 static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
 static int option_end_index = 0;
 static bool debug_mode = false;
-//static bool use_debug_agent = false;
-//static bool debug_wait_connect = false;
-//static int debug_port = 5858;
 
 static bool need_tick_cb = false;
 static int tickCallback = LUA_NOREF;
@@ -64,9 +61,6 @@ static int tickCallback = LUA_NOREF;
 static boost::asio::io_service io_service;
 static CLuaVM luaVm;
 
-/*static ev_async eio_want_poll_notifier;
-static ev_async eio_done_poll_notifier;
-static ev_idle  eio_poller;*/
 
 //////////////////////////////////////////////////////////////////////////
 /// 
@@ -119,39 +113,6 @@ static int RegisterSignalHandler(int sig_no, void (*handler)(int)) {
 #endif	
 }
 
-
-/*#ifndef _WIN32
-// EIOWantPoll() is called from the EIO thread pool each time an EIO
-// request (that is, one of the node.fs.* functions) has completed.
-static void EIOWantPoll(void) {
-	// Signal the main thread that eio_poll need to be processed.
-	//ev_async_send(EV_DEFAULT_UC_ &eio_want_poll_notifier);
-	int h = 0;
-}
-
-
-static void EIODonePoll(void) {
-	// Signal the main thread that we should stop calling eio_poll().
-	// from the idle watcher.
-	//ev_async_send(EV_DEFAULT_UC_ &eio_done_poll_notifier);
-	int h = 0;
-}
-#endif*/
-
-#if defined(_WIN32)  &&  !defined(__CYGWIN__) 
-
-
-/*int CConsoleWrite(lua_State* L) {
-	const char* s = luaL_checkstring(L, 1);
-	size_t len = lua_objlen(L, 1);
-	DWORD dwWritten;
-	WriteFile(m_hConsole, s, len, &dwWritten, NULL);
-	return 0;
-}*/
-
-
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 /// 
 static void Tick() {
@@ -172,11 +133,6 @@ static void Tick() {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static int NeedTickCallback(lua_State* L) {
-	/*HandleScope scope;
-	need_tick_cb = true;
-	ev_idle_start(EV_DEFAULT_UC_ &tick_spinner);
-	return Undefined();*/
-
 	need_tick_cb = true;
 
 	// TODO: esto no deberia ser un coso que se despacha con baja prioridad??
@@ -480,20 +436,17 @@ static int Load(int argc, char *argv[]) {
 	// tabla 'process'
 	lua_newtable(L);
 	int table = lua_gettop(L);
-	lua_pushstring(L, LUANODE_VERSION);	// TODO: sacarlo de un lugar sensato
+	lua_pushstring(L, LUANODE_VERSION);
 	lua_setfield(L, table, "version");
 
 	// process.platform
 	lua_pushstring(L, LuaNode::OS::GetPlatform());
 	lua_setfield(L, table, "platform");
 
-	// FIXME: esto no puede quedar asi
 	lua_pushcfunction(L, LuaNode::OS::SetConsoleForegroundColor);
 	lua_setfield(L, table, "set_console_fg_color");
 	lua_pushcfunction(L, LuaNode::OS::SetConsoleBackgroundColor);
 	lua_setfield(L, table, "set_console_bg_color");
-	//lua_pushcfunction(L, CConsoleWrite);
-	//lua_setfield(L, table, "print_write");
 
 	// process.argv
 	lua_newtable(L);
@@ -537,7 +490,6 @@ static int Load(int argc, char *argv[]) {
 	// module api
 	LuaNode::ModuleApi::Register(L, table);
 
-	// TODO:
 	size_t size = 2048;
 	std::vector<char> execPath(size);
 	if (OS::GetExecutablePath(&execPath[0], &size) != 0) {
@@ -561,16 +513,13 @@ static int Load(int argc, char *argv[]) {
 	};
 	luaL_register(L, NULL, methods);
 	lua_pop(L, 1);
-	//lua_pushcfunction(L, Loop);
-	//lua_setfield(L, table, "loop");
-	
+		
 	// Initialize the C++ modules..................filename of module
 	Net::RegisterFunctions(L);
 
 	Net::Acceptor::Register(L, NULL, true);
 
 	Net::Socket::Register(L, NULL, true);
-	//IOWatcher::Initialize(process);              // io_watcher.cc
 
 	Dns::Resolver::Register(L, NULL, true);
 
@@ -581,19 +530,14 @@ static int Load(int argc, char *argv[]) {
 	Http::Parser::EnableTracking(L);
 	Http::Parser::Register(L, NULL, true);
 
-	Timer::Register(L, NULL, true);					// luanode_timer.cc
+	Timer::Register(L, NULL, true);
 
 	ChildProcess::Register(L, NULL, true);
 
 	Fs::RegisterFunctions(L);
 
-	//DefineConstants(process);                    // constants.cc
-	// Compile, execute the src/node.js file. (Which was included as static C
-	// string in node_natives.h. 'natve_node' is the string containing that
-	// source code.)
-
-	// The node.js file returns a function 'f'
-
+	//DefineConstants(L);
+	
 	int extension_status = 1;
 
 	// Load modules that need to be loaded before LuaNode ones
@@ -617,8 +561,12 @@ static int Load(int argc, char *argv[]) {
 	}
 	else {
 		lua_pushboolean(L, true);
-		lua_setfield(L, LUA_GLOBALSINDEX, "DEBUG"); // esto es temporal
+		lua_setfield(L, LUA_GLOBALSINDEX, "DEBUG"); // esto es temporal (y horrendo)
+#if defined _WIN32
 		LuaNode::luaVm.loadfile("d:/trunk_git/sources/luanode/src/node.lua");
+#else
+		LuaNode::luaVm.loadfile("/home/ignacio/devel/sources/LuaNode/src/node.lua");
+#endif
 	}
 
 	LuaNode::luaVm.call(0, 1);
@@ -658,14 +606,11 @@ static void ParseArgs(int *argc, char **argv) {
 			PrintVersion();
 			exit(EXIT_SUCCESS);
 		} else if (strcmp(arg, "--vars") == 0) {
-			//printf("NODE_PREFIX: %s\n", NODE_PREFIX);
-			//printf("NODE_CFLAGS: %s\n", NODE_CFLAGS);
+			// TODO: Print the flags used when it was compiled
 			exit(EXIT_SUCCESS);
 		} else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
 			PrintUsage();
 			exit(EXIT_SUCCESS);
-		/*} else if (strcmp(arg, "--v8-options") == 0) {
-			argv[i] = const_cast<char*>("--help");*/
 		} else if (argv[i][0] != '-') {
 			break;
 		}
@@ -701,8 +646,6 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 		case CTRL_C_EVENT:
 		case CTRL_BREAK_EVENT:
 			LogInfo("Event: CTRL-C or CTRL-BREAK Event");
-			//_Module.SetServiceStatus(SERVICE_STOP_PENDING);
-			//PostThreadMessage(_Module.m_dwThreadID, WM_QUIT, 0, 0);
 
 			// Stop the io pool
 			LuaNode::GetIoService().stop();
@@ -712,8 +655,6 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 		case CTRL_CLOSE_EVENT:
 		case CTRL_SHUTDOWN_EVENT:
 			LogInfo("Event: CTRL-CLOSE or CTRL-SHUTDOWN Event");
-			//_Module.SetServiceStatus(SERVICE_STOP_PENDING);
-			//PostThreadMessage(_Module.m_dwThreadID, WM_QUIT, 0, 0);
 
 			// Stop the io pool
 			LuaNode::GetIoService().stop();
@@ -752,13 +693,6 @@ int main(int argc, char* argv[])
 
 	// Parse a few arguments which are specific to Node.
 	LuaNode::ParseArgs(&argc, argv);
-
-/*#ifndef _WIN32
-	eio_init(LuaNode::EIOWantPoll, LuaNode::EIODonePoll);
-	// Don't handle more than 10 reqs on each eio_poll(). This is to avoid
-	// race conditions. See test/simple/test-eio-race.js
-	eio_set_max_poll_reqs(10);
-#endif*/
 
 	int result = LuaNode::Load(argc, argv);
 	LogFree();

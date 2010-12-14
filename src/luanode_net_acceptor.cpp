@@ -198,8 +198,6 @@ void Acceptor::HandleAccept(int reference, boost::asio::ip::tcp::socket* socket,
 		if(error != boost::asio::error::operation_aborted) {
 			LogError("Acceptor::HandleAccept (%p) (id=%d) (new socket %p) - %s", this, m_acceptorId, socket, error.message().c_str());
 		}
-		////Pm_allocator.ReleaseSocket(socket);
-		// we don't call OnSocketReleased, because a connection had not been established
 	}
 	lua_settop(L, 0);
 }

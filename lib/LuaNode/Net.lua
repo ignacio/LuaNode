@@ -1064,9 +1064,9 @@ function Server:listen (port, host, callback)
 end
 
 function Server:_doListen(port, ip)
-	local ok, err = bind(self.acceptor, port, ip)
+	local ok, err, msg = bind(self.acceptor, port, ip)
 	if not ok then
-		self:emit("error", err)
+		self:emit("error", err, msg)
 		return false
 	end
 	process.nextTick(function()
@@ -1077,9 +1077,9 @@ function Server:_doListen(port, ip)
 		-- It could be that server.close() was called between the time the
 		-- original listen command was issued and this. Bail if that's the case.
 		-- See test/simple/test-net-eaddrinuse.js
-		local ok, err = self.acceptor:listen(self._backlog or 128)	-- el backlog
+		local ok, err, msg = self.acceptor:listen(self._backlog or 128)	-- el backlog
 		if not ok then
-			self:emit("error", err)
+			self:emit("error", err, msg)
 			--error( console.error("listen() failed with error: %s", err) )
 			return
 		end

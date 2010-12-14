@@ -4,12 +4,18 @@ _G.process = process
 
 if DEBUG then
 	-- TODO: fix me, infer the path instead of hardcoding it
-	package.path = [[d:\trunk_git\sources\LuaNode\lib\?.lua;d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] .. 
-		[[C:\LuaRocks\1.0\lua\?.lua;C:\LuaRocks\1.0\lua\?\init.lua;]] .. package.path
-	package.cpath = [[.\?.dll;C:\LuaRocks\1.0\?.dll;C:\LuaRocks\1.0\loadall.dll;]] .. package.cpath
+	if process.platform == "windows" then
+		package.path = [[d:\trunk_git\sources\LuaNode\lib\?.lua;d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] .. [[C:\LuaRocks\1.0\lua\?.lua;C:\LuaRocks\1.0\lua\?\init.lua;]] .. package.path
+		package.cpath = [[.\?.dll;C:\LuaRocks\1.0\?.dll;C:\LuaRocks\1.0\loadall.dll;]] .. package.cpath
+	else
+		package.path = [[/home/ignacio/devel/sources/LuaNode/lib/?.lua;/home/ignacio/devel/sources/LuaNode/lib/?/init.lua;]] .. package.path
+	end
 end
 
-package.path = ([[%s\?\init.lua;%s\?.lua;]]):format( process.cwd(), process.cwd() )  .. package.path
+local path = require "luanode.path"
+
+-- put the current working directory in the modules path
+package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( process.cwd(), process.cwd() )  .. package.path)
 
 --[[
 -- Insert a loader that allows me to require luanode.* as if they were on a (case insensitive) filesystem
@@ -70,78 +76,7 @@ local events = require "luanode.event_emitter"
 setmetatable(process, events.__index)
 
 
--- TODO: Meter la parte de Signal Handlers de node.js
---[=[
-// Signal Handlers
-(function() {
-  var signalWatchers = {};
-  var addListener = process.addListener;
-  var removeListener = process.removeListener;
-
-  function isSignal (event) {
-    if (!constants) constants = process.binding("constants");
-    return event.slice(0, 3) === 'SIG' && constants[event];
-  }
-
-  // Wrap addListener for the special signal types
-  process.on = process.addListener = function (type, listener) {
-    var ret = addListener.apply(this, arguments);
-    if (isSignal(type)) {
-      if (!signalWatchers.hasOwnProperty(type)) {
-        if (!constants) constants = process.binding("constants");
-        var b = process.binding('signal_watcher');
-        var w = new b.SignalWatcher(constants[type]);
-        w.callback = function () { process.emit(type); };
-        signalWatchers[type] = w;
-        w.start();
-
-      } else if (this.listeners(type).length === 1) {
-        signalWatchers[event].start();
-      }
-    }
-
-    return ret;
-  };
-
-  process.removeListener = function (type, listener) {
-    var ret = removeListener.apply(this, arguments);
-    if (isSignal(type)) {
-      process.assert(signalWatchers.hasOwnProperty(type));
-
-      if (this.listeners(type).length === 0) {
-        signalWatchers[type].stop();
-      }
-    }
-
-    return ret;
-  };
-})();
---]=]
-
--- 
--- Calls 
-process._postBackToModule = function(moduleName, functionName, key, ...)
-	LogDebug("_postBackToModule: %s:%s:%d", moduleName, functionName, key)
-	
-	local ok, m = pcall(require, moduleName)
-	if not ok then
-		console.error(m)
-		return
-	end
-	local f = m[functionName]
-	if type(f) == "function" then
-		pcall(f, key, ...)
-	end
-end
-
-
-local Timers = require "luanode.timers"
-
-
-_G.setTimeout = Timers.setTimeout
-_G.setInterval = Timers.setInterval
-_G.clearTimeout = Timers.clearTimeout
-_G.clearInterval = Timers.clearInterval
+-- TODO: Meter la parte de Signal Handlers 
 
 --
 -- Console
@@ -255,7 +190,7 @@ function console.warn (fmt, ...)
 	--print(msg) --scriptLogger.LogWarning(msg)
 	console.color("yellow")
 	io.write(msg)
-	console.color("gray")
+	console.reset_color()
 	io.write("\r\n")
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
@@ -266,9 +201,10 @@ console["error"] = function (fmt, ...)
 	--print(msg) --scriptLogger.LogError(msg)
 	console.color("lightred")
 	io.write(msg)
-	console.color("gray")
+	console.reset_color()
 	io.write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
+	io.flush()
 	return msg
 end
 
@@ -304,6 +240,32 @@ end
 console.assert = assert
 
 
+-- 
+-- Calls 
+process._postBackToModule = function(moduleName, functionName, key, ...)
+	LogDebug("_postBackToModule: %s:%s:%d", moduleName, functionName, key)
+	
+	local ok, m = pcall(require, moduleName)
+	if not ok then
+		console.error(m)
+		return
+	end
+	local f = m[functionName]
+	if type(f) == "function" then
+		pcall(f, key, ...)
+	end
+end
+
+
+local Timers = require "luanode.timers"
+
+
+_G.setTimeout = Timers.setTimeout
+_G.setInterval = Timers.setInterval
+_G.clearTimeout = Timers.clearTimeout
+_G.clearInterval = Timers.clearInterval
+
+
 -- TODO: documentar
 -- los modulos deben usar esta funcion como handler de sus lua_pcall
 process.traceback = function()
@@ -331,7 +293,6 @@ process.kill = function(pid, sig)
 end
 
 local cwd = process.cwd()
-local path = require "luanode.path"
 
 -- Make process.argv[1] and process.argv[2] into full paths.
 
@@ -371,11 +332,6 @@ else
 	--local code = file:read("*a")
 	--file:close()
 	
-	-- All our arguments are loaded. We've evaluated all of the scripts. We
-	-- might even have created TCP servers. Now we enter the main eventloop. If
-	-- there are no watchers on the loop (except for the ones that were
-	-- ev_unref'd) then this function exits. As long as there are active
-	-- watchers, it blocks.
 	--code = code .. "\r\nprocess:loop()"
 	code, err = loadfile(process.argv[2])
 	--code, err = loadstring(code, "@"..process.argv[2])

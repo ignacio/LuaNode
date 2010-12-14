@@ -15,8 +15,7 @@ static CONSOLE_SCREEN_BUFFER_INFO CConsoleGetInfo() {
 }
 
 
-namespace LuaNode {
-
+using namespace LuaNode;
 
 int OS::GetExecutablePath(char* buffer, size_t* size) {
 	*size = GetModuleFileName(NULL, buffer, *size - 1);
@@ -67,6 +66,3 @@ int OS::Cwd(lua_State* L) {
 	lua_pushstring(L, getbuf);
 	return 1;
 }
-
-
-}  // namespace LuaNode

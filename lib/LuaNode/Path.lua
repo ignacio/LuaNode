@@ -75,17 +75,19 @@ end
 --
 function normalize(path, keepBlanks)
 	local paths = {}
-	if process.platform ~= "windows" then
-		-- disgusting hack
-		paths[#paths + 1] = "/"
-	end
 	--print("normalize", path)
+	path = path:gsub("[\\/]", dir_sep)
 	local pattern = ("([^%s]+)"):format( resc(dir_sep) )
 	for p in path:gmatch(pattern) do
 		--print("p", p)
 		paths[#paths + 1] = p
 	end
-	return table.concat(normalizeArray(paths, keepBlanks), dir_sep)
+	paths = normalizeArray(paths, keepBlanks)
+	if process.platform ~= "windows" then
+		return dir_sep .. table.concat(paths, dir_sep)
+	else
+		return table.concat(paths, dir_sep)
+	end
 end
 
 local function splitpath(path)

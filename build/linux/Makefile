@@ -52,7 +52,6 @@ ifeq ($(Target), Debug)
 	LFLAGS = -Wall -g -Wl
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt-d \
 			-lboost_thread-gcc$(GCC_VERSION)-mt-d \
-			-lblogger2_d \
 			-llua
 else
 	OUTPUT = luanode
@@ -60,7 +59,6 @@ else
 	LFLAGS = -Wall -Wl
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt \
 			-lboost_thread-gcc$(GCC_VERSION)-mt \
-			-lblogger2 \
 			/usr/local/lib/liblua.a \
 			-ldl \
 			-lssl

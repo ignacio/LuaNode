@@ -85,15 +85,20 @@ int CLuaVM::OnError(bool hasStackTrace) const {
 	}
 
 	lua_getfield(m_L, LUA_GLOBALSINDEX, "console");
-	lua_getfield(m_L, -1, "error");
-	if(lua_type(m_L, -1) == LUA_TFUNCTION) {
-		lua_pushstring(m_L, "%s");
-		lua_pushlstring(m_L, errorMessage.c_str(), errorMessage.length());
-		lua_call(m_L, 2, 0);
+	if(lua_istable(m_L, -1)) {
+		lua_getfield(m_L, -1, "error");
+		if(lua_type(m_L, -1) == LUA_TFUNCTION) {
+			lua_pushstring(m_L, "%s");
+			lua_pushlstring(m_L, errorMessage.c_str(), errorMessage.length());
+			lua_call(m_L, 2, 0);
+		}
+		else {
+			fprintf(stderr, "%s\n", errorMessage.c_str());
+			lua_pop(m_L, 1);
+		}
 	}
 	else {
 		fprintf(stderr, "%s\n", errorMessage.c_str());
-		lua_pop(m_L, 1);
 	}
 	lua_pop(m_L, 1);
 
