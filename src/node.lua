@@ -204,7 +204,6 @@ console["error"] = function (fmt, ...)
 	console.reset_color()
 	io.write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
-	io.flush()
 	return msg
 end
 
