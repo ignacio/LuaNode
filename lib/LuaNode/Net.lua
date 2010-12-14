@@ -104,6 +104,10 @@ local function bind(socket, port, ip)
 	if not ip then
 		ip = "0.0.0.0"
 	end
+	-- disgusting hack. In 
+	if process.platform ~= "windows" then
+		socket:setoption("reuseaddr", true)
+	end
 	local ok, err, msg = socket:bind(ip, port)
 	if not ok then
 		console.error("bind('%s', '%s', '%s') failed with error: %s\r\n%s", socket, port, ip, err, msg)

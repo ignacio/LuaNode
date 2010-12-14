@@ -50,7 +50,7 @@ struct tcp_keepalive {
 #else
 #error Unknown compiler.
 #endif
-#elif defined(__GNUC__)
+#elif defined(__linux__)
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #endif
@@ -242,12 +242,18 @@ int Socket::SetOption(lua_State* L) {
 				{
 					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive on win32 native socket - %d", this, WSAGetLastError());
 				}
-#else // TODO: que ifdef iría acá cuando winkler me preste la mac?
-				if( setsockopt(m_socket->native(), SOL_TCP, TCP_KEEPIDLE, (void *)&time, sizeof(time)) ) {
-					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive (TCP_KEEPIDLE) on win32 native socket - %d", this, errno);
+#elif defined(__linux__)
+				if( setsockopt(m_socket->native(), SOL_TCP, TCP_KEEPIDLE, (void *)&time, sizeof(time)) != 0 ) {
+					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive (TCP_KEEPIDLE) on native socket - %d", this, errno);
 				}
-				if( setsockopt(m_socket->native(), SOL_TCP, TCP_KEEPINTVL, (void *)&interval, sizeof(interval)) ) {
-					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive (TCP_KEEPINTVL) on win32 native socket - %d", this, errno);
+				if(interval != 0) {
+					if( setsockopt(m_socket->native(), SOL_TCP, TCP_KEEPINTVL, (void *)&interval, sizeof(interval)) != 0 ) {
+						luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive (TCP_KEEPINTVL=%d) on native socket - %d, %s", this, interval, errno, strerror(errno));
+					}
+				}
+#elif defined(__APPLE__)
+				if( setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, (void *)&time, sizeof(time)) != 0 ) {
+					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive (TCP_KEEPALIVE) on native socket - %d", this, errno);
 				}
 #endif
 			}

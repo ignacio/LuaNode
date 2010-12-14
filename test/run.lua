@@ -47,6 +47,6 @@ lunit.setrunner({
 --console.begin()
 local stats = lunit.run()
 if stats.failed > 0 or stats.errors > 0 then
-	return -1
+	return 1
 end
 --console.done()

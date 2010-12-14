@@ -171,7 +171,7 @@ int Socket::GetPeerCertificate(lua_State* L) {
 	}
 	char* issuer = X509_NAME_oneline(X509_get_issuer_name(peer_cert), 0, 0);
 	if (issuer != NULL) {
-		lua_pushstring(L, subject);
+		lua_pushstring(L, issuer);
 		lua_setfield(L, table, "issuer");
 		OPENSSL_free(issuer);
 	}

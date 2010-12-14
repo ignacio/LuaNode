@@ -25,7 +25,7 @@
 
 #if defined (_WIN32)
 	#include "luanode_file_win32.h"
-#elif defined(__GNUC__)
+#elif defined(__linux__)
 	#include "luanode_file_linux.h"
 #else
 	#error "Unsupported platform"
@@ -527,7 +527,7 @@ static int Load(int argc, char *argv[]) {
 
 #if defined(_WIN32)
 	lua_pushinteger(L, _getpid());
-#elif defined(__GNUC__)
+#elif defined(__linux__)
 	lua_pushinteger(L, getpid());
 #else
 	#error "unsupported platform"

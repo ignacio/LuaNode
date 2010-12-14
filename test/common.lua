@@ -1,51 +1,20 @@
 local path = require "luanode.path"
 
-__filename = [[d:\trunk_git\sources\LuaNode\test\]]
+--print(debug.getinfo(1, "S").source)
 
 
 local t = {}
 -- TODO: FIXME
-t.testDir = path.dirname(__filename)
+t.testDir = process.cwd()
+--..print(t.testDir)
 t.fixturesDir = path.join(t.testDir, "fixtures")
+--print("fixturesdir", t.fixturesDir)
+--t.fixturesDir = "//home/ignacio/devel/sources/LuaNode/test/fixtures"
 t.libDir = path.join(t.testDir, "../lib")
 t.tmpDir = path.join(t.testDir, "tmp")
 t.PORT = 12346
 
---exports.assert = require('assert');
-
---var sys = require("sys");
---for (var i in sys) exports[i] = sys[i];
---//for (var i in exports) global[i] = exports[i];
-
---[[
-function protoCtrChain (o) {
-  var result = [];
-  for (; o; o = o.__proto__) { result.push(o.constructor); }
-  return result.join();
-}
-]]
-
---[[
-exports.indirectInstanceOf = function (obj, cls) {
-  if (obj instanceof cls) { return true; }
-  var clsChain = protoCtrChain(cls.prototype);
-  var objChain = protoCtrChain(obj);
-  return objChain.slice(-clsChain.length) === clsChain;
-};
-]]
-
---}
 local assert = assert
-
-t.assert = {
-	equal = function(v1, v2, text)
-		assert(v1 == v2, text)
-	end,
-		
-	ok = function(value, message)
-		assert(value == true, message)
-	end
-}
 
 t.debug = LogDebug
 t.error = LogError

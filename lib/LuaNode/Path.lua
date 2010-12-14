@@ -75,6 +75,10 @@ end
 --
 function normalize(path, keepBlanks)
 	local paths = {}
+	if process.platform ~= "windows" then
+		-- disgusting hack
+		paths[#paths + 1] = "/"
+	end
 	--print("normalize", path)
 	local pattern = ("([^%s]+)"):format( resc(dir_sep) )
 	for p in path:gmatch(pattern) do

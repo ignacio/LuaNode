@@ -10,7 +10,7 @@ local requests_sent = 0
 local request_upgradeHead = null
 
 function createTestServer()
-	local server = http.Server:new()
+	local server = http.Server()
 
 	server:addListener("connection", function()
 		requests_recv = requests_recv + 1
