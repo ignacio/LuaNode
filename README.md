@@ -1,0 +1,87 @@
+# LuaNode #
+
+Asynchronous I/O for Lua.
+
+**LuaNode** allows to write performant net servers or clients, using an asynchronous model of computing (the [Reactor pattern][1]). 
+You might have seen this model implemented in event processing frameworks like [Node.js][11], [EventMachine][2] or [Twisted][3].
+In fact, **LuaNode** is heavily based on [Node.js][11], because I wanted to be able to do what *Node.js* does, but using [Lua][4] instead of JavaScript.
+
+**LuaNode** is written using [Boost.Asio][5]. From its homepage:
+> Boost.Asio is a cross-platform C++ library for network and low-level I/O programming that provides developers with a consistent asynchronous model using a modern C++ approach.
+
+That allows **LuaNode** to be cross-platform. It is mainly developed on Windows, but it is being tested also on Linux.
+
+## Hello, world #
+
+The following is the *"hello world"* of HTTP servers.
+
+    local http = require('luanode.http')
+
+    http.createServer(function(self, request, response)
+    	response:writeHead(200, {["Content-Type"] = "text/plain"})
+    	response:finish("Hello World")
+    end):listen(8124)
+
+    console.log('Server running at http://127.0.0.1:8124/')
+
+    process:loop()
+
+To run the server, put the above code in a file `test_server.lua` and execute it with **LuaNode** as follows:  
+    luanode test_server.lua
+
+Then point your browser to `http://localhost:8124/`
+
+You'll notice a striking resemblance with *Node.js* example server. In fact, I've aimed at keeping both, within reason, to be 
+quite compatible. Code from *Node.js* can be easily rewritten from JavaScript into Lua, and with a few more tweaks, you can adapt code available today for *Node.js*.
+
+## Building #
+
+**LuaNode** can be compiled on Windows with Visual Studio 2008 or with GCC on Linux. Look on the `build` folder. At the moment, both VS projects and Makefiles are not usable without some heavy tweaking. Proper makefiles and projects (and also build instructions) will follow.
+
+**LuaNode** depends on the following:
+
+ - [Boost.Asio][5]
+ - [OpenSSL][7] 
+ - [LuaSocket][8]
+ - [JSON4Lua][9]
+ - [lunit][10]
+
+## Status #
+Currently, there's a lot of functionality missing. Doing a `grep TODO` should give an idea :D
+
+## Documentation #
+Sorry, I've written nothing yet, but you can get along following [Node.js 0.2.5 documentation][12].
+
+The two most glaring difference between *Node.js* and **LuaNode** are:
+
+- Callbacks first parameters is always who is emitting the event.
+- Streams' *end* method is *finish* in **LuaNode**.
+- You must start the event loop yourself (this surely will change in the future).
+
+The unit tests provide lots of examples. They are available at the `test` folder.
+
+## Acknowledgments #
+I'd like to acknowledge the work of the following people:
+
+ - Ryan Dahl, obviously, for his work on [Node.js][11] and [http-parser][14], which I use to parse http requests.
+ - Renato Maia, for allowing me to take parts of [Loop][13].
+
+ 
+## License #
+**LuaNode** is available under the MIT license.
+
+
+[1]: http://en.wikipedia.org/wiki/Reactor_pattern
+[2]: http://rubyeventmachine.com/
+[3]: http://twistedmatrix.com/trac/
+[4]: http://www.lua.org/
+[5]: http://www.boost.org/doc/libs/1_45_0/doc/html/boost_asio.html
+[6]: http://www.boost.org/
+[7]: http://www.openssl.org/
+[8]: http://w3.impa.br/~diego/software/luasocket/
+[9]: http://json.luaforge.net/
+[10]: http://www.nessie.de/mroth/lunit/
+[11]: http://nodejs.org/
+[12]: http://nodejs.org/docs/v0.2.5/api.html
+[13]: http://loop.luaforge.net/
+[14]: https://github.com/ry/http-parser
