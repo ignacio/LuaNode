@@ -8,17 +8,25 @@ INCONCERT_SOURCES ?= $(INCONCERT_SOURCES_DEFAULT)
 INCONCERT_BIN ?= $(INCONCERT_BIN_DEFAULT)
 INCONCERT_LIB ?= $(INCONCERT_LIB_DEFAULT)
 
+PREFIX = /usr/local
+
 PACKAGES = $(INCONCERT_DEVEL)/packages
 #BOOST_DIR_DEFAULT = $(PACKAGES)/boost_1_44_0
-BOOST_DIR_DEFAULT = /usr/local/include/boost-1_44
+BOOST_DIR_DEFAULT = $(PREFIX)/include/boost-1_44
 BOOST_DIR ?= $(BOOST_DIR_DEFAULT)
 #BOOST_LIBS_DEFAULT = $(BOOST_DIR)/lib
-BOOST_LIBS_DEFAULT = /usr/local/lib
+BOOST_LIBS_DEFAULT = $(PREFIX)/lib
 BOOST_LIBS ?= $(BOOST_LIBS_DEFAULT)
+
+LUA_LIB = $(PREFIX)/lib/liblua.a
+
+# Lua includes directory
+#LUA_INC = -I$(PACKAGES)/lua5.1/include
+LUA_INC= $(PREFIX)/include
 
 OPENSSL_DIR_DEFAULT = $(PACKAGES)/OpenSSL-1.0.0a
 #OPENSSL_DIR ?= $(OPENSSL_DIR_DEFAULT)
-OPENSSL_DIR ?= /usr/local/openssl
+OPENSSL_DIR ?= $(PREFIX)/openssl
 OPENSSL_INC ?= $(OPENSSL_DIR)/include
 
 GCC_VERSION ?= $(shell expr substr "`g++ -dumpversion | tr -dc '[0-9]'`" 1 2)
@@ -28,16 +36,16 @@ BASE_SRC_DIR = ../../
 Target ?= Release
 
 # All includes:
-INCLUDES = 	-I../											\
-			-I$(INCONCERT_SOURCES) 							\
+INCLUDES = 	-I$(INCONCERT_SOURCES) 							\
+			-I$(LUA_INC)									\
 			-I$(BOOST_DIR)									\
-			-I$(PACKAGES)/lua5.1/include					\
-			-I$(OPENSSL_INC)								\
-			-I.
+			-I$(OPENSSL_INC)
 
 
 # All libs:
-LIBS = -L$(INCONCERT_LIB) -L$(BOOST_LIBS) -L$(INCONCERT_BIN) -L$(PACKAGES)/lua5.1/src
+LIBS = -L$(INCONCERT_LIB) -L$(BOOST_LIBS) -L$(INCONCERT_BIN)
+
+OUTPUT = luanode
 
 OUTPUT_DIR = $(INCONCERT_BIN)
 COMPILER = g++
@@ -47,27 +55,23 @@ LUA = lua
 BIN2C = $(BASE_SRC_DIR)/tools/bin2c.lua
 
 ifeq ($(Target), Debug)
-	OUTPUT = luanode_d
+	OUTPUT = $(OUTPUT)_d
 	CFLAGS = -Wall -c -g -D_DEBUG
 	LFLAGS = -Wall -g -Wl
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt-d \
-			-lboost_thread-gcc$(GCC_VERSION)-mt-d \
-			-llua
+			$(LUA_LIB) \
+			-ldl \
+			-lssl
 else
-	OUTPUT = luanode
 	CFLAGS = -Wall -c -O2 -D_NDEBUG 
 	LFLAGS = -Wall -Wl
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt \
-			-lboost_thread-gcc$(GCC_VERSION)-mt \
-			/usr/local/lib/liblua.a \
+			$(LUA_LIB) \
 			-ldl \
 			-lssl
 endif
 
 OUTPUT_FILE = $(OUTPUT_DIR)/$(OUTPUT)
-
-#dir de jsonobject, para que no me quede tan largo en la linea de compilacion
-JSONOBJECT_DIR=$(INCONCERT_SOURCES)/jsonobject
 
 COMPILE = $(COMPILER) $(CFLAGS) "$<" -o "$(Target)/$(*F).o" $(INCLUDES)
 LINK = $(LINKER) $(LFLAGS) -o "$(OUTPUT_FILE)" $(INCLUDES) $(LIBS) $(OBJS) $(SPECIFIC_LIBS)
@@ -111,7 +115,7 @@ LUAS = 	$(Target)/LuaNode/child_process.precomp \
 
 all : $(OUTPUT_FILE)
 
-#La mayoria de los casos, son Cpp y entran por aca:
+
 $(Target) :
 	mkdir -p $(Target)
 	mkdir -p $(BASE_SRC_DIR)/build/temp
@@ -132,13 +136,10 @@ $(Target)/StackTracePlus/%.precomp : $(BASE_SRC_DIR)/deps/StackTracePlus/src/%.l
 	@echo ""
 	$(COMPILE_LUA)
 
-#Explicito para json
-$(Target)/jsonobject.o: $(JSONOBJECT_DIR)/src/jsonobject.cpp
-	$(COMPILER) $(CFLAGS) $(JSONOBJECT_DIR)/src/jsonobject.cpp -o $(Target)/jsonobject.o $(INCLUDES)
 
 
-$(Target)/libBlogger2Cpp.o: $(INCONCERT_SOURCES)/libblogger2/src/libBlogger2Cpp.cpp
-	$(COMPILER) $(CFLAGS) $(INCONCERT_SOURCES)/libblogger2/src/libBlogger2Cpp.cpp -o $(Target)/libBlogger2Cpp.o $(INCLUDES)
+#$(Target)/libBlogger2Cpp.o: $(INCONCERT_SOURCES)/libblogger2/src/libBlogger2Cpp.cpp
+#	$(COMPILER) $(CFLAGS) $(INCONCERT_SOURCES)/libblogger2/src/libBlogger2Cpp.cpp -o $(Target)/libBlogger2Cpp.o $(INCLUDES)
 
 $(Target)/preloader.o: $(BASE_SRC_DIR)/lib/preloader.cpp
 	$(COMPILER) $(CFLAGS) $(BASE_SRC_DIR)/lib/preloader.cpp -o $(Target)/preloader.o
@@ -146,10 +147,10 @@ $(Target)/preloader.o: $(BASE_SRC_DIR)/lib/preloader.cpp
 $(Target)/http_parser.o: $(BASE_SRC_DIR)/deps/http-parser/http_parser.c
 	$(COMPILER) $(CFLAGS) $(BASE_SRC_DIR)/deps/http-parser/http_parser.c -o $(Target)/http_parser.o
 
-$(PACKAGES)/Lua5.1/src/liblua.a:
-	cd $(PACKAGES)/Lua5.1/src/
-	make linux
-	cd ../../../sources/LuaNode/build/linux
+#$(PACKAGES)/Lua5.1/src/liblua.a:
+#	cd $(PACKAGES)/Lua5.1/src/
+#	make linux
+#	cd ../../../sources/LuaNode/build/linux
 
 $(OUTPUT_FILE): $(Target) $(LUAS) $(OBJS)
 	$(LINK)
