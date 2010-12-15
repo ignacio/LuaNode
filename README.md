@@ -75,7 +75,7 @@ The following has been tested on Ubuntu Desktop 10.10.
    - mkdir -p devel/sources
    - mkdir -p devel/bin
    - cd devel/sources
-   - git clone git://github.com/ignacio/LuaNode.git
+   - git clone git://github.com/ignacio/LuaNode.git --recursive
    - cd LuaNode
    - git fetch --all
    - cd build/linux
