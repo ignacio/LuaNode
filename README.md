@@ -45,6 +45,44 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
  - [LuaSocket][8]
  - [JSON4Lua][9]
  - [lunit][10]
+ 
+### Debian installation #
+The following has been tested on Ubuntu Desktop 10.10.
+
+ - Install Lua
+   - sudo apt-get install lua5.1
+   
+ - Install OpenSSL
+   - sudo apt-get install libssl-dev
+   
+ - Install Boost (tested with 1.44)
+   - Download [boost_1_44_0.tar.bz2](http://sourceforge.net/projects/boost/files/boost/1.44.0/boost_1_44_0.tar.bz2/download)
+   - Unpack
+   - ./bootstrap.sh
+   - sudo ./bjam --build-type=complete --layout=versioned --with-system --with-thread threading=multi link=shared install
+   - sudo ldconfig -v
+   
+ - Install LuaRocks
+   - wget http://luarocks.org/releases/luarocks-2.0.3.tar.gz
+   - tar xvf luarocks-2.0.3.tar.gz
+   - cd luarocks-2.0.3
+   - ./configure
+   - make
+   - sudo make install
+   
+ - Install LuaNode
+   - cd ~
+   - mkdir -p devel/sources
+   - mkdir -p devel/bin
+   - cd devel/sources
+   - git clone git://github.com/ignacio/LuaNode.git
+   - cd LuaNode
+   - git fetch --all
+   - cd build/linux
+   - export INCONCERT_DEVEL=~/devel
+   - make
+   
+*Note: This installation procedure will be simplified in the future.*
 
 ## Status #
 Currently, there's a lot of functionality missing. Doing a `grep TODO` should give an idea :D
