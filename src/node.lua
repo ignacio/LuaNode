@@ -110,16 +110,14 @@ end
 local function BuildMessage(fmt, ...)
 	local msg
 	if type(fmt) ~= "string" then
-		msg = {}
-		msg[#msg + 1] = tostring(fmt)
+		msg = { tostring(fmt) }
 		ArgumentsToStrings(msg, ...)
 		msg = table.concat(msg, "\t")
 	else
 		if fmt:find("%%") then
 			msg = string.format(fmt, LogArgumentsFormatter(...))
 		else
-			msg = {}
-			msg[#msg + 1] = fmt
+			msg = { fmt }
 			ArgumentsToStrings(msg, ...)
 			msg = table.concat(msg, "\t")
 		end
