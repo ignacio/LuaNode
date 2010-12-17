@@ -266,7 +266,7 @@ end
 
 function Stream:__init(fd, kind)
 	-- http.Client llama acá sin socket. Conecta luego.
-	local newStream = Class.construct(self)
+	local newStream = Class.construct(Stream)
 	
 	newStream.fd = nil
 	newStream.kind = kind
@@ -589,6 +589,7 @@ function Stream:flush()
 			self:_shutdown()
 			return true
 		end
+		
 		local flushed = self:_writeOut(data, encoding, fd)
 		if not flushed then
 			return false
@@ -915,7 +916,7 @@ end
 Server = Class.InheritsFrom(EventEmitter)
 
 function Server:__init(listener)
-	local newServer = Class.construct(self)
+	local newServer = Class.construct(Server)
 	
 	if listener then
 		newServer:addListener("connection", listener)

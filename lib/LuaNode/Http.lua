@@ -72,7 +72,7 @@ status_codes = {
 IncomingMessage = Class.InheritsFrom(stream.Stream)
 
 function IncomingMessage:__init(socket)
-	local newMessage = Class.construct(self)
+	local newMessage = Class.construct(IncomingMessage)
 
 	-- TODO: Remove one of these eventually.
 	newMessage.socket = socket
@@ -206,7 +206,7 @@ end
 OutgoingMessage = Class.InheritsFrom(stream.Stream)
 
 function OutgoingMessage:__init (socket)
-	local newMessage = Class.construct(self)
+	local newMessage = Class.construct(OutgoingMessage)
 	
 	-- TODO Remove one of these eventually.
 	newMessage.socket = socket
@@ -559,7 +559,7 @@ end
 ServerResponse = Class.InheritsFrom(OutgoingMessage)
 
 function ServerResponse:__init (req)
-	local newResponse = Class.construct(self, req.socket)
+	local newResponse = Class.construct(ServerResponse, req.socket)
 	
 	if req.method == "HEAD" then
 		newResponse._hasBody = false
@@ -634,7 +634,7 @@ ClientRequest = Class.InheritsFrom(OutgoingMessage)
 --
 --
 function ClientRequest:__init (socket, method, url, headers)
-	local newRequest = Class.construct(self, socket)
+	local newRequest = Class.construct(ClientRequest, socket)
 	
 	method = method:upper()
 	newRequest.method = method
@@ -983,7 +983,7 @@ end
 Server = Class.InheritsFrom(net.Server)
 
 function Server:__init (requestListener)
-	local newServer = Class.construct(self)
+	local newServer = Class.construct(Server)
 	
 	if requestListener then
 		newServer:addListener("request", requestListener)
@@ -1014,7 +1014,7 @@ Client = Class.InheritsFrom(net.Stream)
 --
 --
 function Client:__init()
-	local newClient = Class.construct(self)
+	local newClient = Class.construct(Client)
 	
 	-- Possible states:
 	-- - disconnected

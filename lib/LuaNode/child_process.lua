@@ -12,7 +12,7 @@ local constants
 ChildProcess = Class.InheritsFrom(EventEmitter)
 
 function ChildProcess:__init()
-	local newProcess = Class.construct(self)
+	local newProcess = Class.construct(ChildProcess)
 	
 	local gotCHLD = false
 	local exitCode
