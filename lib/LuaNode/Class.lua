@@ -15,6 +15,7 @@ local base = {}
 
 --------------------------------------------------------------------------------
 function base.rawnew(class, object)
+	if type(object) == "userdata" then return object end	-- allows to chain objects created by luaCppBridge in the hierarchy
 	return setmetatable(object or {}, class)
 end
 --------------------------------------------------------------------------------
@@ -86,10 +87,23 @@ local mt = {
 }
 setmetatable(Class, mt)
 
+--
+-- Construct a new Class that inherits from an existing one
 Class.InheritsFrom = function(super, dummy)
 	assert(not dummy)	-- avoid simple errors
 	if super then 
 		return DerivedClass[super](simple.initclass{})
+	else
+		return base.class{}
+	end
+end
+
+--
+-- Make an already existing class inherit from another existing class
+Class.MakeInheritFrom = function(who, super)
+	assert(who, super)
+	if super then 
+		return DerivedClass[super](simple.initclass(who))
 	else
 		return base.class{}
 	end
