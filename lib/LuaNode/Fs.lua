@@ -53,7 +53,7 @@ function readFile(path, encoding, callback)
 	
 	if type(callback) == "function" then
 		process.nextTick(function()
-			local f, err = assert(io.open(path, "rb"))
+			local f, err = io.open(path, "rb")
 			if not f then
 				callback(err)
 			else

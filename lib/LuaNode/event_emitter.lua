@@ -33,7 +33,7 @@ function EventEmitter:emit(kind, ...)
 		then
 			-- TODO: entender como funciona esta parte en events.js@EventEmitter.emit
 			-- porque cuando esto ocurre (desde un callback) se tranca la consola y ctrl-c no la mata
-			error(...)
+			error("unhandled error", 2)
 		end
 	end
 	
