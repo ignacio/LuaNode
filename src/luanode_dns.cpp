@@ -51,6 +51,7 @@ int Resolver::Lookup(lua_State* L) {
 	luaL_checktype(L, 4, LUA_TFUNCTION);
 	lua_pushvalue(L, 4);
 	callback = luaL_ref(L, LUA_REGISTRYINDEX);
+	bool enumerateAll = lua_toboolean(L, 5);
 
 	/*if(lua_type(L, 3) == LUA_TSTRING) {
 		service = lua_tostring(L, 3);
@@ -70,14 +71,14 @@ int Resolver::Lookup(lua_State* L) {
 	// No pasar el this en el handler (el resolver podría ser gc'ed mientras hay un async_resolve flying...
 	// o sino, guardo una ref en la registry mientras tanto...
 	m_resolver.async_resolve(query, 
-		boost::bind(&Resolver::HandleResolve, this, callback, domain, boost::asio::placeholders::error, boost::asio::placeholders::iterator)
+		boost::bind(&Resolver::HandleResolve, this, callback, domain, enumerateAll, boost::asio::placeholders::error, boost::asio::placeholders::iterator)
 	);
 	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Resolver::HandleResolve(int callback, std::string domain, const boost::system::error_code& error, boost::asio::ip::tcp::resolver::iterator iter)
+void Resolver::HandleResolve(int callback, std::string domain, bool enumerateAll, const boost::system::error_code& error, boost::asio::ip::tcp::resolver::iterator iter)
 {
 	lua_State* L = m_L;
 	
@@ -99,36 +100,48 @@ void Resolver::HandleResolve(int callback, std::string domain, const boost::syst
 		return;
 	}
 
-	// Las lineas comentadas son si quiero devolver hacia lua todos los endpoints posibles o solo el primero, como node.js
 	lua_pushnil(L);
-	//lua_newtable(L);
-	//int table = lua_gettop(L);
-	//int i = 0;
-	//while(iter != end) {
-		boost::asio::ip::tcp::endpoint endpoint = *iter++;
-
-		const boost::asio::ip::address& address = endpoint.address();
-		std::string s = endpoint.address().to_string();
+	
+	// enumerateAll will push an array of endpoints instead of just the first one
+	if(enumerateAll) {
 		lua_newtable(L);
-		lua_pushstring(L, address.to_string().c_str());
-		lua_setfield(L, -2, "address");
-
-		lua_pushnumber(L, endpoint.port());
-		lua_setfield(L, -2, "port");
-
-		if(endpoint.address().is_v6()) {
-			lua_pushnumber(L, 6);
+		int table = lua_gettop(L);
+		int i = 0;
+		while(iter != end) {
+			boost::asio::ip::tcp::endpoint endpoint = *iter++;
+			EndpointToLua(L, endpoint);
+			lua_rawseti(L, table, ++i);
 		}
-		else if(endpoint.address().is_v4()) {
-			lua_pushnumber(L, 4);
-		}
-		else {
-			lua_pushliteral(L, "unknown");
-		}
-		lua_setfield(L, -2, "family");
-		//lua_rawseti(L, table, ++i);
-	//}
+	}
+	else {
+		boost::asio::ip::tcp::endpoint endpoint = *iter++;
+		EndpointToLua(L, endpoint);
+	}
 	lua_pushlstring(L, domain.c_str(), domain.size());
 	lua_call(L, 3, LUA_MULTRET);
 	lua_settop(L, 0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Pushes to Lua the data of the endpoint
+void Resolver::EndpointToLua(lua_State* L, const boost::asio::ip::tcp::endpoint& endpoint) {
+	const boost::asio::ip::address& address = endpoint.address();
+	std::string s = endpoint.address().to_string();
+	lua_newtable(L);
+	lua_pushstring(L, address.to_string().c_str());
+	lua_setfield(L, -2, "address");
+
+	lua_pushnumber(L, endpoint.port());
+	lua_setfield(L, -2, "port");
+
+	if(endpoint.address().is_v6()) {
+		lua_pushnumber(L, 6);
+	}
+	else if(endpoint.address().is_v4()) {
+		lua_pushnumber(L, 4);
+	}
+	else {
+		lua_pushliteral(L, "unknown");
+	}
+	lua_setfield(L, -2, "family");
 }

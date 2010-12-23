@@ -19,8 +19,10 @@ public:
 
 	int Lookup(lua_State* L);
 
-	void HandleResolve(int callback, std::string domain, const boost::system::error_code& error, boost::asio::ip::tcp::resolver::iterator iterator);
+	void HandleResolve(int callback, std::string domain, bool enumerateAll, const boost::system::error_code& error, boost::asio::ip::tcp::resolver::iterator iterator);
 
+private:
+	void EndpointToLua(lua_State* L, const boost::asio::ip::tcp::endpoint& endpoint);
 
 private:
 	lua_State* m_L;
