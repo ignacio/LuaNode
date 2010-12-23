@@ -3,7 +3,7 @@
 
 namespace LuaNode {
 
-class OS {
+class Platform {
 public:
 	static char** SetupArgs(int argc, char *argv[]);
 	static void SetProcessTitle(char *title);
@@ -19,7 +19,7 @@ public:
 	static int SetConsoleForegroundColor(lua_State* L);
 	static int SetConsoleBackgroundColor(lua_State* L);
 
-	static bool PlatformInit();
+	static bool Initialize();
 
 	static int Cwd(lua_State* L);
 };

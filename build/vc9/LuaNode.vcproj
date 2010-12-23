@@ -340,6 +340,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_os.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_timer.cpp"
 				>
 			</File>
@@ -475,6 +479,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_net_acceptor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_os.h"
 				>
 			</File>
 			<File
@@ -624,6 +632,10 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\LuaNode\url.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\Utils.lua"
 				>
 			</File>
 			<Filter

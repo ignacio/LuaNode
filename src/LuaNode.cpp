@@ -22,6 +22,7 @@
 #include "luanode_crypto.h"
 #include "luanode_child_process.h"
 #include "luanode_module_api.h"
+#include "luanode_os.h"
 
 #if defined (_WIN32)
 	#include "luanode_file_win32.h"
@@ -145,7 +146,7 @@ static int NeedTickCallback(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// Retrieves the current working directory
 static int Cwd(lua_State* L) {
-	return OS::Cwd(L);
+	return Platform::Cwd(L);
 }
 
 /*Handle<Value> Kill(const Arguments& args) {
@@ -428,25 +429,26 @@ static int Load(int argc, char *argv[]) {
 	//status = runargs(L, argv, argc);
 	if(status != 0) return EXIT_FAILURE;
 
-	if(!OS::PlatformInit()) {
+	if(!Platform::Initialize()) {
 		LogError("Failed to perform platform specific initialization");
 		return EXIT_FAILURE;
 	}
 
 	// tabla 'process'
 	lua_newtable(L);
-	int table = lua_gettop(L);
+	int process = lua_gettop(L);
 	lua_pushstring(L, LUANODE_VERSION);
-	lua_setfield(L, table, "version");
+	lua_setfield(L, process, "version");
 
 	// process.platform
-	lua_pushstring(L, LuaNode::OS::GetPlatform());
-	lua_setfield(L, table, "platform");
+	lua_pushstring(L, LuaNode::Platform::GetPlatform());
+	lua_setfield(L, process, "platform");
 
-	lua_pushcfunction(L, LuaNode::OS::SetConsoleForegroundColor);
-	lua_setfield(L, table, "set_console_fg_color");
-	lua_pushcfunction(L, LuaNode::OS::SetConsoleBackgroundColor);
-	lua_setfield(L, table, "set_console_bg_color");
+	// this shouldn't be here
+	lua_pushcfunction(L, LuaNode::Platform::SetConsoleForegroundColor);
+	lua_setfield(L, process, "set_console_fg_color");
+	lua_pushcfunction(L, LuaNode::Platform::SetConsoleBackgroundColor);
+	lua_setfield(L, process, "set_console_bg_color");
 
 	// process.argv
 	lua_newtable(L);
@@ -458,7 +460,7 @@ static int Load(int argc, char *argv[]) {
 		lua_rawseti(L, argArray, j);
 	}
 	// assign it
-	lua_setfield(L, table, "argv");
+	lua_setfield(L, process, "argv");
 
 	// create process.env
 	lua_newtable(L);
@@ -476,7 +478,7 @@ static int Load(int argc, char *argv[]) {
 		}
 		lua_settable(L, envTable);
 	}
-	lua_setfield(L, table, "env");
+	lua_setfield(L, process, "env");
 
 #if defined(_WIN32)
 	lua_pushinteger(L, _getpid());
@@ -485,25 +487,25 @@ static int Load(int argc, char *argv[]) {
 #else
 	#error "unsupported platform"
 #endif
-	lua_setfield(L, table, "pid");
+	lua_setfield(L, process, "pid");
 
 	// module api
-	LuaNode::ModuleApi::Register(L, table);
+	LuaNode::ModuleApi::Register(L, process);
 
 	size_t size = 2048;
 	std::vector<char> execPath(size);
-	if (OS::GetExecutablePath(&execPath[0], &size) != 0) {
+	if (Platform::GetExecutablePath(&execPath[0], &size) != 0) {
 		// as a last ditch effort, fallback on argv[0] ?
 		lua_pushstring(L, argv[0]);
-		lua_setfield(L, table, "execPath");
+		lua_setfield(L, process, "execPath");
 	}
 	else {
 		lua_pushstring(L, &execPath[0]);
-		lua_setfield(L, table, "execPath");
+		lua_setfield(L, process, "execPath");
 	}
 	
 	// define various internal methods
-	lua_pushvalue(L, table);
+	lua_pushvalue(L, process);
 	luaL_Reg methods[] = {
 		{ "loop", Loop },
 		{ "cwd", Cwd },
@@ -533,7 +535,8 @@ static int Load(int argc, char *argv[]) {
 	Timer::Register(L, NULL, true);
 
 	ChildProcess::Register(L, NULL, true);
-
+	
+	OS::RegisterFunctions(L);
 	Fs::RegisterFunctions(L);
 
 	//DefineConstants(L);
@@ -577,7 +580,7 @@ static int Load(int argc, char *argv[]) {
 		lua_settop(L, 0);
 		return EXIT_FAILURE;
 	}
-	lua_pushvalue(L, table);
+	lua_pushvalue(L, process);
 
 	if(LuaNode::luaVm.call(1, LUA_MULTRET) != 0) {
 		return EXIT_FAILURE;

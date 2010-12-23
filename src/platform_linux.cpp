@@ -7,36 +7,36 @@
 using namespace LuaNode;
 
 
-int OS::GetExecutablePath(char* buffer, size_t* size) {
+int Platform::GetExecutablePath(char* buffer, size_t* size) {
 	*size = readlink("/proc/self/exe", buffer, *size - 1);
 	if (*size <= 0) return -1;
 	buffer[*size] = '\0';
 	return 0;
 }
 
-const char* OS::GetPlatform() {
+const char* Platform::GetPlatform() {
 	return "linux";
 }
 
-int OS::SetConsoleForegroundColor(lua_State* L) {
+int Platform::SetConsoleForegroundColor(lua_State* L) {
 	const char* color = luaL_checkstring(L, 1);
 	printf("%s", color);
 	return 0;
 }
 
-int OS::SetConsoleBackgroundColor(lua_State* L) {
+int Platform::SetConsoleBackgroundColor(lua_State* L) {
 	const char* color = luaL_checkstring(L, 1);
 	printf("%s", color);
 	return 0;
 }
 
-bool OS::PlatformInit() {
+bool Platform::Initialize() {
 	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// Retrieves the current working directory
-int OS::Cwd(lua_State* L) {
+int Platform::Cwd(lua_State* L) {
 	char getbuf[2048];
 	char *r = getcwd(getbuf, sizeof(getbuf) - 1);
 	if (r == NULL) {

@@ -36,10 +36,10 @@ BASE_SRC_DIR = ../../
 Target ?= Release
 
 # All includes:
-INCLUDES = 	-I$(INCONCERT_SOURCES) 							\
-			-I$(LUA_INC)									\
-			-I$(BOOST_DIR)									\
-			-I$(OPENSSL_INC)
+INCLUDES =	-I$(INCONCERT_SOURCES)	\
+		-I$(LUA_INC)		\
+		-I$(BOOST_DIR)		\
+		-I$(OPENSSL_INC)
 
 
 # All libs:
@@ -89,6 +89,7 @@ OBJS = $(PACKAGES)/lua5.1/src/liblua.a \
 		$(Target)/luanode_net.o \
 		$(Target)/luanode_net_acceptor.o \
 		$(Target)/luanode_timer.o \
+		$(Target)/luanode_os.o \
 		$(Target)/LuaVM.o \
 		$(Target)/platform_linux.o \
 		$(Target)/preloader.o \

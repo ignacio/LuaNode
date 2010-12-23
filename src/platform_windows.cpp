@@ -17,7 +17,7 @@ static CONSOLE_SCREEN_BUFFER_INFO CConsoleGetInfo() {
 
 using namespace LuaNode;
 
-int OS::GetExecutablePath(char* buffer, size_t* size) {
+int Platform::GetExecutablePath(char* buffer, size_t* size) {
 	*size = GetModuleFileName(NULL, buffer, *size - 1);
 	if(*size <= 0) {
 		return -1;
@@ -26,11 +26,11 @@ int OS::GetExecutablePath(char* buffer, size_t* size) {
 	return 0;
 }
 
-const char* OS::GetPlatform() {
+const char* Platform::GetPlatform() {
 	return "windows";
 }
 
-int OS::SetConsoleForegroundColor(lua_State* L) {
+int Platform::SetConsoleForegroundColor(lua_State* L) {
 	WORD wRGBI = (WORD)lua_tointeger(L, 1);
 	CONSOLE_SCREEN_BUFFER_INFO csbi = CConsoleGetInfo();
 	csbi.wAttributes &= BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY;
@@ -39,7 +39,7 @@ int OS::SetConsoleForegroundColor(lua_State* L) {
 	return 0;
 }
 
-int OS::SetConsoleBackgroundColor(lua_State* L) {
+int Platform::SetConsoleBackgroundColor(lua_State* L) {
 	WORD wRGBI = (WORD)lua_tointeger(L, 1);
 	CONSOLE_SCREEN_BUFFER_INFO csbi = CConsoleGetInfo();
 	csbi.wAttributes &= FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
@@ -48,14 +48,14 @@ int OS::SetConsoleBackgroundColor(lua_State* L) {
 	return 0;
 }
 
-bool OS::PlatformInit() {
+bool Platform::Initialize() {
 	SetConsoleOutputCP(CP_UTF8);
 	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// Retrieves the current working directory
-int OS::Cwd(lua_State* L) {
+int Platform::Cwd(lua_State* L) {
 	char getbuf[2048];
 	char *r = _getcwd(getbuf, sizeof(getbuf) - 1);
 	if (r == NULL) {
