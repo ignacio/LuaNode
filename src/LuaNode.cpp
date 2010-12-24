@@ -166,6 +166,22 @@ static int Cwd(lua_State* L) {
 }*/
 
 //////////////////////////////////////////////////////////////////////////
+/// 
+static int Exit(lua_State* L) {
+	int code = luaL_optinteger(L, 1, EXIT_FAILURE);
+	LuaNode::GetIoService().stop();
+	//lua_close(LuaNode::GetLuaVM());
+
+	// Will it be possible to have a clean ending?
+#ifdef _WIN32
+	TerminateProcess(NULL, code);
+#else
+	exit(code);
+#endif
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
 /// The main loop
 static int Loop(lua_State* L) {
 	//lua_getfield(L, LUA_GLOBALSINDEX, "process");
@@ -511,6 +527,7 @@ static int Load(int argc, char *argv[]) {
 		{ "cwd", Cwd },
 		//{ "_kill", Kill },
 		{ "_needTickCallback", NeedTickCallback },
+		{ "_exit", Exit },
 		{ 0, 0 }
 	};
 	luaL_register(L, NULL, methods);

@@ -274,8 +274,9 @@ end
 process.exit = function(code)
 	process:emit("exit", code or 0)
 	
-	-- TODO: hacer el reallyExit
-	--process.reallyExit(code, code or 0)
+	process.nextTick(function()
+		process._exit(code or 0)
+	end)
 end
 
 --
