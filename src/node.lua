@@ -249,7 +249,10 @@ process._postBackToModule = function(moduleName, functionName, key, ...)
 	end
 	local f = m[functionName]
 	if type(f) == "function" then
-		pcall(f, key, ...)
+		ok, m = pcall(f, key, ...)
+		if not ok then
+			console.error("Error while calling %s:%s - %s", moduleName, functionName, m)
+		end
 	end
 end
 
