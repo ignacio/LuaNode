@@ -9,6 +9,14 @@ local HTTPParser = process.HTTPParser	--local HTTPParser = require "HTTPParser"
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
+-- Classes exported by this module:
+-- IncomingMessage
+-- OutgoingMessage
+-- ServerResponse
+-- ClientRequest
+-- Server
+-- Client
+
 local CRLF = "\r\n"
 -- HTTP status codes
 status_codes = {
