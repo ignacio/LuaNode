@@ -274,7 +274,7 @@ end
 
 --
 --
-process.exit = function(code)
+function process:exit (code)
 	process:emit("exit", code or 0)
 	
 	process.nextTick(function()
