@@ -14,7 +14,7 @@ function Stream:pipe (dest, options)
 	local source = self
 
 	source:on("data", function (self, chunk)
-		if not dest:write(chunk) then
+		if dest.writable and not dest:write(chunk) then
 			source:pause()
 		end
 	end)
