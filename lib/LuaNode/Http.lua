@@ -1017,7 +1017,7 @@ end
 
 
 -- Client Class
-Client = Class.InheritsFrom(net.Stream)
+Client = Class.InheritsFrom(net.Socket)
 
 --
 --

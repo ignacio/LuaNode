@@ -1,7 +1,7 @@
 --local util = require "util"		--var util = require("util");
 local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
-local stream = require "luanode.stream"
+local luanode_stream = require "luanode.stream"
 local Timers = require "luanode.timers"
 
 -- TODO: arreglar el despelote de los fd's
@@ -117,34 +117,34 @@ local function bind(socket, port, ip)
 end
 
 
--- Stream Class
-Stream = Class.InheritsFrom(stream.Stream)
+-- Socket Class
+Socket = Class.InheritsFrom(luanode_stream.Stream)
 
 -- FIXME: tengo que guardar las conexiones en algun lado. Y eventualmente las tengo que sacar
-local m_opened_streams = {}
+local m_opened_sockets = {}
 
 local function setImplmentationMethods(self)
 	if self.type == "unix" then
 		error("not yet implemented")
 	else
 		self._writeImpl = function(self, buf, off, len, fd, flags)
-			return self._stream:write(buf, off, len)
+			return self._raw_socket:write(buf, off, len)
 		end
 		
 		self._readImpl = function(self, buf, off, len, calledByIOWatcher)
-			return self._stream:read(buf, off, len)
+			return self._raw_socket:read(buf, off, len)
 		end
 	end
 	
 	self._shutdownImpl = function()
-		self._stream:shutdown("write")
+		self._raw_socket:shutdown("write")
 	end
 	
 	--[====[
 	if self.secure then
 		local oldWrite = self._writeImpl
 		self._writeImpl = function(self, buf, off, len, fd, flags)
-			self._stream:write(buf)
+			self._raw_socket:write(buf)
 			--[[
 			assert(buf)
 			assert(self.secure)
@@ -264,48 +264,48 @@ local function setImplmentationMethods(self)
 	--]====]
 end
 
-function Stream:__init(fd, kind)
+function Socket:__init(fd, kind)
 	-- http.Client llama acá sin socket. Conecta luego.
-	local newStream = Class.construct(Stream)
+	local newSocket = Class.construct(Socket)
 	
-	newStream.fd = nil
-	newStream.kind = kind
-	newStream.secure = false
-	newStream._EOF_inserted = false	-- signals when we called 'finish' on the stream
+	newSocket.fd = nil
+	newSocket.kind = kind
+	newSocket.secure = false
+	newSocket._EOF_inserted = false	-- signals when we called 'finish' on the stream
 									-- but the underlying socket is not closed yet
 	
-	setImplmentationMethods(newStream)
+	setImplmentationMethods(newSocket)
 	
-	m_opened_streams[newStream] = newStream
+	m_opened_sockets[newSocket] = newSocket
 	
 	--[[
 	if not fd then
 		-- I don't know which type of stream yet
 		-- to be determined later
-		return newStream
+		return newSocket
 	end
 	--]]
 	
 	if getmetatable(fd) == process.Socket then
 		-- TODO: chequear que no este causando algo que no se lo pueda llevar el gc
-		--fd.owner = newStream
-		fd._stream = newStream
-		newStream._stream = fd
-		--newStream:open(fd, kind)	-- esto se hace mas adelante
-		return newStream
+		--fd.owner = newSocket
+		fd._owner = newSocket
+		newSocket._raw_socket = fd
+		--newSocket:open(fd, kind)	-- esto se hace mas adelante
+		return newSocket
 	end
 	
 	if tonumber(fd or 0) > 0 then
-		--newStream:open(fd, kind)
+		--newSocket:open(fd, kind)
 	else
-		setImplmentationMethods(newStream)	-- ojo con el typo :D
+		setImplmentationMethods(newSocket)	-- ojo con el typo :D
 	end
 	
-	return newStream
+	return newSocket
 end
 
 
-function Stream:setSecure(context)
+function Socket:setSecure(context)
 	-- Do we have openssl crypto?
 	local SecureContext = process.SecureContext
 	--local SecureStream = process.SecureStream
@@ -330,25 +330,25 @@ function Stream:setSecure(context)
 	else
 		verifyRemote = self.secureContext.verifyRemote
 	end
-	--local s = process.SecureSocket(self._stream)
-	local oldStream = self._stream
-	self._stream = process.SecureSocket(self._stream, self.secureContext, self.server and true or false, verifyRemote)
+	--local s = process.SecureSocket(self._raw_socket)
+	local oldStream = self._raw_socket
+	self._raw_socket = process.SecureSocket(self._raw_socket, self.secureContext, self.server and true or false, verifyRemote)
 	-- me copio los callbacks
-	self._stream.read_callback = oldStream.read_callback
-	self._stream.write_callback = oldStream.write_callback
-	self._stream._stream = self
+	self._raw_socket.read_callback = oldStream.read_callback
+	self._raw_socket.write_callback = oldStream.write_callback
+	self._raw_socket._owner = self
 	-- mmm, disgusting...
 	self.__old_stream = oldStream
-	--self._stream = self
+	--self._raw_socket = self
 	
 	
-	self._stream.handshake_callback = function(stream)
+	self._raw_socket.handshake_callback = function(socket)
 		self.secureEstablished = true
 
 		if self._events and self._events.secure then
 			self:emit("secure")
 		end
-		stream:read()
+		socket:read()
 	end
 
 	setImplmentationMethods(self)
@@ -359,63 +359,62 @@ function Stream:setSecure(context)
 	end
 end
 
-function Stream:verifyPeer()
-	assert(self.secure, "Stream is not a secure stream.")
-	return self._stream:verifyPeer(self.secureContext)
+function Socket:verifyPeer()
+	assert(self.secure, "Socket is not a secure socket.")
+	return self._raw_socket:verifyPeer(self.secureContext)
 end
 
-function Stream:_checkForSecureHandshake()
+function Socket:_checkForSecureHandshake()
 	if not self.writable then
 		return
 	end
 
 	-- Do an empty write to see if we need to write out as part of handshake
-	self._stream:doHandShake()
+	self._raw_socket:doHandShake()
 	--if not emptyBuffer) allocEmptyBuffer();
 	--self:write("")
 end
 
-function Stream:getPeerCertificate()
-	assert(self.secure, "Stream is not a secure stream.")
-	return self._stream:getPeerCertificate(self.secureContext)
+function Socket:getPeerCertificate()
+	assert(self.secure, "Socket is not a secure socket.")
+	return self._raw_socket:getPeerCertificate(self.secureContext)
 end
 
-function Stream:getCipher()
+function Socket:getCipher()
 	error("not implemented")
 end
 
--- paso socket o stream
-local function _doFlush(socket, stream)
-	--local stream = server._stream
-	-- Stream becomes writable on connect() but don't flush if there's
+-- paso raw_socket o socket
+local function _doFlush(raw_socket, socket)
+	-- Socket becomes writable on connect() but don't flush if there's
 	-- nothing actually to write
-	-- hack, lo tendria que mandar ya yo como un stream? (la tabla stream)
-	if not stream then
-		stream = socket._stream
+	-- hack, lo tendria que mandar ya yo como un socket? (la tabla socket)
+	if not socket then
+		socket = raw_socket._owner
 	end
-	if stream then
-		if stream:flush() then
-			if stream._events and stream._events["drain"] then
-				stream:emit("drain")
+	if socket then
+		if socket:flush() then
+			if socket._events and socket._events["drain"] then
+				socket:emit("drain")
 			end
-			if stream.ondrain then
-				stream:ondrain() -- Optimization
+			if socket.ondrain then
+				socket:ondrain() -- Optimization
 			end
 		end
 	end
 end
 
-local function initStream(self)
+local function initSocket(self)
 	self.readable = false
 	
-	-- en lugar de usar _readWatcher, recibo los eventos de read en _stream.read_callback
+	-- en lugar de usar _readWatcher, recibo los eventos de read en _raw_socket.read_callback
 	--self._readWatcher = {}
 	--self._readWatcher.callback = function()
 	
 	-- @param stream is the socket
 	-- @param data is the data that has been read or nil if the socket has been closed
 	-- @param reason is present when the socket is closed, with the reason
-	self._stream.read_callback = function(stream, data, reason)
+	self._raw_socket.read_callback = function(raw_socket, data, reason)
 		if not data or #data == 0 then
 			self.readable = false
 			--if reason == "eof" or reason == "closed" or reason == "aborted" or reason == "reset" then
@@ -429,7 +428,7 @@ local function initStream(self)
 				end
 			--end
 		elseif #data > 0 then
-			if self._stream then	-- the stream may have been closed on Stream.destroy
+			if self._raw_socket then	-- the stream may have been closed on Stream.destroy
 				Timers.Active(self)
 			end
 			
@@ -446,8 +445,8 @@ local function initStream(self)
 				--self.ondata(pool, start, end)
 				self:ondata(data)
 			end
-			if self._stream and not self._dont_read then	-- the stream may have been closed on Stream.destroy
-				--self._stream:read()	-- issue another async read
+			if self._raw_socket and not self._dont_read then	-- the stream may have been closed on Stream.destroy
+				--self._raw_socket:read()	-- issue another async read
 				self:_readImpl()
 			end
 		end
@@ -462,13 +461,13 @@ local function initStream(self)
 	--self._writeWatcher.socket = self
 	--self._writeWatcher.callback = _doFlush
 	
-	-- en lugar de usar _writeWatcher, recibo los eventos de write en _stream.write_callback
+	-- en lugar de usar _writeWatcher, recibo los eventos de write en _raw_socket.write_callback
 	self.writable = false
-	self._stream.write_callback = _doFlush
+	self._raw_socket.write_callback = _doFlush
 end
 
-function Stream:open(fd, kind)
-	initStream(self)	-- en nodejs alloca un iowatcher para readwatcher
+function Socket:open(fd, kind)
+	initSocket(self)	-- en nodejs alloca un iowatcher para readwatcher
 	
 	self.fd = fd
 	self.type = kind
@@ -480,7 +479,7 @@ function Stream:open(fd, kind)
 	self.writable = true
 end
 
-function Stream:readyState()
+function Socket:readyState()
 	if self._connecting then
 		return "opening"
 	elseif self.readable and (self.writable and not self._EOF_inserted) then
@@ -500,7 +499,7 @@ end
 
 -- 
 -- 
-function Stream:write(data, encoding, fd)
+function Socket:write(data, encoding, fd)
 	if self._connecting or (self._writeQueue and #self._writeQueue > 0) then
 		if not self._writeQueue then
 			self._writeQueue = {}
@@ -509,7 +508,7 @@ function Stream:write(data, encoding, fd)
 		end
 		-- Slow. There is already a write queue, so let's append to it.
 		if self:_writeQueueLast() == END_OF_FILE then
-			error('Stream:finish() called already; cannot write.')
+			error('Socket:finish() called already; cannot write.')
 		end
 		
 		if type(data) == "string" and #self._writeQueue > 0 and 
@@ -537,13 +536,13 @@ end
 
 -- 
 -- 
-function Stream:_writeOut(data, encoding, fd)
+function Socket:_writeOut(data, encoding, fd)
 	--error("not implemented")
 	if not self.writable then
-		error("Stream is not writable")
+		error("Socket is not writable")
 	end
 	-- por ahora, escribo derecho
-	--self._stream:write(data)
+	--self._raw_socket:write(data)
 	--local bytesWritten = self:_writeImpl(buffer, off, len, fd, 0);
 	local couldWrite = self:_writeImpl(data)
 	
@@ -579,7 +578,7 @@ end
 
 -- 
 -- If there is a pending chunk to be sent, flush it
-function Stream:flush()
+function Socket:flush()
 	while self._writeQueue and #self._writeQueue > 0 do
 		local data = table.remove(self._writeQueue, 1)
 		local encoding = table.remove(self._writeQueueEncoding, 1)
@@ -604,21 +603,21 @@ end
 
 -- 
 -- Returns the last element in the write queue
-function Stream:_writeQueueLast()
+function Socket:_writeQueueLast()
 	return (#self._writeQueue > 0) and self._writeQueue[ #self._writeQueue ] or nil
 end
 
 -- 
 -- 
-function Stream:setEncoding(encoding)
+function Socket:setEncoding(encoding)
 	--error("not implemented")
 	-- como que acá en Lua no aplica mucho esto
 end
 
-local function doConnect(stream, port, host)
-	local ok, err = stream._stream:connect(host, port)
+local function doConnect(socket, port, host)
+	local ok, err = socket._raw_socket:connect(host, port)
 	if not ok then
-		stream:destroy(err)
+		socket:destroy(err)
 		return
 	end
 	
@@ -627,44 +626,44 @@ local function doConnect(stream, port, host)
 	-- Don't start the read watcher until connection is established
 	--socket._readWatcher.set(socket.fd, true, false)
 	
-	stream._stream.connect_callback = function(socket, ok, err)
-		stream._stream.connect_callback = nil
+	socket._raw_socket.connect_callback = function(raw_socket, ok, err)
+		socket._raw_socket.connect_callback = nil
 		if ok then
-			stream._connecting = false
-			--stream:resume()
-			stream.readable = true
-			stream.writable = true
-			stream._stream.write_callback = _doFlush
-			local ok, err = pcall(stream.emit, stream, "connect")
+			socket._connecting = false
+			--socket:resume()
+			socket.readable = true
+			socket.writable = true
+			socket._raw_socket.write_callback = _doFlush
+			local ok, err = pcall(socket.emit, socket, "connect")
 			if not ok then
-				stream:destroy(err)
+				socket:destroy(err)
 			end
 			
-			if stream._writeQueue and #stream._writeQueue > 0 then
+			if socket._writeQueue and #socket._writeQueue > 0 then
 				-- Flush socket in case any writes are queued up while connecting.
 				-- ugly
-				_doFlush(nil, stream)
+				_doFlush(nil, socket)
 			end
-			-- only do an initial read if the stream is not secure (we need to wait till the handshake is done)
-			if stream.readable and not stream.secure then
-				stream:resume()
+			-- only do an initial read if the socket is not secure (we need to wait till the handshake is done)
+			if socket.readable and not socket.secure then
+				socket:resume()
 			end
 			return
 		else
-			stream:destroy(err)
+			socket:destroy(err)
 		end
 	end
 end
 
--- var stream = new Stream()
--- stream.connect(80)               - TCP connect to port 80 on the localhost
--- stream.connect(80, 'nodejs.org') - TCP connect to port 80 on nodejs.org
--- stream.connect('/tmp/socket')    - UNIX connect to socket specified by path
+-- var socket = new Socket()
+-- socket.connect(80)               - TCP connect to port 80 on the localhost
+-- socket.connect(80, 'nodejs.org') - TCP connect to port 80 on nodejs.org
+-- socket.connect('/tmp/socket')    - UNIX connect to socket specified by path
 
 -- ojo! Http crea el stream y entra derecho por acá, no llama a net.createConnection
-function Stream:connect(port, host)
-	if self.fd then error("Stream already opened") end
-	--if not self._stream.read_callback then error("No read_callback") end
+function Socket:connect(port, host)
+	if self.fd then error("Socket already opened") end
+	--if not self._raw_socket.read_callback then error("No read_callback") end
 	
 	Timers.Active(self)	-- ver cómo
 	self._connecting = true	--set false in doConnect
@@ -694,17 +693,17 @@ function Stream:connect(port, host)
 					self:emit('error', err)
 				else
 					self.kind = (address.family == 6 and "tcp6") or (address.family == 4 and "tcp4") or error("unknown address family" .. tostring(address.family))
-					self._stream = process.Socket(self.kind)
-					self._stream._stream = self
-					initStream(self)
-					if not self._stream.read_callback then error("No read_callback") end
+					self._raw_socket = process.Socket(self.kind)
+					self._raw_socket._owner = self
+					initSocket(self)
+					if not self._raw_socket.read_callback then error("No read_callback") end
 					doConnect(self, port, address.address)
 				end
 			end)
 		--]]
 		--[[
 		-- if no underlying socket was created, do it now
-		if not self._stream then
+		if not self._raw_socket then
 			if ip:lower() == "localhost" then
 				ip = "127.0.0.1"
 			end
@@ -713,35 +712,35 @@ function Stream:connect(port, host)
 				error(version)
 			end
 			self.kind = (version == 6 and "tcp6") or (version == 4 and "tcp4") or error("unknown IP version")
-			self._stream = process.Socket(self.kind)
+			self._raw_socket = process.Socket(self.kind)
 		end
-		initStream(self)
-		if not self._stream.read_callback then error("No read_callback") end
+		initSocket(self)
+		if not self._raw_socket.read_callback then error("No read_callback") end
 		doConnect(self, port, ip)
 		--]]
 	end
 end
 
-function Stream:address()
-	return self._stream:getsockname()
+function Socket:address()
+	return self._raw_socket:getsockname()
 end
 
-function Stream:remoteAddress()
-	return self._stream:getpeername()
+function Socket:remoteAddress()
+	return self._raw_socket:getpeername()
 end
 
-function Stream:setNoDelay(v)
-	self._stream:setoption("nodelay", v)
+function Socket:setNoDelay(v)
+	self._raw_socket:setoption("nodelay", v)
 end
 
-function Stream:setKeepAlive(enable, time, interval)
-	self._stream:setoption("keepalive", enable, time, interval)
+function Socket:setKeepAlive(enable, time, interval)
+	self._raw_socket:setoption("keepalive", enable, time, interval)
 end
 
-function Stream:setTimeout(msecs)
+function Socket:setTimeout(msecs)
 	if msecs > 0 then
 		Timers.Enroll(self, msecs)
-		if self._stream then
+		if self._raw_socket then
 			Timers.Active(self)
 		end
 	elseif msecs == 0 then
@@ -749,30 +748,30 @@ function Stream:setTimeout(msecs)
 	end
 end
 
-function Stream:pause()
+function Socket:pause()
 	error("not implemented")
 	-- maybe just set a flag and don't issue a read
 end
 
 --
 -- At the moment, just issue an async read
-function Stream:resume()
-	if not self._stream then
-		error("Cannot resume() closed Stream.")
+function Socket:resume()
+	if not self._raw_socket then
+		error("Cannot resume() closed Socket.")
 	end
 	-- all it does is issuing an initial read
 	self:_readImpl()
-	--self._stream:read()
+	--self._raw_socket:read()
 	
 --self._readWatcher.
-	--if (this.fd === null) throw new Error('Cannot resume() closed Stream.')
+	--if (this.fd === null) throw new Error('Cannot resume() closed Socket.')
 	--this._readWatcher.set(this.fd, true, false)
 	--this._readWatcher.start()
 end
 
 --
 --
-function Stream:destroy (exception)
+function Socket:destroy (exception)
 	-- pool is shared between sockets, so don't need to free it here.
 	-- TODO would like to set _writeQueue to null to avoid extra object alloc,
 	-- but lots of code assumes this._writeQueue is always an array.
@@ -788,8 +787,8 @@ function Stream:destroy (exception)
 	end
 
 	-- TODO: si hay algun pending read, deberia cancelarlo
-	--if self._stream then
-		--self._stream:stop()
+	--if self._raw_socket then
+		--self._raw_socket:stop()
 		--ioWatchers.free(this._readWatcher)
 		--self._readWatcher = nil
 	--end
@@ -801,7 +800,7 @@ function Stream:destroy (exception)
 		--self.secureStream:close()
 	--end
 
-	-- TODO: por qué es el stream el que tiene que updatear esto que es del server ?
+	-- TODO: por qué es el socket el que tiene que updatear esto que es del server ?
 	if self.server then
 		self.server.connections = self.server.connections - 1
 		
@@ -809,10 +808,10 @@ function Stream:destroy (exception)
 	end
 	
 	-- No puedo cerrar enseguida ?
-	if self._stream then
-		self._stream:close()
-		self._stream = nil
-		m_opened_streams[self] = nil
+	if self._raw_socket then
+		self._raw_socket:close()
+		self._raw_socket = nil
+		m_opened_sockets[self] = nil
 		process.nextTick(function()
 			if exception then self:emit("error", exception) end
 			self:emit("close", exception and true or false)
@@ -821,7 +820,7 @@ function Stream:destroy (exception)
 	end
 end
 
-function Stream:_shutdown()
+function Socket:_shutdown()
 	if not self.writable then
 		error("The connection is not writable")
 	else
@@ -837,8 +836,8 @@ function Stream:_shutdown()
 	end
 end
 
--- esta es Stream.end
-function Stream:finish(data, encoding)
+-- esta es Socket.end
+function Socket:finish(data, encoding)
 	if self.writable then
 		if data then
 			self:write(data, encoding)
@@ -853,7 +852,7 @@ function Stream:finish(data, encoding)
 	end
 end
 
-function Stream:_onTimeout ()
+function Socket:_onTimeout ()
 	self:emit("timeout")
 end
 
@@ -861,7 +860,7 @@ end
 --
 createConnection = function(port, host)
 	--[==[
-	local newStream
+	local newSocket
 	-- determine the required socket type
 	if type(port) == "string" and not tonumber(port) then
 		-- unix path, cagamos
@@ -879,12 +878,12 @@ createConnection = function(port, host)
 				self:emit('error', err)
 			else
 				local kind = (address.family == 6 and "tcp6") or (address.family == 4 and "tcp4") or error("unknown address family" .. tostring(address.family))
-				--self._stream = process.Socket(self.kind)
-				newStream = Stream:new( process.Socket(kind), kind )
-				newStream:connect(port, ip)
+				--self._raw_socket = process.Socket(self.kind)
+				newSocket = Socket:new( process.Socket(kind), kind )
+				newSocket:connect(port, ip)
 			end
 		end)
-		return newStream
+		return newSocket
 		--[[
 		-- TODO: por ahora asumo que es siempre una ip x.x.x.x
 		local ip = host or "127.0.0.1"
@@ -899,15 +898,15 @@ createConnection = function(port, host)
 			error(version)
 		end
 		local kind = (version == 6 and "tcp6") or (version == 4 and "tcp4") or error("unknown IP version")
-		newStream = Stream:new( process.Socket(kind), kind )
-		newStream:connect(port, ip)
-		return newStream
+		newSocket = Socket:new( process.Socket(kind), kind )
+		newSocket:connect(port, ip)
+		return newSocket
 		]]
 	end
 		]==]
-	local newStream = Stream()
-	newStream:connect(port, host)
-	return newStream
+	local socket = Socket()
+	socket:connect(port, host)
+	return socket
 end
 
 
@@ -938,7 +937,7 @@ function Server:__init(listener)
 		end
 		
 		newServer.connections = newServer.connections + 1
-		local s = Stream(peer.socket, newServer.type)
+		local s = Socket(peer.socket, newServer.type)
 		s:open(peer.socket, newServer.type) --newServer:open(fd, kind)
 		--s.remoteAddress = peer.address
 		s.remotePort = peer.port
@@ -957,7 +956,7 @@ function Server:__init(listener)
 		--}
 		
 		if s.secure then
-			s._stream:doHandShake()
+			s._raw_socket:doHandShake()
 		else
 			s:resume()
 		end
