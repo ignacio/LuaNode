@@ -123,7 +123,7 @@ Socket = Class.InheritsFrom(luanode_stream.Stream)
 -- FIXME: tengo que guardar las conexiones en algun lado. Y eventualmente las tengo que sacar
 local m_opened_sockets = {}
 
-local function setImplmentationMethods(self)
+local function setImplementationMethods(self)
 	if self.type == "unix" then
 		error("not yet implemented")
 	else
@@ -274,7 +274,7 @@ function Socket:__init(fd, kind)
 	newSocket._EOF_inserted = false	-- signals when we called 'finish' on the stream
 									-- but the underlying socket is not closed yet
 	
-	setImplmentationMethods(newSocket)
+	setImplementationMethods(newSocket)
 	
 	m_opened_sockets[newSocket] = newSocket
 	
@@ -298,7 +298,7 @@ function Socket:__init(fd, kind)
 	if tonumber(fd or 0) > 0 then
 		--newSocket:open(fd, kind)
 	else
-		setImplmentationMethods(newSocket)	-- ojo con el typo :D
+		setImplementationMethods(newSocket)
 	end
 	
 	return newSocket
@@ -351,7 +351,7 @@ function Socket:setSecure(context)
 		socket:read()
 	end
 
-	setImplmentationMethods(self)
+	setImplementationMethods(self)
 
 	if not self.server then
 		-- If client, trigger handshake
@@ -473,7 +473,7 @@ function Socket:open(fd, kind)
 	self.type = kind
 	self.readable = true
 	
-	setImplmentationMethods(self)
+	setImplementationMethods(self)
 	
 	--self._writeWatcher.set(self.fd, false, true)
 	self.writable = true
@@ -675,7 +675,7 @@ function Socket:connect(port, host)
 		self.fd = socket("unix")
 		self.type = "unix"
 		
-		setImplmentationMethods(self)
+		setImplementationMethods(self)
 		doConnect(self, port)
 	else
 		-- TODO: por ahora asumo que es siempre una ip x.x.x.x
