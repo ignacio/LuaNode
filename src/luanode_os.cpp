@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "LuaNode.h"
 #include "luanode_os.h"
 #include <boost/bind.hpp>
