@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "luanode.h"
 #include "luanode_crypto.h"
 #include "luanode_net.h"
@@ -11,6 +11,23 @@
 
 
 using namespace LuaNode::Crypto;
+
+//////////////////////////////////////////////////////////////////////////
+/// Register this module's classes
+void LuaNode::Crypto::Register(lua_State* L) {
+	OpenSSL_add_all_digests();
+	OpenSSL_add_all_ciphers();
+
+	Socket::Register(L, NULL, true);
+	SecureContext::Register(L, NULL, true);
+	Hash::Register(L, true);
+	Hmac::Register(L, true);
+	Signer::Register(L, true);
+	Verifier::Register(L, true);
+	Cipher::Register(L, true);
+	Decipher::Register(L, true);
+}
+
 
 static unsigned long s_nextSocketId = 0;
 static unsigned long s_socketCount = 0;
@@ -878,5 +895,490 @@ int SecureContext::AddCACert(lua_State* L) {
 	X509_free(x509);
 
 	lua_pushboolean(L, true);
+	return 1;
+}
+
+
+
+// TODO: Split these classes to a different file
+
+//////////////////////////////////////////////////////////////////////////
+///
+static inline void tohex(unsigned char c, char* buffer) {
+	buffer[0] = ((c >> 4) > 9) ? (c >> 4) + ('a' - 10) : (c >> 4) + '0';
+	buffer[1] = ((c & 15) > 9) ? (c & 15) + ('a' - 10) : (c & 15) + '0';
+}
+
+/////////////////////////////////////////////////////////////////////////
+/// 
+static void crypto_error(lua_State* L) {
+	char buf[120];
+	unsigned long e = ERR_get_error();
+	ERR_load_crypto_strings();
+	luaL_error(L, ERR_error_string(e, buf));
+}
+
+static int push_crypto_error(lua_State* L) {
+	char buf[120];
+	unsigned long e = ERR_get_error();
+	ERR_load_crypto_strings();
+	lua_pushnil(L);
+	lua_pushstring(L, ERR_error_string(e, buf));
+	return 2;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static void encode_output(lua_State* L, unsigned char output_type, const unsigned char* data, size_t length) {
+	switch(output_type) {
+		case 0:		// binary
+			lua_pushlstring(L, (const char*)data, length);
+		break;
+
+		case 1:{	// hex
+			char hex[2];
+			luaL_Buffer buffer;
+			luaL_buffinit(L, &buffer);
+			for(unsigned int i = 0; i < length; i++) {
+				tohex(data[i], hex);
+				luaL_addlstring(&buffer, hex, 2);
+			}
+			luaL_pushresult(&buffer);
+		break;}
+	}
+}
+
+static const char* encoding_options[] = {
+	"binary",
+	"hex",
+	NULL
+};
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Hash::className = "Hash";
+const Hash::RegType Hash::methods[] = {
+	{"update", &Hash::Update},
+	{"final", &Hash::Final},
+	{0}
+};
+
+
+Hash::Hash(lua_State* L)
+{
+	const char* digest_name = luaL_checkstring(L, 1);
+
+	const EVP_MD* digest = EVP_get_digestbyname(digest_name);
+	if(digest == NULL) {
+		luaL_argerror(L, 1, "invalid digest/cipher type");
+	}
+	else {
+		EVP_MD_CTX_init(&m_context);
+		EVP_DigestInit_ex(&m_context, digest, NULL);
+	}
+}
+
+
+Hash::~Hash(void)
+{
+	EVP_MD_CTX_cleanup(&m_context);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Hash::Update(lua_State* L) {
+	const char* data = luaL_checkstring(L, 2);
+
+	EVP_DigestUpdate(&m_context, data, lua_objlen(L, 2));
+
+	lua_settop(L, 1);
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Hash::Final(lua_State* L) {
+	unsigned char digest[EVP_MAX_MD_SIZE];
+
+	unsigned int written = 0;
+	EVP_MD_CTX* d = EVP_MD_CTX_create();
+	EVP_MD_CTX_copy_ex(d, &m_context);
+	EVP_DigestFinal_ex(d, digest, &written);
+	EVP_MD_CTX_destroy(d);
+
+	int chosen_option = luaL_checkoption(L, 2, "hex", encoding_options);
+	encode_output(L, chosen_option, digest, written);
+	return 1;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Hmac::className = "Hmac";
+const Hmac::RegType Hmac::methods[] = {
+	{"update", &Hmac::Update},
+	{"final", &Hmac::Final},
+	{0}
+};
+
+
+Hmac::Hmac(lua_State* L)
+{
+	const char* algorithm_name = luaL_checkstring(L, 1);
+	const char* key = luaL_checkstring(L, 2);
+
+	const EVP_MD* digest = EVP_get_digestbyname(algorithm_name);
+	if(digest == NULL) {
+		luaL_argerror(L, 1, "invalid digest type");
+	}
+	else {
+		HMAC_CTX_init(&m_context);
+		HMAC_Init_ex(&m_context, key, lua_objlen(L, 2), digest, NULL);
+	}
+}
+
+
+Hmac::~Hmac(void)
+{
+	HMAC_CTX_cleanup(&m_context);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Hmac::Update(lua_State* L) {
+	const char* data = luaL_checkstring(L, 2);
+
+	HMAC_Update(&m_context, (unsigned char*)data, lua_objlen(L, 2));
+
+	lua_settop(L, 1);
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Hmac::Final(lua_State* L) {
+	unsigned char digest[EVP_MAX_MD_SIZE];
+	unsigned int written = 0;
+
+	HMAC_Final(&m_context, digest, &written);
+
+	int chosen_option = luaL_checkoption(L, 2, "hex", encoding_options);
+	encode_output(L, chosen_option, digest, written);
+	return 1;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Signer::className = "Signer";
+const Signer::RegType Signer::methods[] = {
+	{"update", &Signer::Update},
+	{"sign", &Signer::Sign},
+	{0}
+};
+
+
+Signer::Signer(lua_State* L)
+{
+	const char* algorithm_name = luaL_checkstring(L, 1);
+
+	const EVP_MD* digest = EVP_get_digestbyname(algorithm_name);
+	if(digest == NULL) {
+		luaL_argerror(L, 1, "invalid digest type");
+	}
+	else {
+		EVP_MD_CTX_init(&m_context);
+		EVP_SignInit_ex(&m_context, digest, NULL);
+	}
+}
+
+
+Signer::~Signer(void)
+{
+	EVP_MD_CTX_cleanup(&m_context);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Signer::Update(lua_State* L) {
+	const char* data = luaL_checkstring(L, 2);
+
+	EVP_SignUpdate(&m_context, data, lua_objlen(L, 2));
+
+	lua_settop(L, 1);
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Signer::Sign(lua_State* L) {
+	const unsigned char* key_pem = (const unsigned char*)luaL_checkstring(L, 2);
+	
+	BIO* bp = BIO_new(BIO_s_mem());
+	if(!BIO_write(bp, key_pem, lua_objlen(L, 2))) {
+		return push_crypto_error(L);
+	}
+	EVP_PKEY* pkey = PEM_read_bio_PrivateKey( bp, NULL, NULL, NULL );
+	if(pkey == NULL) {
+		BIO_free(bp);
+		return push_crypto_error(L);
+	}
+
+	unsigned int output_len = 0;
+	unsigned char* buffer = (unsigned char*)malloc(EVP_PKEY_size(pkey));
+	if(!EVP_SignFinal(&m_context, buffer, &output_len, pkey)) {
+		free(buffer);
+		EVP_PKEY_free(pkey);
+		BIO_free(bp);
+		return push_crypto_error(L);
+	}
+	lua_pushlstring(L, (char*)buffer, output_len);
+	free(buffer);
+
+	EVP_PKEY_free(pkey);
+	BIO_free(bp);
+
+	return 1;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Verifier::className = "Verifier";
+const Verifier::RegType Verifier::methods[] = {
+	{"update", &Verifier::Update},
+	{"verify", &Verifier::Verify},
+	{0}
+};
+
+
+Verifier::Verifier(lua_State* L)
+{
+	const char* algorithm_name = luaL_checkstring(L, 1);
+
+	const EVP_MD* digest = EVP_get_digestbyname(algorithm_name);
+	if(digest == NULL) {
+		luaL_argerror(L, 1, "invalid digest type");
+	}
+	else {
+		EVP_MD_CTX_init(&m_context);
+		EVP_VerifyInit_ex(&m_context, digest, NULL);
+	}
+}
+
+
+Verifier::~Verifier(void)
+{
+	EVP_MD_CTX_cleanup(&m_context);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Verifier::Update(lua_State* L) {
+	const char* data = luaL_checkstring(L, 2);
+
+	EVP_VerifyUpdate(&m_context, data, lua_objlen(L, 2));
+
+	lua_settop(L, 1);
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Verifier::Verify(lua_State* L) {
+	const unsigned char* key_pem = (const unsigned char*)luaL_checkstring(L, 2);
+	const unsigned char* signature = (const unsigned char*)luaL_checkstring(L, 3);
+
+	BIO* bp = BIO_new(BIO_s_mem());
+	if(!BIO_write(bp, key_pem, lua_objlen(L, 2))) {
+		return push_crypto_error(L);
+	}
+
+	X509* x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
+	if(x509 == NULL) {
+		BIO_free(bp);
+		return 0;
+	}
+
+	EVP_PKEY* pkey = X509_get_pubkey(x509);
+	if(pkey == NULL) {
+		X509_free(x509);
+		BIO_free(bp);
+		return push_crypto_error(L);
+	}
+
+	int result = EVP_VerifyFinal(&m_context, signature, lua_objlen(L, 3), pkey);
+
+	EVP_PKEY_free(pkey);
+	X509_free(x509);
+	BIO_free(bp);
+
+	if(result != 1) {
+		//ERR_print_errors_fp(stderr);
+		lua_pushboolean(L, false);
+		push_crypto_error(L);
+	}
+	else {
+		lua_pushboolean(L, true);
+	}
+
+	return 1;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Cipher::className = "Cipher";
+const Cipher::RegType Cipher::methods[] = {
+	{"update", &Cipher::Update},
+	{"final", &Cipher::Final},
+	{0}
+};
+
+
+Cipher::Cipher(lua_State* L)
+{
+	const char* algorithm_name = luaL_checkstring(L, 1);
+	const EVP_CIPHER* cipher = EVP_get_cipherbyname(algorithm_name);
+	if(cipher == NULL) {
+		luaL_argerror(L, 1, "invalid cipher type");
+	}
+	
+	size_t key_len = 0;
+	const char* key = luaL_checklstring(L, 2, &key_len);
+
+	m_outputMode = (unsigned char)luaL_checkoption(L, 3, "binary", encoding_options);	/* 0 = binary, 1 = hexadecimal */
+
+	unsigned char evp_key[EVP_MAX_KEY_LENGTH] = {0};
+
+	size_t iv_len = 0;
+	const char *iv = lua_tolstring(L, 4, &iv_len); /* can be NULL */
+	unsigned char evp_iv[EVP_MAX_IV_LENGTH] = {0};
+
+	memcpy(evp_key, key, key_len);
+	if (iv) {
+		memcpy(evp_iv, iv, iv_len);      
+	}
+
+	EVP_CIPHER_CTX_init(&m_context);
+	EVP_EncryptInit_ex(&m_context, cipher, NULL, evp_key, iv ? evp_iv : NULL);
+}
+
+
+Cipher::~Cipher(void)
+{
+	EVP_CIPHER_CTX_cleanup(&m_context);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Cipher::Update(lua_State* L) {
+	size_t input_len = 0;
+	const unsigned char* input = (const unsigned char*)luaL_checklstring(L, 2, &input_len);
+	unsigned char* buffer = (unsigned char*)malloc(input_len + EVP_CIPHER_CTX_block_size(&m_context));
+
+	int output_len = 0;
+	if(!EVP_EncryptUpdate(&m_context, buffer, &output_len, input, input_len)) {
+		free(buffer);
+		crypto_error(L);
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
+	free(buffer);
+
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Cipher::Final(lua_State* L) {
+	int output_len = 0;
+	unsigned char buffer[EVP_MAX_BLOCK_LENGTH];
+
+	if(!EVP_EncryptFinal(&m_context, buffer, &output_len)) {
+		crypto_error(L);
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
+	return 1;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Decipher::className = "Decipher";
+const Decipher::RegType Decipher::methods[] = {
+	{"update", &Decipher::Update},
+	{"final", &Decipher::Final},
+	{0}
+};
+
+
+Decipher::Decipher(lua_State* L)
+{
+	const char* algorithm_name = luaL_checkstring(L, 1);
+	const EVP_CIPHER* cipher = EVP_get_cipherbyname(algorithm_name);
+	if(cipher == NULL) {
+		luaL_argerror(L, 1, "invalid cipher type");
+	}
+
+	size_t key_len = 0;
+	const char* key = luaL_checklstring(L, 2, &key_len);
+	unsigned char evp_key[EVP_MAX_KEY_LENGTH] = {0};
+
+	m_outputMode = (unsigned char)luaL_checkoption(L, 3, "binary", encoding_options);	/* 0 = binary, 1 = hexadecimal */
+
+	size_t iv_len = 0;
+	const char *iv = lua_tolstring(L, 4, &iv_len); /* can be NULL */
+	unsigned char evp_iv[EVP_MAX_IV_LENGTH] = {0};
+
+	memcpy(evp_key, key, key_len);
+	if (iv) {
+		memcpy(evp_iv, iv, iv_len);
+	}
+
+	EVP_CIPHER_CTX_init(&m_context);
+	EVP_DecryptInit_ex(&m_context, cipher, NULL, evp_key, iv ? evp_iv : NULL);
+}
+
+
+Decipher::~Decipher(void)
+{
+	EVP_CIPHER_CTX_cleanup(&m_context);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Decipher::Update(lua_State* L) {
+	size_t input_len = 0;
+	const unsigned char* input = (const unsigned char*)luaL_checklstring(L, 2, &input_len);
+	unsigned char* buffer = (unsigned char*)malloc(input_len + EVP_CIPHER_CTX_block_size(&m_context));
+
+	int output_len = 0;
+	if(!EVP_DecryptUpdate(&m_context, buffer, &output_len, input, input_len)) {
+		free(buffer);
+		crypto_error(L);
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
+	free(buffer);
+
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Decipher::Final(lua_State* L) {
+	int output_len = 0;
+	unsigned char buffer[EVP_MAX_BLOCK_LENGTH];
+
+	if(!EVP_DecryptFinal(&m_context, buffer, &output_len)) {
+		crypto_error(L);
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
 	return 1;
 }

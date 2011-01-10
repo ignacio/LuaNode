@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../deps/luacppbridge51/lcbHybridObjectWithProperties.h"
+#include "../deps/luacppbridge51/lcbRawObject.h"
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -10,6 +11,8 @@
 namespace LuaNode {
 
 namespace Crypto {
+
+void Register(lua_State* L);
 
 class Socket : public LuaCppBridge::HybridObjectWithProperties<Socket>
 {
@@ -91,6 +94,107 @@ private:
 	boost::shared_ptr< boost::asio::ssl::context > m_context;
 	X509_STORE* m_ca_store;
 };
+
+
+
+class Hash : public LuaCppBridge::RawObject<Hash> {
+public:
+	Hash(lua_State* L);
+	virtual ~Hash();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Hash);
+
+	int Update(lua_State* L);
+	int Final(lua_State* L);
+
+private:
+	EVP_MD_CTX m_context;
+};
+
+
+class Hmac : public LuaCppBridge::RawObject<Hmac> {
+public:
+	Hmac(lua_State* L);
+	virtual ~Hmac();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Hmac);
+
+	int Update(lua_State* L);
+	int Final(lua_State* L);
+
+private:
+	HMAC_CTX m_context;
+};
+
+
+class Signer : public LuaCppBridge::RawObject<Signer> {
+public:
+	Signer(lua_State* L);
+	virtual ~Signer();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Signer);
+	
+	int Update(lua_State* L);
+	int Sign(lua_State* L);
+
+private:
+	EVP_MD_CTX m_context;
+};
+
+
+class Verifier : public LuaCppBridge::RawObject<Verifier> {
+public:
+	Verifier(lua_State* L);
+	virtual ~Verifier();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Verifier);
+
+	int Update(lua_State* L);
+	int Verify(lua_State* L);
+
+private:
+	EVP_MD_CTX m_context;
+};
+
+
+
+class Cipher : public LuaCppBridge::RawObject<Cipher> {
+public:
+	Cipher(lua_State* L);
+	virtual ~Cipher();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Cipher);
+
+	int Update(lua_State* L);
+	int Final(lua_State* L);
+
+private:
+	EVP_CIPHER_CTX m_context;
+	unsigned char m_outputMode;	/* 0 = binary, 1 = hexadecimal */
+};
+
+
+class Decipher : public LuaCppBridge::RawObject<Decipher> {
+public:
+	Decipher(lua_State* L);
+	virtual ~Decipher();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Decipher);
+
+	int Update(lua_State* L);
+	int Final(lua_State* L);
+
+private:
+	EVP_CIPHER_CTX m_context;
+	unsigned char m_outputMode;	/* 0 = binary, 1 = hexadecimal */
+};
+
 
 }
 

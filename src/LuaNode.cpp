@@ -542,8 +542,7 @@ static int Load(int argc, char *argv[]) {
 
 	Dns::Resolver::Register(L, NULL, true);
 
-	Crypto::Socket::Register(L, NULL, true);
-	Crypto::SecureContext::Register(L, NULL, true);
+	Crypto::Register(L);
 
 	Http::RegisterFunctions(L);
 	Http::Parser::EnableTracking(L);
