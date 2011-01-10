@@ -25,12 +25,10 @@ assert_equal('19fd6e1ba73d9ed2224dd5094a71babe85d9a892', h1, 'test HMAC')
 -- Test hashing
 local a0 = crypto.createHash('sha1'):update('Test123'):final("hex")
 local a1 = crypto.createHash('md5'):update('Test123'):final("binary")
---local a2 = crypto.createHash('sha256'):update('Test123'):final('base64')
 local a3 = crypto.createHash('sha512'):update('Test123'):final("binary")
 
 assert_equal('8308651804facb7b9af8ffc53a33a22d6a1c8ac2', a0, 'Test SHA1')
 assert_equal('h\234\203\151\216o\fF!\250+\14\23\202\189\140', a1, 'Test MD5 as binary')
---assert_equal('2bX1jws4GYKTlxhloUB09Z66PoJZW+y+hq5R8dnx9l4=', a2, 'Test SHA256 as base64')
 assert_equal('\193(4\241\003\031d\151!O\'\212C/&Qz\212\148\021l\184\141Q+\219\029\196\181}\178' ..
 			'\214\146\163\223\162i\161\155\n\n*\015\215\214\162\168\133\227<\131\156\147' ..
 			'\194\006\2180\161\1359(G\237\'', a3, 'Test SHA512 as assumed binary')
@@ -94,6 +92,5 @@ txt = txt .. decipher:final()
 assert_equal(plaintext, txt, 'encryption and decryption with key and iv')
 
 
-
-	process:loop()
+process:loop()
 end

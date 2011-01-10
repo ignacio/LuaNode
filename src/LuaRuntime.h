@@ -5,7 +5,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "../../../packages/lua5.1/include/lua.hpp"
+#include <lua.hpp>
 
 //extern int CollectTraceback(lua_State* L);	// función para obtener stacktraces cuando hay errores
 

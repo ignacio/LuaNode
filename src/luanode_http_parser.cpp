@@ -1,5 +1,5 @@
-#include "StdAfx.h"
-#include "luanode.h"
+#include "stdafx.h"
+#include "LuaNode.h"
 #include "luanode_http_parser.h"
 #include "blogger.h"
 

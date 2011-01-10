@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "blogger.h"
 #include "LuaNode.h"
 #include "luanode_module_api.h"
