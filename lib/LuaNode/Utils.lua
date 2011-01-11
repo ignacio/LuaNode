@@ -1,51 +1,38 @@
 local string = string
 local table = table
+local math = math
 
 module((...))
 
 --
 -- Dumps binary data in a "memory viewer" fashion. Ie:
--- Dumping 15 bytes
--- 00000000 00 48 65 6c 6c 6f 2c 20 77 6f 72 6c 64 21 ff ..  - .Hello, world!.
-function DumpDataInHex(data)
-	local dataLength = #data
-	local bytesPerLine = 16
-
-	--local result = { "00000000 00 01 02 03 04 05 06 07 08 09 10 0b 0c 0d 0e 0f" }
-	local result = { ("Dumping %d bytes"):format(dataLength) }
-	local hexDisplay = ""
-	local display = ""
-
-	local i = 1
-	local line = 0
-
-	while i <= dataLength do
-		local c = data:sub(i, i)
-		local c_code = string.byte(c)
-
-		hexDisplay = hexDisplay .. ("%02x "):format(c_code)
-
-		if c_code >= 32 and c_code <= 127 then
-			display = display .. c
-		else
-			display = display .. "."
-		end
-
-		if i % bytesPerLine == 0 then
-			result[#result + 1] = ("%08x %s - %s"):format(line * bytesPerLine, hexDisplay, display)
-			hexDisplay = ""
-			display = ""
-			line = line + 1
-		end
-		i = i + 1
+-- Dumping 12 bytes
+-- 00000000  68 65 6C 6C 6F 2C 20 77  6F 72 6C 64 .. .. .. ..  hello, world
+-- [first] begin dump at 16 byte-aligned offset containing 'first' byte
+-- [last] end dump at 16 byte-aligned offset containing 'last' byte
+-- Adapted from a snippet by Steve Donovan (http://snippets.luacode.org/?p=snippets/Hex_Dump_of_a_String_22)
+function DumpDataInHex(buf, first, last)
+	local res = {}
+	if not first and not last then
+		res[#res + 1] = ("Dumping %d bytes\n"):format((last or #buf) - (first or 1) + 1)
+	else
+		res[#res + 1] = ("Dumping from offset %d to %d\n\n"):format(first or 1, last or #buf)
+		res[#res + 1] = "          00 01 02 03 04 05 06 07  08 09 10 0b 0c 0d 0e 0f\n"
+		res[#res + 1] = "          ================================================\n"
 	end
-	i = i - 1
-	if i % bytesPerLine ~= 0 then
-		for pad = i % bytesPerLine, bytesPerLine - 1 do
-			hexDisplay = hexDisplay .. ".. "
+	local function align(n) return math.ceil(n/16) * 16 end
+	for i = (align((first or 1) - 16) + 1), align(math.min(last or #buf, #buf)) do
+		if (i - 1) % 16 == 0 then
+			res[#res + 1] = string.format('%08X  ', i - 1)
 		end
-		result[#result + 1] = ("%08x %s - %s"):format(line * bytesPerLine, hexDisplay, display)
+		res[#res + 1] =  i > #buf and '.. ' or string.format('%02X ', buf:byte(i))
+		if i %  8 == 0 then
+			res[#res + 1] = " "
+		end
+		if i % 16 == 0 then
+			res[#res + 1] = buf:sub(i - 16 + 1, i):gsub('%c', '.')
+			res[#res + 1] = '\n' 
+		end
 	end
-
-	return table.concat(result, "\n")
+	return table.concat(res)
 end
