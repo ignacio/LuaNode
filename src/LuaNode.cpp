@@ -17,6 +17,7 @@
 #include "luanode_timer.h"
 #include "luanode_net.h"
 #include "luanode_net_acceptor.h"
+#include "luanode_datagram_udp.h"
 #include "luanode_http_parser.h"
 #include "luanode_dns.h"
 #include "luanode_crypto.h"
@@ -541,6 +542,8 @@ static int Load(int argc, char *argv[]) {
 	Net::Socket::Register(L, NULL, true);
 
 	Dns::Resolver::Register(L, NULL, true);
+
+	Datagram::Socket::Register(L, NULL, true);
 
 	Crypto::Register(L);
 

@@ -114,6 +114,19 @@ static int luaopen_LuaNode_Net(lua_State* L) {
 	return 1;
 }
 
+static int luaopen_LuaNode_Datagram(lua_State* L) {
+	int extension_status = 1;
+	int arg = lua_gettop(L);
+	#include "../build/temp/Datagram.precomp"
+	if(extension_status) {
+		return lua_error(L);
+	}
+	//luaL_loadbuffer(L,(const char*)B8,sizeof(B8),"LuaNode.Datagram");
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
 static int luaopen_LuaNode_Path(lua_State* L) {
 	int extension_status = 1;
 	int arg = lua_gettop(L);
@@ -249,6 +262,9 @@ void PreloadModules(lua_State* L) {
 	
 	lua_pushcfunction(L, luaopen_LuaNode_Net);
 	lua_setfield(L, -2, "luanode.net");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Datagram);
+	lua_setfield(L, -2, "luanode.datagram");
 	
 	lua_pushcfunction(L, luaopen_LuaNode_Path);
 	lua_setfield(L, -2, "luanode.path");

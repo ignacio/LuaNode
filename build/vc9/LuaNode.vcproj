@@ -288,6 +288,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_datagram_udp.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_dns.cpp"
 				>
 			</File>
@@ -454,6 +458,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_datagram_udp.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_dns.h"
 				>
 			</File>
@@ -584,6 +592,10 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\LuaNode\crypto.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\Datagram.lua"
 				>
 			</File>
 			<File
