@@ -11,11 +11,11 @@ INCONCERT_LIB ?= $(INCONCERT_LIB_DEFAULT)
 PREFIX = /usr/local
 
 PACKAGES = $(INCONCERT_DEVEL)/packages
-#BOOST_DIR_DEFAULT = $(PACKAGES)/boost_1_44_0
-BOOST_DIR_DEFAULT = $(PREFIX)/include/boost-1_44
+BOOST_DIR_DEFAULT = $(PACKAGES)/boost_1_44_0
+#BOOST_DIR_DEFAULT = $(PREFIX)/include/boost-1_44
 BOOST_DIR ?= $(BOOST_DIR_DEFAULT)
-#BOOST_LIBS_DEFAULT = $(BOOST_DIR)/lib
-BOOST_LIBS_DEFAULT = $(PREFIX)/lib
+BOOST_LIBS_DEFAULT = $(BOOST_DIR)/lib
+#BOOST_LIBS_DEFAULT = $(PREFIX)/lib
 BOOST_LIBS ?= $(BOOST_LIBS_DEFAULT)
 
 LUA_LIB = $(PREFIX)/lib/liblua.a
@@ -77,7 +77,7 @@ COMPILE = $(COMPILER) $(CFLAGS) "$<" -o "$(Target)/$(*F).o" $(INCLUDES)
 LINK = $(LINKER) $(LFLAGS) -o "$(OUTPUT_FILE)" $(INCLUDES) $(LIBS) $(OBJS) $(SPECIFIC_LIBS)
 COMPILE_LUA = $(LUA) $(BIN2C) "$<" extension_status > "$(BASE_SRC_DIR)/build/temp/$(*F).precomp"
 
-OBJS = $(PACKAGES)/lua5.1/src/liblua.a \
+OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(Target)/blogger.o \
 		$(Target)/LuaNode.o \
 		$(Target)/luanode_child_process.o \

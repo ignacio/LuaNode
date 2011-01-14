@@ -193,7 +193,7 @@ int Parser::name(http_parser* p) {			\
 		}												\
 	}													\
 	else {												\
-		/* do nothing? *//*								\
+		*//* do nothing? *//*							\
 	}													\
 	lua_settop(L, 0);									\
 };	\*/
