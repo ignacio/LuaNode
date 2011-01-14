@@ -411,7 +411,7 @@ local function initSocket(self)
 	--self._readWatcher = {}
 	--self._readWatcher.callback = function()
 	
-	-- @param stream is the socket
+	-- @param raw_socket is the socket
 	-- @param data is the data that has been read or nil if the socket has been closed
 	-- @param reason is present when the socket is closed, with the reason
 	self._raw_socket.read_callback = function(raw_socket, data, reason)
@@ -428,7 +428,7 @@ local function initSocket(self)
 				end
 			--end
 		elseif #data > 0 then
-			if self._raw_socket then	-- the stream may have been closed on Stream.destroy
+			if self._raw_socket then	-- the socket may have been closed on Stream.destroy
 				Timers.Active(self)
 			end
 			
@@ -445,7 +445,7 @@ local function initSocket(self)
 				--self.ondata(pool, start, end)
 				self:ondata(data)
 			end
-			if self._raw_socket and not self._dont_read then	-- the stream may have been closed on Stream.destroy
+			if self._raw_socket and not self._dont_read then	-- the socket may have been closed on Stream.destroy
 				--self._raw_socket:read()	-- issue another async read
 				self:_readImpl()
 			end
