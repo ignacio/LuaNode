@@ -1,11 +1,15 @@
 local require = require
+local type = type
 local SecureContext = process.SecureContext
+local Hash = process.Hash
+local Hmac = process.Hmac
+local Signer = process.Signer
+local Verifier = process.Verifier
+local Cipher = process.Cipher
+local Decipher = process.Decipher
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+module((...))
 
---local ssl = require "ssl"
---require("ssl.context")
 
 local RootCaCerts = {
 -- "GTE CyberTrust Root CA"
@@ -3742,23 +3746,6 @@ tkYNbn5XOmeUwssfnHdKZ05phkOTOPu220+DkdRgfks+KzgHVZhepA==
 }
 
 local crypto = true
---[[
---try {
-	local binding = process.binding('crypto');
-	local SecureContext = binding.SecureContext;
-	local SecureStream = binding.SecureStream;
-	local Hmac = binding.Hmac;
-	local Hash = binding.Hash;
-	local Cipher = binding.Cipher;
-	local Decipher = binding.Decipher;
-	local Sign = binding.Sign;
-	local Verify = binding.Verify;
-	local crypto = true;
-} catch (e) {
-
-  var crypto = false;
-}
-]]
 
 --[==[
 local Credentials = {}
@@ -3770,7 +3757,7 @@ function Credentials:new(method)
 	local t = setmetatable({}, Credentials)
 	
 	--t.context = ssl.newcontext({
-		--mode = "server", -- fuck!
+		--mode = "server", -- ups!
 		--protocol = method
 	--})
 	t.context = SecureContext(method)
@@ -3791,7 +3778,7 @@ function createContext(context)
 	context = context or {}
 	local c = SecureContext(context.method or "sslv23")	-- SSL version 2 and 3 by default
 	--local params = {
-		--mode = "server", -- fuck!
+		--mode = "server", -- ups!
 		--protocol = cred.method or "sslv23"
 	--}
 	local ret
@@ -3821,71 +3808,36 @@ function createContext(context)
 	return c
 end
 
---exports.Hash = Hash;
-function createHash(hash)
-	local ok, luacrypto = pcall(require, "crypto")
-	if not ok then
-		error("LuaCrypto noy found")
-	end
-	return luacrypto.digest.new(hash)
-end
---exports.createHash = function(hash) {
---  return new Hash(hash);
---};
-
---exports.Hmac = Hmac;
---exports.createHmac = function(hmac, key) {
---  return (new Hmac).init(hmac, key);
---};
-function createHmac(hmac, key)
-	error("createHmac not implemented")
+function createHash(algorithm)
+	return Hash(algorithm)
 end
 
---exports.Cipher = Cipher;
---exports.createCipher = function(cipher, key) {
---  return (new Cipher).init(cipher, key);
---};
-function createCipher(cipher, key)
-	error("createCipher not implemented")
+function createHmac(algorithm, key)
+	return Hmac(algorithm, key)
 end
 
---exports.createCipheriv = function(cipher, key, iv) {
---  return (new Cipher).initiv(cipher, key, iv);
---};
-function createCipheriv(cipher, key, iv)
-	error("createCipheriv not implemented")
+function createCipher(algorithm, key, output)
+	return Cipher(algorithm, key, output or "binary")
 end
 
---exports.Decipher = Decipher;
---exports.createDecipher = function(cipher, key) {
---  return (new Decipher).init(cipher, key);
---};
-function createDecipher(cipher, key)
-	error("createDecipher not implemented")
+function createCipheriv(algorithm, key, iv, output)
+	return Cipher(algorithm, key, output or "binary", iv)
 end
 
---exports.createDecipheriv = function(cipher, key, iv) {
---  return (new Decipher).initiv(cipher, key, iv);
---};
-function createDecipheriv(cipher, key, iv)
-	error("createDecipheriv not implemented")
+function createDecipher(algorithm, key, output)
+	return Decipher(algorithm, key, output or "binary")
 end
 
---exports.Sign = Sign;
---exports.createSign = function(algorithm) {
-  --return (new Sign).init(algorithm);
---};
+function createDecipheriv(algorithm, key, iv, output)
+	return Decipher(algorithm, key, output or "binary", iv)
+end
+
 function createSign(algorithm)
-	error("createSign not implemented")
+	return Signer(algorithm)
 end
 
---exports.Verify = Verify;
---exports.createVerify = function(algorithm) {
---  return (new Verify).init(algorithm);
---};
 function createVerify(algorithm)
-	error("createVerify not implemented")
+	return Verifier(algorithm)
 end
 
---exports.RootCaCerts = RootCaCerts;
 _M.RootCaCerts = RootCaCerts

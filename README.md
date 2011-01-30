@@ -84,6 +84,15 @@ The following has been tested on Ubuntu Desktop 10.10.
    
 *Note: This installation procedure will be simplified in the future.*
 
+If you already have Lua, OpenSSL and Boost installed, you can use [CMake](http://www.cmake.org/) to build LuaNode 
+(thanks to Michal Kottman). Just do:
+
+ - git clone git://github.com/ignacio/LuaNode.git --recursive
+ - cd LuaNode/build
+ - cmake ..
+ - cmake --build .
+ 
+
 ## Status #
 Currently, there's a lot of functionality missing. Doing a `grep TODO` should give an idea :D
 
@@ -103,6 +112,8 @@ I'd like to acknowledge the work of the following people:
 
  - Ryan Dahl, obviously, for his work on [Node.js][11] and [http-parser][14], which I use to parse http requests.
  - Renato Maia, for allowing me to take parts of [Loop][13].
+ - Keith Howe, for [LuaCrypto][15]
+ - Michal Kottman, for his additions to [LuaCrypto][16]. He also contributed a CMakeLists.txt to ease building.
 
  
 ## License #
@@ -123,3 +134,5 @@ I'd like to acknowledge the work of the following people:
 [12]: http://nodejs.org/docs/v0.2.5/api.html
 [13]: http://loop.luaforge.net/
 [14]: https://github.com/ry/http-parser
+[15]: http://luacrypto.luaforge.net/
+[16]: https://github.com/mkottman/luacrypto/

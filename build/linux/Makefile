@@ -57,14 +57,14 @@ BIN2C = $(BASE_SRC_DIR)/tools/bin2c.lua
 ifeq ($(Target), Debug)
 	OUTPUT = $(OUTPUT)_d
 	CFLAGS = -Wall -c -g -D_DEBUG
-	LFLAGS = -Wall -g -Wl
+	LFLAGS = -Wall -g -Wl,-E
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt-d \
 			$(LUA_LIB) \
 			-ldl \
 			-lssl
 else
 	CFLAGS = -Wall -c -O2 -D_NDEBUG 
-	LFLAGS = -Wall -Wl
+	LFLAGS = -Wall -Wl,-E
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt \
 			$(LUA_LIB) \
 			-ldl \
