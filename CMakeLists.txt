@@ -14,31 +14,35 @@ ELSE()
 ENDIF()
 
 SET(LUAS
-    LuaNode/child_process
-    LuaNode/Class
-    LuaNode/console
-    LuaNode/Crypto
-    LuaNode/Dns
-    LuaNode/event_emitter
-    LuaNode/free_list
-    LuaNode/Fs
-    LuaNode/Http
-    LuaNode/Net
-    LuaNode/Path
-    LuaNode/Querystring
-    LuaNode/Stream
-    LuaNode/Timers
-    LuaNode/Url
-    LuaNode/Utils
+    lib/LuaNode/child_process
+    lib/LuaNode/Class
+    lib/LuaNode/console
+    lib/LuaNode/Crypto
+    lib/LuaNode/Dns
+    lib/LuaNode/event_emitter
+    lib/LuaNode/free_list
+    lib/LuaNode/Fs
+    lib/LuaNode/Http
+    lib/LuaNode/Net
+    lib/LuaNode/Path
+    lib/LuaNode/Querystring
+    lib/LuaNode/Stream
+    lib/LuaNode/Timers
+    lib/LuaNode/Url
+    lib/LuaNode/Utils
     src/node
-    StackTracePlus/StackTracePlus
+    deps/StackTracePlus/src/StackTracePlus
 )
+
+SET(DST ${CMAKE_SOURCE_DIR}/build/temp)
+SET(SRC ${CMAKE_SOURCE_DIR})
+FILE(MAKE_DIRECTORY ${DST})
 
 FOREACH(filename ${LUAS})
     GET_FILENAME_COMPONENT(base ${filename} NAME)
-    SET(target "build/temp/${base}.precomp")
+    SET(target "${DST}/${base}.precomp")
     MESSAGE(STATUS "Precompiling ${filename} into ${target}")
-    EXECUTE_PROCESS(COMMAND ${LUA} tools/bin2c.lua ${filename} extension_status OUTPUT_FILE ${target})
+    EXECUTE_PROCESS(COMMAND ${LUA} ${SRC}/tools/bin2c.lua ${SRC}/${filename}.lua extension_status OUTPUT_FILE ${target})
 ENDFOREACH(filename)
 
 SET(SOURCES
