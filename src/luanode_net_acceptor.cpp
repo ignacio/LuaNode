@@ -103,11 +103,15 @@ int Acceptor::SetOption(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Acceptor::GetLocalAddress(lua_State* L) {
-	const boost::asio::ip::tcp::endpoint& endpoint = m_acceptor.local_endpoint();
+	boost::system::error_code ec;
+	const boost::asio::ip::tcp::endpoint& endpoint = m_acceptor.local_endpoint(ec);
 
-	lua_pushstring(L, endpoint.address().to_string().c_str());
-	lua_pushinteger(L, endpoint.port());
-	return 2;
+	if(!ec) {
+		lua_pushstring(L, endpoint.address().to_string().c_str());
+		lua_pushinteger(L, endpoint.port());
+		return 2;
+	}
+	return luaL_error(L, "Acceptor::GetLocalAddress - %s:%d", ec.message().c_str(), ec.value());
 }
 
 //////////////////////////////////////////////////////////////////////////
