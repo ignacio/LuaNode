@@ -602,6 +602,8 @@ static int Load(int argc, char *argv[]) {
 	lua_pushvalue(L, process);
 
 	if(LuaNode::luaVm.call(1, LUA_MULTRET) != 0) {
+		LuaNode::luaVm.dostring("process:emit('unhandledError')");	// TODO: pass the error's callstack
+		LuaNode::luaVm.dostring("process:emit('exit')");
 		return EXIT_FAILURE;
 	}
 	if(lua_type(L, -1) == LUA_TNUMBER) {
