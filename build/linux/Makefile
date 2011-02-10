@@ -87,6 +87,7 @@ OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(Target)/luanode_http_parser.o \
 		$(Target)/luanode_module_api.o \
 		$(Target)/luanode_net.o \
+		$(Target)/luanode_datagram_udp.o \
 		$(Target)/luanode_net_acceptor.o \
 		$(Target)/luanode_timer.o \
 		$(Target)/luanode_os.o \
@@ -104,6 +105,7 @@ LUAS = 	$(Target)/LuaNode/child_process.precomp \
 		$(Target)/LuaNode/free_list.precomp \
 		$(Target)/LuaNode/Fs.precomp \
 		$(Target)/LuaNode/Http.precomp \
+		$(Target)/LuaNode/Datagram.precomp \
 		$(Target)/LuaNode/Net.precomp \
 		$(Target)/LuaNode/Path.precomp \
 		$(Target)/LuaNode/Querystring.precomp \
