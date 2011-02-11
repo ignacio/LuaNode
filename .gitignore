@@ -2,6 +2,11 @@ Debug
 Release
 ReleaseMinDependency
 Release Debuggable
+build/CMakeFiles
+build/luanode
+build/cmake_install.cmake
+build/CMakeCache.txt
+build/Makefile
 test/fixtures
 src/Network_old
 deps/libeio
