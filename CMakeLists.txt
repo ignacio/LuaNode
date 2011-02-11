@@ -24,6 +24,7 @@ SET(LUAS
     lib/LuaNode/Fs
     lib/LuaNode/Http
     lib/LuaNode/Net
+    lib/LuaNode/Datagram
     lib/LuaNode/Path
     lib/LuaNode/Querystring
     lib/LuaNode/Stream
@@ -55,6 +56,7 @@ SET(SOURCES
     src/luanode_http_parser.cpp
     src/luanode_module_api.cpp
     src/luanode_net.cpp
+    src/luanode_datagram_udp.cpp
     src/luanode_net_acceptor.cpp
     src/luanode_timer.cpp
     src/luanode_os.cpp
