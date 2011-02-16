@@ -113,6 +113,7 @@ LUAS = 	$(Target)/LuaNode/child_process.precomp \
 		$(Target)/LuaNode/Timers.precomp \
 		$(Target)/LuaNode/Url.precomp \
 		$(Target)/LuaNode/Utils.precomp \
+		$(Target)/LuaNode/Script.precomp \
 		$(Target)/src/node.precomp \
 		$(Target)/StackTracePlus/StackTracePlus.precomp
 

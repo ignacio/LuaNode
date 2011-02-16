@@ -212,7 +212,20 @@ static int luaopen_LuaNode_Utils(lua_State* L) {
 	if(extension_status) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Console");
+	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Utils");
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
+static int luaopen_LuaNode_Script(lua_State* L) {
+	int extension_status = 1;
+	int arg = lua_gettop(L);
+	#include "../build/temp/Script.precomp"
+	if(extension_status) {
+		return lua_error(L);
+	}
+	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Script");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
@@ -286,6 +299,9 @@ void PreloadModules(lua_State* L) {
 
 	lua_pushcfunction(L, luaopen_LuaNode_Utils);
 	lua_setfield(L, -2, "luanode.utils");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Script);
+	lua_setfield(L, -2, "luanode.script");
 
 	lua_pop(L, 1);
 }

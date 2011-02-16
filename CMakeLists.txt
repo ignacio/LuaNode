@@ -31,6 +31,7 @@ SET(LUAS
     lib/LuaNode/Timers
     lib/LuaNode/Url
     lib/LuaNode/Utils
+    lib/LuaNode/Script
     src/node
     deps/StackTracePlus/src/StackTracePlus
 )
