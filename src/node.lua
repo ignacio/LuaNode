@@ -17,20 +17,6 @@ local path = require "luanode.path"
 -- put the current working directory in the modules path
 package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( process.cwd(), process.cwd() )  .. package.path)
 
---[[
--- Insert a loader that allows me to require luanode.* as if they were on a (case insensitive) filesystem
-table.insert(package.loaders, function(name)
-	print(name, package.preload[name])
-	name = name:lower()
-	if name:match("^luanode%.") and package.preload[name] then
-		print(name, "found")
-		--return function()
-			return package.preload[name]
-		--end
-	end
-end)
-]]
-
 -- nextTick()
 
 local nextTickQueue = {}
@@ -340,6 +326,13 @@ else
 	if not code then
 		error(err)
 	end
+	
+	-- put the directory name of the main script in the "require" path
+	local script_path = path.normalize( process.cwd() .. "/" .. process.argv[2])
+	script_path = path.dirname(script_path)
+	package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( script_path, script_path ) ) .. package.path
+	script_path = nil
+	
 	local args = {}
 	for i=3, #process.argv do args[#args + 1] = process.argv[i] end
 	local result = code(unpack(args))

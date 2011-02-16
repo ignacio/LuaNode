@@ -635,6 +635,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lib\LuaNode\Script.lua"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\LuaNode\stream.lua"
 				>
 			</File>
