@@ -254,8 +254,8 @@ _G.clearInterval = Timers.clearInterval
 
 -- TODO: documentar
 -- los modulos deben usar esta funcion como handler de sus lua_pcall
-process.traceback = function()
-	console.error(debug.traceback("traceback", 2))
+process.traceback = function(error_message)
+	console.error(debug.traceback(error_message, 2))
 end
 
 --
