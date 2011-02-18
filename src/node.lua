@@ -224,7 +224,7 @@ console.assert = assert
 
 
 -- 
--- Calls 
+-- Calls back into a module.
 process._postBackToModule = function(moduleName, functionName, key, ...)
 	LogDebug("_postBackToModule: %s:%s:%d", moduleName, functionName, key)
 	
@@ -235,10 +235,9 @@ process._postBackToModule = function(moduleName, functionName, key, ...)
 	end
 	local f = m[functionName]
 	if type(f) == "function" then
-		ok, m = pcall(f, key, ...)
-		if not ok then
-			console.error("Error while calling %s:%s - %s", moduleName, functionName, m)
-		end
+		f(key, ...)
+	else
+		console.error("%q is not a function in module %q", functionName, moduleName)
 	end
 end
 
