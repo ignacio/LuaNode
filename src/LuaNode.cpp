@@ -96,7 +96,13 @@ static void SignalExit(int signal) {
 	// Stop the io pool
 	LuaNode::GetIoService().stop();
 	// Kindly leave the stage...
+	//exit(1);
+#ifdef _WIN32
+	//::ExitProcess(0);
+	::TerminateProcess(NULL, 1);
+#else
 	exit(1);
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -175,7 +181,8 @@ static int Exit(lua_State* L) {
 
 	// Will it be possible to have a clean ending?
 #ifdef _WIN32
-	TerminateProcess(NULL, code);
+	//::ExitProcess(0);
+	::TerminateProcess(NULL, code);
 #else
 	exit(code);
 #endif
