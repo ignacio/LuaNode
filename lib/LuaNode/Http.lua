@@ -1080,7 +1080,10 @@ function Client:__init()
 			self:setSecure(self.secureContext)
 		else
 			self:_initParser()
-			LogDebug("CLIENT requests: ") -- debug('CLIENT requests: ' + util.inspect(self._outgoing.map(function (r) { return r.method; })));
+			LogDebug("CLIENT requests: ")
+			for k,v in pairs(self._outgoing or {}) do
+				LogDebug(v.method)
+			end
 			outgoingFlush(self)
 		end
 	end)

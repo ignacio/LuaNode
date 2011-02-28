@@ -273,6 +273,15 @@ function Socket:__init(fd, kind)
 	newSocket.secure = false
 	newSocket._EOF_inserted = false	-- signals when we called 'finish' on the stream
 									-- but the underlying socket is not closed yet
+									
+	-- Queue of buffers and string that need to be written to socket.
+	newSocket._writeQueue = {}
+	newSocket._writeQueueEncoding = {}
+	newSocket._writeQueueFD = {}
+		
+	newSocket.readable = false
+	-- en lugar de usar _writeWatcher, recibo los eventos de write en _raw_socket.write_callback
+	newSocket.writable = false
 	
 	setImplementationMethods(newSocket)
 	
@@ -404,9 +413,7 @@ local function _doFlush(raw_socket, socket)
 	end
 end
 
-local function initSocket(self)
-	self.readable = false
-	
+local function initSocket(self)	
 	-- en lugar de usar _readWatcher, recibo los eventos de read en _raw_socket.read_callback
 	--self._readWatcher = {}
 	--self._readWatcher.callback = function()
@@ -451,18 +458,11 @@ local function initSocket(self)
 			end
 		end
 	end
-	
-	-- Queue of buffers and string that need to be written to socket.
-	self._writeQueue = {}
-	self._writeQueueEncoding = {}
-	self._writeQueueFD = {}
 
 	--self._writeWatcher = ioWatchers.alloc()
 	--self._writeWatcher.socket = self
 	--self._writeWatcher.callback = _doFlush
-	
-	-- en lugar de usar _writeWatcher, recibo los eventos de write en _raw_socket.write_callback
-	self.writable = false
+
 	self._raw_socket.write_callback = _doFlush
 end
 
@@ -663,6 +663,7 @@ end
 -- ojo! Http crea el stream y entra derecho por acá, no llama a net.createConnection
 function Socket:connect(port, host)
 	if self.fd then error("Socket already opened") end
+	
 	--if not self._raw_socket.read_callback then error("No read_callback") end
 	
 	Timers.Active(self)	-- ver cómo
