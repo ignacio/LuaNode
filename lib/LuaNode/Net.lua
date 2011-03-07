@@ -409,7 +409,7 @@ function Socket:setSecure(context)
 	local verifyRemote
 	if self.secureContext.verifyRemote == nil then
 		-- For clients, default to verify. For servers, default to off.
-		verifyRemote = (self.server ~= nil)
+		verifyRemote = (self.server == nil)
 	else
 		verifyRemote = self.secureContext.verifyRemote
 	end
