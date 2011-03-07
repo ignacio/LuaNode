@@ -264,6 +264,80 @@ local function setImplementationMethods(self)
 	--]====]
 end
 
+
+-- paso raw_socket o socket
+local function _doFlush(raw_socket, socket)
+	-- Socket becomes writable on connect() but don't flush if there's
+	-- nothing actually to write
+	-- hack, lo tendria que mandar ya yo como un socket? (la tabla socket)
+	if not socket then
+		socket = raw_socket._owner
+	end
+	if socket then
+		if socket:flush() then
+			if socket._events and socket._events["drain"] then
+				socket:emit("drain")
+			end
+			if socket.ondrain then
+				socket:ondrain() -- Optimization
+			end
+		end
+	end
+end
+
+local function initSocket(self)	
+	-- en lugar de usar _readWatcher, recibo los eventos de read en _raw_socket.read_callback
+	--self._readWatcher = {}
+	--self._readWatcher.callback = function()
+	
+	-- @param raw_socket is the socket
+	-- @param data is the data that has been read or nil if the socket has been closed
+	-- @param reason is present when the socket is closed, with the reason
+	self._raw_socket.read_callback = function(raw_socket, data, reason)
+		if not data or #data == 0 then
+			self.readable = false
+			--if reason == "eof" or reason == "closed" or reason == "aborted" or reason == "reset" then
+				if not self.writable then
+					self:destroy()
+					-- note: 'close' not emitted until nextTick
+				end
+				self:emit("end")
+				if type(self.onend) == "function" then
+					self:onend()
+				end
+			--end
+		elseif #data > 0 then
+			if self._raw_socket then	-- the socket may have been closed on Stream.destroy
+				Timers.Active(self)
+			end
+			
+			if self._decoder then
+				-- emit String
+				local s = self._decoder:write(data)--pool.slice(start, end))
+				if #s > 0 then self:emit("data", s) end
+			else
+				-- emit buffer
+				self:emit("data", data)	-- emit slice self.emit('data', pool.slice(start, end))
+			end
+			-- Optimization: emit the original buffer with end points
+			if self.ondata then
+				--self.ondata(pool, start, end)
+				self:ondata(data)
+			end
+			if self._raw_socket and not self._dont_read then	-- the socket may have been closed on Stream.destroy
+				--self._raw_socket:read()	-- issue another async read
+				self:_readImpl()
+			end
+		end
+	end
+
+	--self._writeWatcher = ioWatchers.alloc()
+	--self._writeWatcher.socket = self
+	--self._writeWatcher.callback = _doFlush
+
+	self._raw_socket.write_callback = _doFlush
+end
+
 function Socket:__init(fd, kind)
 	-- http.Client llama acá sin socket. Conecta luego.
 	local newSocket = Class.construct(Socket)
@@ -358,6 +432,10 @@ function Socket:setSecure(context)
 			self:emit("secure")
 		end
 		socket:read()
+		
+		-- Flush socket in case any writes are queued up while connecting.
+		-- ugly
+		_doFlush(socket)
 	end
 
 	setImplementationMethods(self)
@@ -391,79 +469,6 @@ end
 
 function Socket:getCipher()
 	error("not implemented")
-end
-
--- paso raw_socket o socket
-local function _doFlush(raw_socket, socket)
-	-- Socket becomes writable on connect() but don't flush if there's
-	-- nothing actually to write
-	-- hack, lo tendria que mandar ya yo como un socket? (la tabla socket)
-	if not socket then
-		socket = raw_socket._owner
-	end
-	if socket then
-		if socket:flush() then
-			if socket._events and socket._events["drain"] then
-				socket:emit("drain")
-			end
-			if socket.ondrain then
-				socket:ondrain() -- Optimization
-			end
-		end
-	end
-end
-
-local function initSocket(self)	
-	-- en lugar de usar _readWatcher, recibo los eventos de read en _raw_socket.read_callback
-	--self._readWatcher = {}
-	--self._readWatcher.callback = function()
-	
-	-- @param raw_socket is the socket
-	-- @param data is the data that has been read or nil if the socket has been closed
-	-- @param reason is present when the socket is closed, with the reason
-	self._raw_socket.read_callback = function(raw_socket, data, reason)
-		if not data or #data == 0 then
-			self.readable = false
-			--if reason == "eof" or reason == "closed" or reason == "aborted" or reason == "reset" then
-				if not self.writable then
-					self:destroy()
-					-- note: 'close' not emitted until nextTick
-				end
-				self:emit("end")
-				if type(self.onend) == "function" then
-					self:onend()
-				end
-			--end
-		elseif #data > 0 then
-			if self._raw_socket then	-- the socket may have been closed on Stream.destroy
-				Timers.Active(self)
-			end
-			
-			if self._decoder then
-				-- emit String
-				local s = self._decoder:write(data)--pool.slice(start, end))
-				if #s > 0 then self:emit("data", s) end
-			else
-				-- emit buffer
-				self:emit("data", data)	-- emit slice self.emit('data', pool.slice(start, end))
-			end
-			-- Optimization: emit the original buffer with end points
-			if self.ondata then
-				--self.ondata(pool, start, end)
-				self:ondata(data)
-			end
-			if self._raw_socket and not self._dont_read then	-- the socket may have been closed on Stream.destroy
-				--self._raw_socket:read()	-- issue another async read
-				self:_readImpl()
-			end
-		end
-	end
-
-	--self._writeWatcher = ioWatchers.alloc()
-	--self._writeWatcher.socket = self
-	--self._writeWatcher.callback = _doFlush
-
-	self._raw_socket.write_callback = _doFlush
 end
 
 function Socket:open(fd, kind)
@@ -639,7 +644,7 @@ local function doConnect(socket, port, host)
 				socket:destroy(err)
 			end
 			
-			if socket._writeQueue and #socket._writeQueue > 0 then
+			if socket._writeQueue and #socket._writeQueue > 0 and not socket.secure then
 				-- Flush socket in case any writes are queued up while connecting.
 				-- ugly
 				_doFlush(nil, socket)
