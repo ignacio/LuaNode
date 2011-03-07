@@ -7,6 +7,7 @@ local Signer = process.Signer
 local Verifier = process.Verifier
 local Cipher = process.Cipher
 local Decipher = process.Decipher
+local ipairs = ipairs
 
 module((...))
 
