@@ -1,3 +1,6 @@
+-- TODO: traerse esto para adentro
+local Url = require "socket.url"
+
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
