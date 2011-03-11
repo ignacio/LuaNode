@@ -4,13 +4,6 @@ local select = select
 
 local Class = require "luanode.class"
 
---TODO: better check for array-like tables
-local function isArray(t)
-	if type(t) == "table" then
-		return true
-	end
-	return false
-end
 
 -- This constructs instances of "Event Emitters"
 
@@ -28,9 +21,7 @@ function EventEmitter:emit(kind, ...)
 	assert(type(self) == "table" or type(self) == "userdata")
 	-- If there is no 'error' event listener then throw.
 	if kind == "error" then
-		if not self._events or not self._events.error or 
-			( isArray(self._events.error) and #(self._events.error) )
-		then
+		if not self._events or not self._events.error or ( type(self._events.error) == "table" and #(self._events.error) ) then
 			-- squash the arguments and build an error message
 			local msg = ""
 			for i=1, select("#", ...) do
@@ -50,7 +41,7 @@ function EventEmitter:emit(kind, ...)
 	if type(handler) == "function" then
 		result = handler(self, ...)
 		
-	elseif isArray(handler) then
+	elseif type(handler) == "table" then
 		local listeners = {}
 		for k,v in ipairs(handler) do listeners[k] = v end
 		--print("before emitting " .. kind)
@@ -122,7 +113,7 @@ function EventEmitter:removeListener(kind, listener)
 	end
 	
 	local list = self._events[kind]
-	if isArray(list) then
+	if type(list) == "table" then
 		for i, l in ipairs(list) do
 			if l == listener then
 				table.remove(list, i)
@@ -153,7 +144,7 @@ function EventEmitter:listeners(kind)
 	self._events = self._events or {}
 	self._events[kind] = self._events[kind] or {}
 	
-	if not isArray(self._events[kind]) then
+	if type(self._events[kind]) ~= "table" then
 		self._events[kind] = { self._events[kind] }
 	end
 	
