@@ -120,6 +120,13 @@ else
 	--REVERSE_OFF = "\033[27m"
 end
 
+function getColor(value)
+	return fg_colors[value]
+end
+
+function getBgColor(value)
+	return bg_colors[value]
+end
 
 function color(value)
 	local v = fg_colors[value]

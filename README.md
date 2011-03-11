@@ -114,6 +114,7 @@ I'd like to acknowledge the work of the following people:
  - Renato Maia, for allowing me to take parts of [Loop][13].
  - Keith Howe, for [LuaCrypto][15]
  - Michal Kottman, for his additions to [LuaCrypto][16]. He also contributed a CMakeLists.txt to ease building.
+ - Steve Donovan, for allowing me to take parts of [Penlight][17].
 
  
 ## License #
@@ -136,3 +137,4 @@ I'd like to acknowledge the work of the following people:
 [14]: https://github.com/ry/http-parser
 [15]: http://luacrypto.luaforge.net/
 [16]: https://github.com/mkottman/luacrypto/
+[17]: https://github.com/stevedonovan/Penlight
