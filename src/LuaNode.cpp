@@ -565,6 +565,8 @@ static int Load(int argc, char *argv[]) {
 	OS::RegisterFunctions(L);
 	Fs::RegisterFunctions(L);
 
+	Fs::File::Register(L, NULL, true);
+
 	//DefineConstants(L);
 	
 	int extension_status = 1;

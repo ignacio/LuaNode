@@ -1,7 +1,7 @@
 local Stream = require "luanode.stream"
 
 local io = require "io"
---local Fs = require "Fs"
+local Fs = require "Fs"
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
@@ -11,6 +11,7 @@ local function noop () end
 function openSync(path, flags, mode)
 	mode = mode or 0666
 	return io.open(path, flags)
+	--return Fs.open(path, flags, mode)
 end
 
 function read(fd, length, position, callback)
@@ -20,6 +21,7 @@ function read(fd, length, position, callback)
 		position = nil
 	end
 	
+	--fd:read(length, position, callback)
 	--Fs.read(fd, length, callback)
 
 	---[[
