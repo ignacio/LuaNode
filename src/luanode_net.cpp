@@ -148,6 +148,9 @@ Socket::Socket(lua_State* L) :
 	else if(strcmp(kind, "tcp6") == 0) {
 		m_socket.reset( new boost::asio::ip::tcp::socket( GetIoService(), boost::asio::ip::tcp::v6() ) );
 	}
+	else {
+		luaL_error(L, "unknown socket kind %s", kind);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
