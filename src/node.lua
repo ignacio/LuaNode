@@ -58,8 +58,34 @@ end
 local Class = require "luanode.class"
 local events = require "luanode.event_emitter"
 
--- Make 'process' become an event emitter
-setmetatable(process, events.__index)
+-- Make 'process' become an event emitter, but hook some 'properties'
+setmetatable(process, {
+	__index = function(t, key)
+		if key == "stdin" then
+			local fd = Stdio.openStdin()
+			local stdin
+			if Stdio.isatty(fd) then
+				local tty = require "luanode.tty"
+				stdin = tty.ReadStream(fd)
+			elseif Stdio.isStdinBlocking() then
+				local fs = require "luanode.fs"
+				stdin = fs.ReadStream(nil, {fd = fd})
+			else
+				local net = require "luanode.net"
+				stdin = net.Stream(fd)
+				stdin.readable = true
+			end
+			rawset(t, key, stdin)
+			return stdin
+		end
+		return events[key]
+	end
+})
+
+process.openStdin = function()
+	process.stdin:resume()
+	return process.stdin
+end
 
 
 -- TODO: Meter la parte de Signal Handlers 

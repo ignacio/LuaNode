@@ -91,6 +91,7 @@ OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(Target)/luanode_net_acceptor.o \
 		$(Target)/luanode_timer.o \
 		$(Target)/luanode_os.o \
+		$(Target)/luanode_stdio_linux.o \
 		$(Target)/LuaVM.o \
 		$(Target)/platform_linux.o \
 		$(Target)/preloader.o \
@@ -114,6 +115,8 @@ LUAS = 	$(Target)/LuaNode/child_process.precomp \
 		$(Target)/LuaNode/Url.precomp \
 		$(Target)/LuaNode/Utils.precomp \
 		$(Target)/LuaNode/Script.precomp \
+		$(Target)/LuaNode/Tty.precomp \
+		$(Target)/LuaNode/Tty_posix.precomp \
 		$(Target)/src/node.precomp \
 		$(Target)/StackTracePlus/StackTracePlus.precomp
 

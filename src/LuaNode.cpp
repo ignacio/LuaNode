@@ -24,6 +24,7 @@
 #include "luanode_child_process.h"
 #include "luanode_module_api.h"
 #include "luanode_os.h"
+#include "luanode_stdio.h"
 
 #if defined (_WIN32)
 	#include "luanode_file_win32.h"
@@ -458,6 +459,9 @@ static int Load(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
+	lua_pushboolean(L, true);
+	lua_setfield(L, LUA_GLOBALSINDEX, "_LUANODE");
+
 	// tabla 'process'
 	lua_newtable(L);
 	int process = lua_gettop(L);
@@ -567,6 +571,8 @@ static int Load(int argc, char *argv[]) {
 
 	Fs::File::Register(L, NULL, true);
 
+	Stdio::RegisterFunctions(L);
+
 	//DefineConstants(L);
 	
 	int extension_status = 1;
@@ -655,8 +661,9 @@ static void ParseArgs(int *argc, char **argv) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static void AtExit() {
-	//LuaNode::Stdio::Flush();
-	//LuaNode::Stdio::DisableRawMode(STDIN_FILENO);
+	LuaNode::Stdio::OnExit( LuaNode::GetLuaVM() );
+	LuaNode::Stdio::Flush();
+
 	LogFree();
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 

@@ -348,6 +348,30 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_stdio_linux.cpp"
+				>
+				<FileConfiguration
+					Name="Release Debuggable|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_stdio_win32.cpp"
+				>
+				<FileConfiguration
+					Name="Release Debuggable|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_timer.cpp"
 				>
 			</File>
@@ -491,6 +515,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_os.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_stdio.h"
 				>
 			</File>
 			<File
@@ -644,6 +672,14 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\LuaNode\Timers.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\Tty.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\Tty_win.lua"
 				>
 			</File>
 			<File

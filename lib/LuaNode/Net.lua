@@ -755,7 +755,7 @@ function Socket:setTimeout(msecs)
 end
 
 function Socket:pause()
-	error("not implemented")
+	--error("not implemented")
 	-- maybe just set a flag and don't issue a read
 end
 

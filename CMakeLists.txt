@@ -8,9 +8,15 @@ FIND_PACKAGE(Boost COMPONENTS system REQUIRED)
 FIND_PROGRAM(LUA NAMES lua-5.1 lua5.1 lua)
 
 IF(WIN32)
-    SET(OS src/luanode_file_win32.cpp src/platform_windows.cpp)
+    SET(OS src/luanode_file_win32.cpp src/platform_windows.cpp src/luanode_stdio_win32.cpp)
 ELSE()
-    SET(OS src/luanode_file_linux.cpp src/platform_linux.cpp)
+    SET(OS src/luanode_file_linux.cpp src/platform_linux.cpp src/luanode_stdio_linux.cpp)
+ENDIF()
+
+IF(WIN32)
+    SET(LUA_OS lib/LuaNode/Tty_win)
+ELSE()
+    SET(LUA_OS lib/LuaNode/Tty_posix)
 ENDIF()
 
 SET(LUAS
@@ -32,6 +38,8 @@ SET(LUAS
     lib/LuaNode/Url
     lib/LuaNode/Utils
     lib/LuaNode/Script
+    lib/LuaNode/Tty
+    ${LUA_OS}
     src/node
     deps/StackTracePlus/src/StackTracePlus
 )

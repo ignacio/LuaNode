@@ -231,6 +231,45 @@ static int luaopen_LuaNode_Script(lua_State* L) {
 	return 1;
 }
 
+static int luaopen_LuaNode_Tty(lua_State* L) {
+	int extension_status = 1;
+	int arg = lua_gettop(L);
+	#include "../build/temp/Tty.precomp"
+	if(extension_status) {
+		return lua_error(L);
+	}
+	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Tty");
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
+static int luaopen_LuaNode_Tty_win(lua_State* L) {
+	int extension_status = 1;
+	int arg = lua_gettop(L);
+	#include "../build/temp/Tty_win.precomp"
+	if(extension_status) {
+		return lua_error(L);
+	}
+	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Tty_win");
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
+static int luaopen_LuaNode_Tty_posix(lua_State* L) {
+	int extension_status = 1;
+	int arg = lua_gettop(L);
+	#include "../build/temp/Tty_posix.precomp"
+	if(extension_status) {
+		return lua_error(L);
+	}
+	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Tty_posix");
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
 static int luaopen_StackTracePlus(lua_State* L) {
 	int extension_status = 1;
 	int arg = lua_gettop(L);
@@ -302,6 +341,15 @@ void PreloadModules(lua_State* L) {
 
 	lua_pushcfunction(L, luaopen_LuaNode_Script);
 	lua_setfield(L, -2, "luanode.script");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Tty);
+	lua_setfield(L, -2, "luanode.tty");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Tty_win);
+	lua_setfield(L, -2, "luanode.tty_win");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Tty_posix);
+	lua_setfield(L, -2, "luanode.tty_posix");
 
 	lua_pop(L, 1);
 }
