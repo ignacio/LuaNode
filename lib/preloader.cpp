@@ -244,6 +244,7 @@ static int luaopen_LuaNode_Tty(lua_State* L) {
 	return 1;
 }
 
+#ifdef _WIN32
 static int luaopen_LuaNode_Tty_win(lua_State* L) {
 	int extension_status = 1;
 	int arg = lua_gettop(L);
@@ -256,6 +257,7 @@ static int luaopen_LuaNode_Tty_win(lua_State* L) {
 	lua_call(L,arg,1);
 	return 1;
 }
+#endif
 
 static int luaopen_LuaNode_Tty_posix(lua_State* L) {
 	int extension_status = 1;
@@ -345,8 +347,10 @@ void PreloadModules(lua_State* L) {
 	lua_pushcfunction(L, luaopen_LuaNode_Tty);
 	lua_setfield(L, -2, "luanode.tty");
 
+#ifdef _WIN32
 	lua_pushcfunction(L, luaopen_LuaNode_Tty_win);
 	lua_setfield(L, -2, "luanode.tty_win");
+#endif
 
 	lua_pushcfunction(L, luaopen_LuaNode_Tty_posix);
 	lua_setfield(L, -2, "luanode.tty_posix");
