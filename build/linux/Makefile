@@ -63,7 +63,7 @@ ifeq ($(Target), Debug)
 			-ldl \
 			-lssl
 else
-	CFLAGS = -Wall -c -O2 -D_NDEBUG 
+	CFLAGS = -Wall -c -O2 -D_NDEBUG -Wno-strict-aliasing
 	LFLAGS = -Wall -Wl,-E
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt \
 			$(LUA_LIB) \
