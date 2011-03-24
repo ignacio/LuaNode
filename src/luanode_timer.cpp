@@ -4,8 +4,8 @@
 #include "blogger.h"
 
 #include <boost/asio/placeholders.hpp>
-
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 using namespace LuaNode;
 
@@ -56,7 +56,7 @@ int Timer::Start(lua_State* L) {
 		// TODO: fix me
 		luaL_error(L, "double Start not implemented yet in timers");
 	}
-	m_timer.reset( new boost::asio::deadline_timer(GetIoService(), boost::posix_time::milliseconds(m_after)) );
+	m_timer = boost::make_shared<boost::asio::deadline_timer>( boost::ref(GetIoService()), boost::posix_time::milliseconds(m_after) );
 
 	lua_pushvalue(L, 1);
 	int reference = luaL_ref(L, LUA_REGISTRYINDEX);

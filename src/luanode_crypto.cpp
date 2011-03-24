@@ -7,6 +7,7 @@
 #include <boost/asio/read_until.hpp>
 
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 #include "shared_const_buffer.h"
 
 
@@ -792,7 +793,7 @@ SecureContext::SecureContext(lua_State* L) :
 	m_L(L)
 {
 	// TODO: handle other ssl types
-	m_context.reset( new boost::asio::ssl::context( GetIoService(), boost::asio::ssl::context::sslv23) );
+	m_context = boost::make_shared<boost::asio::ssl::context>(boost::ref(GetIoService()), boost::asio::ssl::context::sslv23);
 	m_context->set_options(boost::asio::ssl::context::default_workarounds);
 
 	//boost::system::error_code ec;

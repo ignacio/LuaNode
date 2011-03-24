@@ -6,6 +6,7 @@
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/asio/placeholders.hpp>
+#include <boost/make_shared.hpp>
 
 #include <boost/bind.hpp>
 #include "shared_const_buffer.h"
@@ -116,10 +117,10 @@ Socket::Socket(lua_State* L) :
 	const char* kind = luaL_checkstring(L, 1);
 	LogDebug("Socket::Socket(%s)", kind);
 	if(strcmp(kind, "udp4") == 0) {
-		m_socket.reset( new boost::asio::ip::udp::socket( GetIoService(), boost::asio::ip::udp::v4() ) );
+		m_socket = boost::make_shared<boost::asio::ip::udp::socket>(boost::ref(GetIoService()), boost::asio::ip::udp::v4());
 	}
 	else if(strcmp(kind, "udp6") == 0) {
-		m_socket.reset( new boost::asio::ip::udp::socket( GetIoService(), boost::asio::ip::udp::v6() ) );
+		m_socket = boost::make_shared<boost::asio::ip::udp::socket>(boost::ref(GetIoService()), boost::asio::ip::udp::v6());
 	}
 }
 

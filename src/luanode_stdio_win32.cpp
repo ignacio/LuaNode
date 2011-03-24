@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <boost/thread.hpp>
+#include <boost/make_shared.hpp>
 #include <iostream>
 #include <string>
 #include <queue>
@@ -425,9 +426,9 @@ static int StartTTYWatcher (lua_State* L) {
 
 	if(tty_reader_thread == NULL) {
 		input.m_run = true;
-		tty_reader_thread.reset( new boost::thread( &InputServer::Run, &input) );
+		tty_reader_thread = boost::make_shared<boost::thread>(&InputServer::Run, &input);
 		if(asio_work == NULL) {
-			asio_work.reset( new boost::asio::io_service::work(LuaNode::GetIoService()) );
+			asio_work = boost::make_shared<boost::asio::io_service::work>(boost::ref(LuaNode::GetIoService()));
 		}
 	}
 	return 0;

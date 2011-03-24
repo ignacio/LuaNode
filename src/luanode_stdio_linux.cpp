@@ -26,6 +26,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 #include <signal.h>
 
@@ -104,7 +105,7 @@ public:
 		int fd = ::dup(STDIN_FILENO);
 		//EnableRawMode(fd);
 
-		m_socket.reset( new boost::asio::posix::stream_descriptor(LuaNode::GetIoService(), fd));
+		m_socket = boost::make_shared<boost::asio::posix::stream_descriptor>(boost::ref(LuaNode::GetIoService()), fd);
 	}
 	// Constructor used when we accept a connection
 	//PosixStream(lua_State* L, boost::asio::ip::tcp::socket*);

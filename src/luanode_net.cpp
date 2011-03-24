@@ -8,7 +8,9 @@
 #include <boost/asio/placeholders.hpp>
 
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 #include "shared_const_buffer.h"
+
 
 // this is needed for tcp_keepalive definition
 #ifdef _WIN32
@@ -143,10 +145,10 @@ Socket::Socket(lua_State* L) :
 	const char* kind = luaL_checkstring(L, 1);
 	LogDebug("Socket::Socket(%s)", kind);
 	if(strcmp(kind, "tcp4") == 0) {
-		m_socket.reset( new boost::asio::ip::tcp::socket( GetIoService(), boost::asio::ip::tcp::v4() ) );
+		m_socket = boost::make_shared<boost::asio::ip::tcp::socket>( boost::ref(GetIoService()), boost::asio::ip::tcp::v4() );
 	}
 	else if(strcmp(kind, "tcp6") == 0) {
-		m_socket.reset( new boost::asio::ip::tcp::socket( GetIoService(), boost::asio::ip::tcp::v6() ) );
+		m_socket = boost::make_shared<boost::asio::ip::tcp::socket>( boost::ref(GetIoService()), boost::asio::ip::tcp::v6() );
 	}
 	else {
 		luaL_error(L, "unknown socket kind %s", kind);
