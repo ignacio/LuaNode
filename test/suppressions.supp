@@ -1,0 +1,97 @@
+{
+   openssl_01
+   Memcheck:Cond
+   fun:*
+   obj:/lib/libcrypto.so.0.9.8
+}
+
+{
+   Posible leak de boost::asio::ssl
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/libcrypto.so.0.9.8
+   fun:CRYPTO_malloc
+   obj:/lib/libssl.so.0.9.8
+   fun:SSL_COMP_get_compression_methods
+   fun:SSL_library_init
+   fun:_ZN5boost4asio3ssl6detail12openssl_initILb1EE7do_initC1Ev
+   fun:_ZN5boost4asio3ssl6detail12openssl_initILb1EE7do_init8instanceEv
+   fun:_GLOBAL__I__ZN7LuaNode6Crypto8RegisterEP9lua_State
+   obj:/home/ignacio/devel/bin/luanode
+   obj:/home/ignacio/devel/bin/luanode
+   fun:__libc_csu_init
+}
+
+{
+   Posible leak de boost::asio::ssl
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/libcrypto.so.0.9.8
+   fun:CRYPTO_malloc
+   fun:sk_new
+   obj:/lib/libssl.so.0.9.8
+   fun:SSL_COMP_get_compression_methods
+   fun:SSL_library_init
+   fun:_ZN5boost4asio3ssl6detail12openssl_initILb1EE7do_initC1Ev
+   fun:_ZN5boost4asio3ssl6detail12openssl_initILb1EE7do_init8instanceEv
+   fun:_GLOBAL__I__ZN7LuaNode6Crypto8RegisterEP9lua_State
+   obj:/home/ignacio/devel/bin/luanode
+   obj:/home/ignacio/devel/bin/luanode
+}
+
+{
+   Ignore dlopen bug.
+   Memcheck:Leak
+   ...
+   fun:dlopen@@GLIBC_2.1
+   ...
+}
+
+{
+   Posible leak de OpenSSL o falso positivo?
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/libcrypto.so.0.9.8
+   fun:CRYPTO_malloc
+   fun:lh_insert
+   obj:/lib/libcrypto.so.0.9.8
+   fun:ERR_get_state
+   fun:ERR_clear_error
+   obj:/lib/libssl.so.0.9.8
+}
+
+{
+   Posible leak de OpenSSL o falso positivo?
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/libcrypto.so.0.9.8
+   fun:CRYPTO_malloc
+   fun:lh_new
+   obj:/lib/libcrypto.so.0.9.8
+   obj:/lib/libcrypto.so.0.9.8
+   fun:ERR_get_state
+   fun:ERR_clear_error
+   obj:/lib/libssl.so.0.9.8
+   fun:_ZN7LuaNode6Crypto13SecureContext7SetCertEP9lua_State
+   fun:_ZN12LuaCppBridge10BaseObjectIN7LuaNode6Crypto13SecureContextENS_26HybridObjectWithPropertiesIS3_EEE13thunk_methodsEP9lua_State
+}
+
+{
+   Posible leak de OpenSSL o falso positivo?
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/libcrypto.so.0.9.8
+   fun:CRYPTO_malloc
+   fun:ERR_get_state
+   fun:ERR_clear_error
+   obj:/lib/libssl.so.0.9.8
+   fun:_ZN7LuaNode6Crypto13SecureContext7SetCertEP9lua_State
+   fun:_ZN12LuaCppBridge10BaseObjectIN7LuaNode6Crypto13SecureContextENS_26HybridObjectWithPropertiesIS3_EEE13thunk_methodsEP9lua_State
+}
+
+{
+   Test-case simple/test-http-set-trailers.lua hace un process:exit()
+   Memcheck:Leak
+   fun:_Znwj
+   fun:main
+}
