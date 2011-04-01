@@ -817,6 +817,7 @@ function Socket:destroy (exception)
 	if self._raw_socket then
 		self._raw_socket:close()
 		self._raw_socket = nil
+		self.secureContext = nil	-- todo: why Net does have to deal with this?
 		m_opened_sockets[self] = nil
 		process.nextTick(function()
 			if exception then self:emit("error", exception) end

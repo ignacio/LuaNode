@@ -13,6 +13,27 @@
 
 using namespace LuaNode::Crypto;
 
+/////////////////////////////////////////////////////////////////////////
+/// 
+static int crypto_error(lua_State* L, const char* func_name) {
+	char buf[1024];
+	unsigned long e = ERR_get_error();
+	ERR_load_crypto_strings();
+	ERR_error_string_n(e, buf, sizeof(buf));
+	return luaL_error(L, "%s - error %d\n%s", func_name, e, buf);
+}
+
+static int push_crypto_error(lua_State* L) {
+	char buf[1024];
+	unsigned long e = ERR_get_error();
+	ERR_load_crypto_strings();
+	lua_pushnil(L);
+	ERR_error_string_n(e, buf, sizeof(buf));
+	lua_pushstring(L, buf);
+	return 2;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 /// Register this module's classes
 void LuaNode::Crypto::Register(lua_State* L) {
@@ -69,7 +90,8 @@ Socket::Socket(lua_State* L) :
 	m_shutdown_pending(false),
 	m_close_pending(false),
 	m_pending_writes(0),
-	m_pending_reads(0)
+	m_pending_reads(0),
+	m_ssl_socket(0)
 {
 	s_socketCount++;
 	LogDebug("Constructing Crypto::Socket (%p) (id:%d). Current socket count = %d", this, m_socketId, s_socketCount);
@@ -101,6 +123,10 @@ Socket::Socket(lua_State* L) :
 Socket::~Socket(void)
 {
 	s_socketCount--;
+	if(m_ssl_socket) {
+		delete m_ssl_socket;
+		m_ssl_socket = NULL;
+	}
 	LogDebug("Destructing Crypto::Socket (%p) (id:%d). Current socket count = %d", this, m_socketId, s_socketCount);
 }
 
@@ -142,7 +168,8 @@ int Socket::VerifyPeer(lua_State* L) {
 	X509* peer_cert = SSL_get_peer_certificate( m_ssl_socket->impl()->ssl );
 	if(peer_cert == NULL) {
 		lua_pushboolean(L, false);
-		return 1;
+		push_crypto_error(L);
+		return 2;
 	}
 	X509_free(peer_cert);
 
@@ -176,7 +203,8 @@ int Socket::GetPeerCertificate(lua_State* L) {
 	X509* peer_cert = SSL_get_peer_certificate(ssl);
 	if(peer_cert == NULL) {
 		lua_pushnil(L);
-		return 1;
+		push_crypto_error(L);
+		return 2;
 	}
 
 	lua_newtable(L);
@@ -764,11 +792,6 @@ void Socket::HandleShutdown(int reference, const boost::system::error_code& erro
 
 
 
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* SecureContext::className = "SecureContext";
@@ -789,8 +812,11 @@ const SecureContext::RegType SecureContext::getters[] = {
 
 typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
+//TODO check if the follwoing applies https://github.com/joyent/node/commit/5c35dff4192b0e204ab4145b7f9dcdba6e76a93e
+
 SecureContext::SecureContext(lua_State* L) : 
-	m_L(L)
+	m_L(L),
+	m_ca_store(0)
 {
 	// TODO: handle other ssl types
 	m_context = boost::make_shared<boost::asio::ssl::context>(boost::ref(GetIoService()), boost::asio::ssl::context::sslv23);
@@ -799,6 +825,7 @@ SecureContext::SecureContext(lua_State* L) :
 	//boost::system::error_code ec;
 	//m_context->set_verify_mode(boost::asio::ssl::context_base::verify_peer, ec);
 	
+	// TODO: The certificate store should be reused across all contexts
 	m_ca_store = X509_STORE_new();
 	SSL_CTX_set_cert_store(m_context->impl(), m_ca_store);
 }
@@ -806,6 +833,9 @@ SecureContext::SecureContext(lua_State* L) :
 
 SecureContext::~SecureContext(void)
 {
+	// the store is implicitly free'd by the context
+	// X509_STORE_free(m_ca_store);
+	LogDebug("Destructing Crypto::SecureContext (%p)", this);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -814,24 +844,24 @@ int SecureContext::SetKey(lua_State* L) {
 	const char* key_pem = luaL_checkstring(L, 2);
 	size_t key_pem_len = lua_objlen(L, 2);
 
-	BIO *bp = BIO_new(BIO_s_mem());
-	if (!BIO_write(bp, key_pem, key_pem_len)) {
+	BIO* bp = BIO_new(BIO_s_mem());
+
+	if(!BIO_write(bp, key_pem, key_pem_len)) {
 		BIO_free(bp);
-		lua_pushboolean(L, false);
-		return 1;
+		return crypto_error(L, "SecureContext::SetKey");
 	}
 
+	// TODO: should use PEM_read_bio_PKCS8PrivateKey
 	EVP_PKEY* pkey = PEM_read_bio_PrivateKey(bp, NULL, NULL, NULL);
 
-	if (pkey == NULL) {
+	if(pkey == NULL) {
 		BIO_free(bp);
-		lua_pushboolean(L, false);
-		return 1;
+		return crypto_error(L, "SecureContext::SetKey");
 	}
 
-	SSL_CTX_use_PrivateKey( m_context->impl(), pkey);
+	SSL_CTX_use_PrivateKey(m_context->impl(), pkey);
 	BIO_free(bp);
-	// XXX Free pkey? 
+	EVP_PKEY_free(pkey);
 
 	lua_pushboolean(L, true);
 	return 1;
@@ -843,26 +873,22 @@ int SecureContext::SetCert(lua_State* L) {
 	const char* cert_pem = luaL_checkstring(L, 2);
 	size_t cert_pem_len = lua_objlen(L, 2);
 
-	BIO *bp = BIO_new(BIO_s_mem());
-
-	if (!BIO_write(bp, cert_pem, cert_pem_len)) {
+	BIO* bp = BIO_new(BIO_s_mem());
+	if(!BIO_write(bp, cert_pem, cert_pem_len)) {
 		BIO_free(bp);
-		lua_pushboolean(L, false);
-		return 1;
+		return crypto_error(L, "SecureContext::SetCert");
 	}
 
 	X509* x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
-
 	if (x509 == NULL) {
 		BIO_free(bp);
-		lua_pushboolean(L, false);
-		return 1;
+		return crypto_error(L, "SecureContext::SetCert");
 	}
 
 	SSL_CTX_use_certificate(m_context->impl(), x509);
 
-	BIO_free(bp);
 	X509_free(x509);
+	BIO_free(bp);
 
 	lua_pushboolean(L, true);
 	return 1;
@@ -874,26 +900,24 @@ int SecureContext::AddCACert(lua_State* L) {
 	const char* cert_pem = luaL_checkstring(L, 2);
 	size_t cert_pem_len = lua_objlen(L, 2);
 
-	BIO *bp = BIO_new(BIO_s_mem());
+	BIO* bp = BIO_new(BIO_s_mem());
 
 	if (!BIO_write(bp, cert_pem, cert_pem_len)) {
 		BIO_free(bp);
-		lua_pushboolean(L, false);
-		return 1;
+		return crypto_error(L, "SecureContext::AddCACert");
 	}
 
-	X509 *x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
+	X509* x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
 
-	if (x509 == NULL) {
+	if(x509 == NULL) {
 		BIO_free(bp);
-		lua_pushboolean(L, false);
-		return 1;
+		return crypto_error(L, "SecureContext::AddCACert");
 	}
 
 	X509_STORE_add_cert(m_ca_store, x509);
 
-	BIO_free(bp);
 	X509_free(x509);
+	BIO_free(bp);
 
 	lua_pushboolean(L, true);
 	return 1;
@@ -908,24 +932,6 @@ int SecureContext::AddCACert(lua_State* L) {
 static inline void tohex(unsigned char c, char* buffer) {
 	buffer[0] = ((c >> 4) > 9) ? (c >> 4) + ('a' - 10) : (c >> 4) + '0';
 	buffer[1] = ((c & 15) > 9) ? (c & 15) + ('a' - 10) : (c & 15) + '0';
-}
-
-/////////////////////////////////////////////////////////////////////////
-/// 
-static void crypto_error(lua_State* L) {
-	char buf[120];
-	unsigned long e = ERR_get_error();
-	ERR_load_crypto_strings();
-	luaL_error(L, ERR_error_string(e, buf));
-}
-
-static int push_crypto_error(lua_State* L) {
-	char buf[120];
-	unsigned long e = ERR_get_error();
-	ERR_load_crypto_strings();
-	lua_pushnil(L);
-	lua_pushstring(L, ERR_error_string(e, buf));
-	return 2;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1119,6 +1125,7 @@ int Signer::Sign(lua_State* L) {
 	const unsigned char* key_pem = (const unsigned char*)luaL_checkstring(L, 2);
 	
 	BIO* bp = BIO_new(BIO_s_mem());
+
 	if(!BIO_write(bp, key_pem, lua_objlen(L, 2))) {
 		return push_crypto_error(L);
 	}
@@ -1195,6 +1202,7 @@ int Verifier::Verify(lua_State* L) {
 	const unsigned char* signature = (const unsigned char*)luaL_checkstring(L, 3);
 
 	BIO* bp = BIO_new(BIO_s_mem());
+
 	if(!BIO_write(bp, key_pem, lua_objlen(L, 2))) {
 		return push_crypto_error(L);
 	}
@@ -1202,7 +1210,7 @@ int Verifier::Verify(lua_State* L) {
 	X509* x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
 	if(x509 == NULL) {
 		BIO_free(bp);
-		return 0;
+		return push_crypto_error(L);
 	}
 
 	EVP_PKEY* pkey = X509_get_pubkey(x509);
@@ -1219,7 +1227,6 @@ int Verifier::Verify(lua_State* L) {
 	BIO_free(bp);
 
 	if(result != 1) {
-		//ERR_print_errors_fp(stderr);
 		lua_pushboolean(L, false);
 		push_crypto_error(L);
 	}
@@ -1286,7 +1293,7 @@ int Cipher::Update(lua_State* L) {
 	int output_len = 0;
 	if(!EVP_EncryptUpdate(&m_context, buffer, &output_len, input, input_len)) {
 		free(buffer);
-		crypto_error(L);
+		crypto_error(L, "Cipher::Update");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	free(buffer);
@@ -1301,7 +1308,7 @@ int Cipher::Final(lua_State* L) {
 	unsigned char buffer[EVP_MAX_BLOCK_LENGTH];
 
 	if(!EVP_EncryptFinal(&m_context, buffer, &output_len)) {
-		crypto_error(L);
+		crypto_error(L, "Cipher::Final");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	return 1;
@@ -1363,7 +1370,7 @@ int Decipher::Update(lua_State* L) {
 	int output_len = 0;
 	if(!EVP_DecryptUpdate(&m_context, buffer, &output_len, input, input_len)) {
 		free(buffer);
-		crypto_error(L);
+		crypto_error(L, "Decipher::Update");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	free(buffer);
@@ -1378,7 +1385,7 @@ int Decipher::Final(lua_State* L) {
 	unsigned char buffer[EVP_MAX_BLOCK_LENGTH];
 
 	if(!EVP_DecryptFinal(&m_context, buffer, &output_len)) {
-		crypto_error(L);
+		crypto_error(L, "Decipher::Final");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	return 1;
