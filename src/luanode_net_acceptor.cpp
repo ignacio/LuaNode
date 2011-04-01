@@ -5,6 +5,7 @@
 #include "blogger.h"
 
 #include <boost/asio/placeholders.hpp>
+#include <boost/make_shared.hpp>
 
 #include <boost/bind.hpp>
 
@@ -149,7 +150,7 @@ int Acceptor::Listen(lua_State* L) {
 int Acceptor::Accept(lua_State* L) {
 	LogDebug("Acceptor::Accept (%p) (id=%d)", this, m_acceptorId);
 
-	boost::asio::ip::tcp::socket* socket = new boost::asio::ip::tcp::socket( GetIoService() );
+	boost::shared_ptr<boost::asio::ip::tcp::socket> socket = boost::make_shared<boost::asio::ip::tcp::socket>( boost::ref(GetIoService()) );
 
 	// store a reference in the registry
 	lua_pushvalue(L, 1);
@@ -164,8 +165,8 @@ int Acceptor::Accept(lua_State* L) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Acceptor::HandleAccept(int reference, boost::asio::ip::tcp::socket* socket, const boost::system::error_code& error) {
-	LogDebug("Acceptor::HandleAccept (%p) (id=%d) (new socket %p)", this, m_acceptorId, socket);
+void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tcp::socket> socket, const boost::system::error_code& error) {
+	LogDebug("Acceptor::HandleAccept (%p) (id=%d) (new socket %p)", this, m_acceptorId, socket.get());
 	lua_State* L = m_L;
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
@@ -200,7 +201,7 @@ void Acceptor::HandleAccept(int reference, boost::asio::ip::tcp::socket* socket,
 	}
 	else {
 		if(error != boost::asio::error::operation_aborted) {
-			LogError("Acceptor::HandleAccept (%p) (id=%d) (new socket %p) - %s", this, m_acceptorId, socket, error.message().c_str());
+			LogError("Acceptor::HandleAccept (%p) (id=%d) (new socket %p) - %s", this, m_acceptorId, socket.get(), error.message().c_str());
 		}
 	}
 	lua_settop(L, 0);

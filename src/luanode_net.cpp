@@ -157,7 +157,7 @@ Socket::Socket(lua_State* L) :
 
 //////////////////////////////////////////////////////////////////////////
 /// This gets called when we accept a connection
-Socket::Socket(lua_State* L, boost::asio::ip::tcp::socket* socket) :
+Socket::Socket(lua_State* L, boost::shared_ptr<boost::asio::ip::tcp::socket> socket) :
 	m_L(L),
 	m_socketId(++s_nextSocketId),
 	m_close_pending(false),	

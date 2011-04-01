@@ -31,7 +31,7 @@ public:
 
 
 public:
-	void HandleAccept(int reference, boost::asio::ip::tcp::socket* socket, const boost::system::error_code& error);
+	void HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tcp::socket> socket, const boost::system::error_code& error);
 
 
 	static void RegisterFunctions(lua_State* L);
