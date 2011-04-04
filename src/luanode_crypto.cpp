@@ -80,7 +80,7 @@ const Socket::RegType Socket::getters[] = {
 
 
 static int verify_callback(int ok, X509_STORE_CTX *ctx) {
-	assert(ok);
+	//assert(ok);
 	return(1); // Ignore errors by now. VerifyPeer will catch them by using SSL_get_verify_result.
 }
 
