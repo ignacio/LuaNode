@@ -15,19 +15,24 @@ That allows **LuaNode** to be cross-platform. It is mainly developed on Windows,
 
 The following is the *"hello world"* of HTTP servers.
 
-    local http = require('luanode.http')
+```lua
+local http = require('luanode.http')
 
-    http.createServer(function(self, request, response)
-    	response:writeHead(200, {["Content-Type"] = "text/plain"})
-    	response:finish("Hello World")
-    end):listen(8124)
+http.createServer(function(self, request, response)
+	response:writeHead(200, {["Content-Type"] = "text/plain"})
+	response:finish("Hello World")
+end):listen(8124)
 
-    console.log('Server running at http://127.0.0.1:8124/')
+console.log('Server running at http://127.0.0.1:8124/')
 
-    process:loop()
+process:loop()
+```
 
 To run the server, put the above code in a file `test_server.lua` and execute it with **LuaNode** as follows:  
-    luanode test_server.lua
+
+```bash
+luanode test_server.lua
+```
 
 Then point your browser to `http://localhost:8124/`
 
