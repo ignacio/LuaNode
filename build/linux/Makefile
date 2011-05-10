@@ -31,7 +31,7 @@ OPENSSL_INC ?= $(OPENSSL_DIR)/include
 
 GCC_VERSION ?= $(shell expr substr "`g++ -dumpversion | tr -dc '[0-9]'`" 1 2)
 
-BASE_SRC_DIR = ../../
+BASE_SRC_DIR = ../..
 
 Target ?= Release
 
@@ -51,8 +51,13 @@ OUTPUT_DIR = $(INCONCERT_BIN)
 COMPILER = g++
 COMPILER_C = gcc
 LINKER = g++
-LUA = lua
+LUA ?= $(shell which lua)
 BIN2C = $(BASE_SRC_DIR)/tools/bin2c.lua
+
+# if Lua is not on the path, either set it explicitly
+ifeq ($(strip $(LUA)),)
+	LUA = /usr/local/bin/lua
+endif
 
 ifeq ($(Target), Debug)
 	OUTPUT = $(OUTPUT)_d
@@ -124,6 +129,7 @@ all : $(OUTPUT_FILE)
 
 
 $(Target) :
+	echo $(LUA)
 	mkdir -p $(Target)
 	mkdir -p $(BASE_SRC_DIR)/build/temp
 
