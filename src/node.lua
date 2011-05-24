@@ -360,7 +360,7 @@ else
 	script_path = nil
 	
 	local arg = {}
-	for i=1, #process.argv do arg[#arg + 1] = process.argv[i] end
+	for k,v in pairs(process.argv) do arg[k] = v end
 	_G.arg = arg
 	local result = code(unpack(process.argv))
 	if result ~= nil then
