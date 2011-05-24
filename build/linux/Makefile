@@ -45,7 +45,7 @@ INCLUDES =	-I$(INCONCERT_SOURCES)	\
 # All libs:
 LIBS = -L$(INCONCERT_LIB) -L$(BOOST_LIBS) -L$(INCONCERT_BIN)
 
-OUTPUT = luanode
+OUTPUT_BASE = luanode
 
 OUTPUT_DIR = $(INCONCERT_BIN)
 COMPILER = g++
@@ -60,7 +60,7 @@ ifeq ($(strip $(LUA)),)
 endif
 
 ifeq ($(Target), Debug)
-	OUTPUT = $(OUTPUT)_d
+	OUTPUT = $(OUTPUT_BASE)_d
 	CFLAGS = -Wall -c -g -D_DEBUG
 	LFLAGS = -Wall -g -Wl,-E
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt-d \
@@ -68,6 +68,7 @@ ifeq ($(Target), Debug)
 			-ldl \
 			-lssl
 else
+	OUTPUT = $(OUTPUT_BASE)
 	CFLAGS = -Wall -c -O2 -D_NDEBUG -Wno-strict-aliasing
 	LFLAGS = -Wall -Wl,-E
 	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt \
