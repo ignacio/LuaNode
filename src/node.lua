@@ -359,8 +359,9 @@ else
 	package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( script_path, script_path ) ) .. package.path
 	script_path = nil
 	
-	local args = {}
-	for i=3, #process.argv do args[#args + 1] = process.argv[i] end
+	local arg = {}
+	for i=1, #process.argv do arg[#arg + 1] = process.argv[i] end
+	_G.arg = arg
 	local result = code(unpack(process.argv))
 	if result ~= nil then
 		propagate_result = tonumber(result)
