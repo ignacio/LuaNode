@@ -482,8 +482,8 @@ static int Load(int argc, char *argv[]) {
 	lua_newtable(L);
 	int argArray = lua_gettop(L);
 	lua_pushstring(L, argv[0]);
-	lua_rawseti(L, argArray, 1);
-	for(int j = 2, i = option_end_index; i < argc; j++, i++) {
+	lua_rawseti(L, argArray, -1);
+	for(int j = 0, i = option_end_index; i < argc; j++, i++) {
 		lua_pushstring(L, argv[i]);
 		lua_rawseti(L, argArray, j);
 	}

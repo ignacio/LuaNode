@@ -306,7 +306,7 @@ end
 
 local cwd = process.cwd()
 
--- Make process.argv[1] and process.argv[2] into full paths.
+-- Make process.argv[-1] and process.argv[0] into full paths.
 
 -- if tengo arguments
 --print(process.argv[1])
@@ -321,21 +321,22 @@ if not string.find(process.argv[1], path.dir_sep) then
 	--print(process.argv[1])
 end
 
-if process.argv[2] then
-	local first_arg = process.argv[2]
+if process.argv[0] then
+	local first_arg = process.argv[0]
 	if first_arg:sub(1,1) ~= path.dir_sep and not first_arg:match("^http://") then
-		process.argv[2] = path.join(cwd, first_arg)
-		print(process.argv[2])
+		process.argv[0] = path.join(cwd, first_arg)
+		print(process.argv[0])
 	end
 end
 --]=]
+
 local propagate_result = 0
-if not process.argv[2] then
+if not process.argv[0] then
 	io.write("LuaNode " .. process.version .. "\n")
 	-- run repl
 	process:loop()
 else
-	local file, err = io.open(process.argv[2])
+	local file, err = io.open(process.argv[0])
 	if not file then
 		console.error(err)
 		process:emit("exit")
@@ -345,22 +346,22 @@ else
 	--file:close()
 	
 	--code = code .. "\r\nprocess:loop()"
-	code, err = loadfile(process.argv[2])
-	--code, err = loadstring(code, "@"..process.argv[2])
-	--code, err = loadstring(code, process.argv[2])
+	code, err = loadfile(process.argv[0])
+	--code, err = loadstring(code, "@"..process.argv[0])
+	--code, err = loadstring(code, process.argv[0])
 	if not code then
 		error(err)
 	end
 	
 	-- put the directory name of the main script in the "require" path
-	local script_path = path.normalize( process.cwd() .. "/" .. process.argv[2])
+	local script_path = path.normalize( process.cwd() .. "/" .. process.argv[0])
 	script_path = path.dirname(script_path)
 	package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( script_path, script_path ) ) .. package.path
 	script_path = nil
 	
 	local args = {}
 	for i=3, #process.argv do args[#args + 1] = process.argv[i] end
-	local result = code(unpack(args))
+	local result = code(unpack(process.argv))
 	if result ~= nil then
 		propagate_result = tonumber(result)
 	end
