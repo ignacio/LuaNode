@@ -716,6 +716,7 @@ void Socket::HandleConnect(int reference, const boost::system::error_code& error
 		lua_pushvalue(L, 1);
 		if(!error) {
 			lua_pushboolean(L, true);
+			// TODO: Must always use the right L (coroutines)	//lua_call(L, 2, LUA_MULTRET);
 			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
