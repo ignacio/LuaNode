@@ -59,22 +59,29 @@ ifeq ($(strip $(LUA)),)
 	LUA = /usr/local/bin/lua
 endif
 
+BOOST_SYSTEM_LIB ?=boost_system-gcc$(GCC_VERSION)-mt
+BOOST_SYSTEM_LIBD ?=boost_system-gcc$(GCC_VERSION)-mt-d
+
 ifeq ($(Target), Debug)
 	OUTPUT = $(OUTPUT_BASE)_d
 	CFLAGS = -Wall -c -g -D_DEBUG
 	LFLAGS = -Wall -g -Wl,-E
-	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt-d \
+	SPECIFIC_LIBS = -l$(BOOST_SYSTEM_LIBD) \
 			$(LUA_LIB) \
 			-ldl \
-			-lssl
+			-lssl \
+			-lpthread \
+			-lcrypto
 else
 	OUTPUT = $(OUTPUT_BASE)
 	CFLAGS = -Wall -c -O2 -D_NDEBUG -Wno-strict-aliasing
 	LFLAGS = -Wall -Wl,-E
-	SPECIFIC_LIBS = -lboost_system-gcc$(GCC_VERSION)-mt \
+	SPECIFIC_LIBS = -l$(BOOST_SYSTEM_LIB) \
 			$(LUA_LIB) \
 			-ldl \
-			-lssl
+			-lssl \
+			-lpthread \
+			-lcrypto
 endif
 
 OUTPUT_FILE = $(OUTPUT_DIR)/$(OUTPUT)
