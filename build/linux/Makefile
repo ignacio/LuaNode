@@ -29,7 +29,10 @@ OPENSSL_DIR_DEFAULT = $(PACKAGES)/OpenSSL-1.0.0a
 OPENSSL_DIR ?= $(PREFIX)/openssl
 OPENSSL_INC ?= $(OPENSSL_DIR)/include
 
-GCC_VERSION ?= $(shell expr substr "`g++ -dumpversion | tr -dc '[0-9]'`" 1 2)
+INCONCERT_COMPILER ?= g++
+INCONCERT_COMPILER_C ?= gcc
+
+GCC_VERSION ?= $(shell expr substr "`$(INCONCERT_COMPILER) -dumpversion | tr -dc '[0-9]'`" 1 2)
 
 BASE_SRC_DIR = ../..
 
@@ -48,9 +51,9 @@ LIBS = -L$(INCONCERT_LIB) -L$(BOOST_LIBS) -L$(INCONCERT_BIN)
 OUTPUT_BASE = luanode
 
 OUTPUT_DIR = $(INCONCERT_BIN)
-COMPILER = g++
-COMPILER_C = gcc
-LINKER = g++
+COMPILER = $(INCONCERT_COMPILER)
+COMPILER_C = $(INCONCERT_COMPILER_C)
+LINKER = $(INCONCERT_COMPILER)
 LUA ?= $(shell which lua)
 BIN2C = $(BASE_SRC_DIR)/tools/bin2c.lua
 
