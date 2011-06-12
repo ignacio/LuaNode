@@ -257,7 +257,7 @@ int Socket::SetOption(lua_State* L) {
 					}
 				}
 #elif defined(__APPLE__)
-				if( setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, (void *)&time, sizeof(time)) != 0 ) {
+				if( setsockopt(m_socket->native(), IPPROTO_TCP, TCP_KEEPALIVE, (void *)&time, sizeof(time)) != 0 ) {
 					luaL_error(L, "Socket::SetOption (%p) - Failed to set keepalive (TCP_KEEPALIVE) on native socket - %d", this, errno);
 				}
 #endif
