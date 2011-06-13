@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "LuaVM.h"
+#include "lua_vm.h"
 #include "blogger.h"
 #include <assert.h>
 #include <string>

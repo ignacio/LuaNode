@@ -1,7 +1,7 @@
 #ifndef _LUA_VM__H_
 #define _LUA_VM__H_
 
-#include "LuaRuntime.h"
+#include "lua_runtime.h"
 
 class CLuaVM :
 	public CLuaRuntime<CLuaVM>

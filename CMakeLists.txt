@@ -58,7 +58,7 @@ ENDFOREACH(filename)
 SET(SOURCES
     deps/http-parser/http_parser.c
     src/blogger.cpp
-    src/LuaNode.cpp
+    src/luanode.cpp
     src/luanode_child_process.cpp
     src/luanode_crypto.cpp
     src/luanode_dns.cpp
@@ -70,7 +70,7 @@ SET(SOURCES
     src/luanode_timer.cpp
     src/luanode_os.cpp
     ${OS}
-    src/LuaVM.cpp
+    src/lua_vm.cpp
     lib/preloader.cpp
 )
 

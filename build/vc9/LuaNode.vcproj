@@ -208,8 +208,8 @@
 				Optimization="0"
 				EnableIntrinsicFunctions="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
+				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;;&quot;$(INCONCERT_DEVEL)\sources&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501;ENABLE_LIBBLOGGER"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
@@ -276,7 +276,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\LuaNode.cpp"
+				RelativePath="..\..\src\lua_vm.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode.cpp"
 				>
 			</File>
 			<File
@@ -376,10 +380,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\LuaVM.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\platform_linux.cpp"
 				>
 				<FileConfiguration
@@ -470,6 +470,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lua_runtime.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lua_stack_checker.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lua_vm.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\luanode_api.h"
 				>
 			</File>
@@ -523,18 +539,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_timer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\LuaRuntime.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\LuaStackChecker.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\LuaVM.h"
 				>
 			</File>
 			<File

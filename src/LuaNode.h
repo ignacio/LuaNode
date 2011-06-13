@@ -2,7 +2,7 @@
 #define SRC_LUANODE_H_
 
 #include <boost/asio/io_service.hpp>
-#include "LuaVM.h"
+#include "lua_vm.h"
 
 /*#include <sys/types.h>
 

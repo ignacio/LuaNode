@@ -95,7 +95,7 @@ COMPILE_LUA = $(LUA) $(BIN2C) "$<" extension_status > "$(BASE_SRC_DIR)/build/tem
 
 OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(Target)/blogger.o \
-		$(Target)/LuaNode.o \
+		$(Target)/luanode.o \
 		$(Target)/luanode_child_process.o \
 		$(Target)/luanode_crypto.o \
 		$(Target)/luanode_dns.o \
@@ -108,7 +108,7 @@ OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(Target)/luanode_timer.o \
 		$(Target)/luanode_os.o \
 		$(Target)/luanode_stdio_linux.o \
-		$(Target)/LuaVM.o \
+		$(Target)/lua_vm.o \
 		$(Target)/platform_linux.o \
 		$(Target)/preloader.o \
 		$(Target)/http_parser.o
@@ -161,9 +161,6 @@ $(Target)/StackTracePlus/%.precomp : $(BASE_SRC_DIR)/deps/StackTracePlus/src/%.l
 	$(COMPILE_LUA)
 
 
-
-#$(Target)/libBlogger2Cpp.o: $(INCONCERT_SOURCES)/libblogger2/src/libBlogger2Cpp.cpp
-#	$(COMPILER) $(CFLAGS) $(INCONCERT_SOURCES)/libblogger2/src/libBlogger2Cpp.cpp -o $(Target)/libBlogger2Cpp.o $(INCLUDES)
 
 $(Target)/preloader.o: $(BASE_SRC_DIR)/lib/preloader.cpp
 	$(COMPILER) $(CFLAGS) $(BASE_SRC_DIR)/lib/preloader.cpp -o $(Target)/preloader.o
