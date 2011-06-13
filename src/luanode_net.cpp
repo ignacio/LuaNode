@@ -654,10 +654,18 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 				break;
 			}
 
-			if(error.value() != boost::asio::error::eof && error.value() != boost::asio::error::operation_aborted) {
-				LogError("Socket::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+			switch(error.value()) {
+				case boost::asio::error::eof:
+					LogDebug("Socket::HandleReadSome (EOF) (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+				break;
+				case boost::asio::error::operation_aborted:
+					LogDebug("Socket::HandleReadSome (operation aborted) (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+				break;
+				default:
+					LogError("Socket::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+				break;
 			}
-
+			
 			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 		}
 		else {
