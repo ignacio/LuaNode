@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "LuaNode.h"
+#include "luanode.h"
 #include "luanode_file_linux.h"
 #include <sys/types.h>
 #include "blogger.h"

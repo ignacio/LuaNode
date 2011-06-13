@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "LuaNode.h"
+#include "luanode.h"
 #include "platform.h"
 
 

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "blogger.h"
-#include "LuaNode.h"
+#include "luanode.h"
 #include "luanode_module_api.h"
 #include <boost/bind.hpp>
 
