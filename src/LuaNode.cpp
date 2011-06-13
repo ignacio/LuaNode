@@ -30,6 +30,8 @@
 	#include "luanode_file_win32.h"
 #elif defined(__linux__)
 	#include "luanode_file_linux.h"
+#elif defined(__APPLE__)
+	#include "luanode_file_linux.h"	// temporary hack
 #else
 	#error "Unsupported platform"
 #endif
@@ -47,6 +49,13 @@
 #include <unistd.h>
 #define lua_stdin_is_tty()	isatty(0)
 #endif*/
+
+#ifdef __APPLE__
+  #include <crt_externs.h>
+  #define environ (*_NSGetEnviron())
+#else
+  extern char **environ;
+#endif
 
 
 namespace LuaNode {
