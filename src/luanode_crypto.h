@@ -6,6 +6,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/streambuf.hpp>
 
+#include <openssl/hmac.h>
 #include <boost/asio/ssl.hpp>
 
 namespace LuaNode {
