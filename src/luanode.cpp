@@ -69,7 +69,8 @@ static bool need_tick_cb = false;
 static int tickCallback = LUA_NOREF;
 
 static boost::asio::io_service io_service;
-static CLuaVM luaVm;
+static CLuaVM* luaVm = NULL;
+static int exit_code = 0;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,7 +82,7 @@ static CLuaVM luaVm;
 //////////////////////////////////////////////////////////////////////////
 /// 
 /*static*/ CLuaVM& GetLuaVM() {
-	return luaVm;
+	return *luaVm;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,33 +100,69 @@ static CLuaVM luaVm;
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// 
-static void SignalExit(int signal) {
-	// Stop the io pool
-	LuaNode::GetIoService().stop();
-	// Kindly leave the stage...
-	//exit(1);
-#ifdef _WIN32
-	//::ExitProcess(0);
-	::TerminateProcess(NULL, 1);
-#else
-	exit(1);
+/// http://linux.die.net/man/7/signal
+static const char* SignalNumberToString(int sig_no) {
+	switch(sig_no) {
+		case SIGABRT: return "SIGABRT"; break;  /* Abort signal from abort(3) */
+		case SIGFPE:  return "SIGFPE";  break;  /* Floating point exception */
+		case SIGILL:  return "SIGILL";  break;  /* Illegal Instruction */
+		case SIGINT:  return "SIGINT";  break;  /* Interrupt from keyboard */
+		case SIGSEGV: return "SIGSEGV"; break;  /* Invalid memory reference */
+		case SIGTERM: return "SIGTERM"; break;  /* Termination signal */
+
+#ifndef _WIN32
+		case SIGALRM: return "SIGALRM"; break;  /* Timer signal from alarm(2) */
+		case SIGHUP:  return "SIGHUP";  break;	/* Hangup detected on controlling terminal or death of controlling process */
+		case SIGKILL: return "SIGKILL"; break;  /* Kill signal */
+		case SIGPIPE: return "SIGPIPE"; break;  /* Broken pipe: write to pipe with no readers */
+		case SIGQUIT: return "SIGQUIT"; break;  /* Quit from keyboard */
+		case SIGUSR1: return "SIGUSR1"; break;  /* User-defined signal 1 */
+		case SIGUSR2: return "SIGUSR2"; break;  /* User-defined signal 2 */
+		case SIGCHLD: return "SIGCHLD"; break;  /* Child stopped or terminated */
+		case SIGCONT: return "SIGCONT"; break;  /* Continue if stopped */
+		case SIGSTOP: return "SIGSTOP"; break;  /* Stop process */
+		case SIGTSTP: return "SIGTSTP"; break;  /* Stop typed at tty */
+		case SIGTTIN: return "SIGTTIN"; break;  /* tty input for background process */
+		case SIGTTOU: return "SIGTTOU"; break;  /* tty output for background process */
+
+		case SIGBUS:  return "SIGBUS";  break;  /* Bus error (bad memory access) */
+		case SIGPOLL: return "SIGPOLL"; break;  /* Pollable event (Sys V). Synonym of SIGIO */
+		case SIGPROF: return "SIGPROF"; break;  /* Profiling timer expired */
+		case SIGSYS:  return "SIGSYS";  break;  /* Bad argument to routine (SVr4) */
+		case SIGTRAP: return "SIGTRAP"; break;  /* Trace/breakpoint trap */
+		case SIGURG:  return "SIGURG";  break;  /* Urgent condition on socket (4.2BSD) */
+		case SIGVTALRM: return "SIGVTALRM"; break;  /* Virtual alarm clock (4.2BSD) */
+		case SIGXCPU: return "SIGXCPU"; break;  /* CPU time limit exceeded (4.2BSD) */
+		case SIGXFSZ: return "SIGXFSZ"; break;  /* File size limit exceeded (4.2BSD) */
+
 #endif
+
+		default: return "unknown"; break;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-static int RegisterSignalHandler(int sig_no, void (*handler)(int)) {
+static void SignalExit(int signal) {
+	fprintf(stderr, "\nSignalExit %s (%d)\n", SignalNumberToString(signal), signal);
+	// Stop the io pool
+	LuaNode::GetIoService().stop();
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int RegisterSignalHandler(int signal_no, void (*handler)(int)) {
+	LogDebug("Registering signal handler for %s (%d)", SignalNumberToString(signal_no), signal_no);
 #ifdef _WIN32
-	signal(sig_no, handler);
+	signal(signal_no, handler);
 	return 0;
 #else
 	struct sigaction sa;
 
 	memset(&sa, 0, sizeof(sa));
-
+	sa.sa_handler = handler;
 	sigfillset(&sa.sa_mask);
-	return sigaction(sig_no, &sa, NULL);
+	return sigaction(signal_no, &sa, NULL);
 #endif	
 }
 
@@ -184,15 +221,18 @@ static int Cwd(lua_State* L) {
 /// 
 static int Exit(lua_State* L) {
 	int code = luaL_optinteger(L, 1, EXIT_FAILURE);
+	
 	LuaNode::GetIoService().stop();
-	//lua_close(LuaNode::GetLuaVM());
+	fprintf(stderr, "Exit with code %d\n", code);
 
 	// Will it be possible to have a clean ending?
 #ifdef _WIN32
 	//::ExitProcess(0);
-	::TerminateProcess(NULL, code);
+	//::TerminateProcess(NULL, code);
+	exit_code = code;
 #else
-	exit(code);
+	//exit(code);
+	exit_code = code;
 #endif
 	return 0;
 }
@@ -261,7 +301,7 @@ static void lstop (lua_State *L, lua_Debug *ar) {
 static void laction (int i) {
 	signal(i, SIG_DFL); /* if another SIGINT happens before lstop,
 							terminate process (default action) */
-	lua_sethook(LuaNode::luaVm, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
+	lua_sethook(*LuaNode::luaVm, lstop, LUA_MASKCALL | LUA_MASKRET | LUA_MASKCOUNT, 1);
 }
 
 
@@ -444,7 +484,7 @@ static int handle_luainit (lua_State *L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static int Load(int argc, char *argv[]) {
-	lua_State* L = LuaNode::luaVm;
+	lua_State* L = *LuaNode::luaVm;
 	
 	int status = handle_luainit(L);
 	if(status != 0) return EXIT_FAILURE;
@@ -593,7 +633,7 @@ static int Load(int argc, char *argv[]) {
 	lua_call(L, 1, 1);
 	lua_getfield(L, -1, "stacktrace");
 	int ref = luaL_ref(L, LUA_REGISTRYINDEX);
-	LuaNode::luaVm.setErrorHandler(ref);		// TODO: maybe add a flag to disable it?
+	LuaNode::luaVm->setErrorHandler(ref);		// TODO: maybe add a flag to disable it?
 
 	if(!debug_mode) {
 		PreloadModules(L);
@@ -607,13 +647,13 @@ static int Load(int argc, char *argv[]) {
 		lua_pushboolean(L, true);
 		lua_setfield(L, LUA_GLOBALSINDEX, "DEBUG"); // esto es temporal (y horrendo)
 #if defined _WIN32
-		LuaNode::luaVm.loadfile("d:/trunk_git/sources/luanode/src/node.lua");
+		LuaNode::luaVm->loadfile("d:/trunk_git/sources/luanode/src/node.lua");
 #else
-		LuaNode::luaVm.loadfile("/home/ignacio/devel/sources/LuaNode/src/node.lua");
+		LuaNode::luaVm->loadfile("/home/ignacio/devel/sources/LuaNode/src/node.lua");
 #endif
 	}
 
-	LuaNode::luaVm.call(0, 1);
+	LuaNode::luaVm->call(0, 1);
 
 	int function = lua_gettop(L);
 	if(lua_type(L, function) != LUA_TFUNCTION) {
@@ -623,9 +663,9 @@ static int Load(int argc, char *argv[]) {
 	}
 	lua_pushvalue(L, process);
 
-	if(LuaNode::luaVm.call(1, LUA_MULTRET) != 0) {
-		LuaNode::luaVm.dostring("process:emit('unhandledError')");	// TODO: pass the error's callstack
-		LuaNode::luaVm.dostring("process:emit('exit')");
+	if(LuaNode::luaVm->call(1, LUA_MULTRET) != 0) {
+		LuaNode::luaVm->dostring("process:emit('unhandledError')");	// TODO: pass the error's callstack
+		LuaNode::luaVm->dostring("process:emit('exit')");
 		return EXIT_FAILURE;
 	}
 	if(lua_type(L, -1) == LUA_TNUMBER) {
@@ -668,16 +708,21 @@ static void ParseArgs(int *argc, char **argv) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static void AtExit() {
-	LuaNode::Stdio::OnExit( LuaNode::GetLuaVM() );
+	LuaNode::Stdio::OnExit();
 	LuaNode::Stdio::Flush();
-
-	LogFree();
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 #else
 	printf("\033[0m");
 #endif
+
+	// in case it escaped
+	if(luaVm) {
+		delete luaVm;
+		luaVm = NULL;
+	}
+	LogFree();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -705,7 +750,9 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 
 			// Stop the io pool
 			LuaNode::GetIoService().stop();
-			return FALSE;
+			Sleep(20000);
+			//AtExit();
+			return TRUE;	// don't call the default handler
 			break;
 	}
 	return FALSE;
@@ -714,11 +761,12 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 
 }  // namespace LuaNode
 
-
 //////////////////////////////////////////////////////////////////////////
 /// 
 int main(int argc, char* argv[])
 {
+	LuaNode::luaVm = new CLuaVM;
+
 #if defined(_WIN32)
 	if(!SetConsoleCtrlHandler((PHANDLER_ROUTINE)LuaNode::ConsoleControlHandler, TRUE)) {
 		LogError("SetConsoleCtrlHandler failed");
@@ -729,7 +777,6 @@ int main(int argc, char* argv[])
 
 	// TODO: wrappear el log en un objeto (o usar libblogger2cpp)
 	LogInfo("**** Starting LuaNode - Built on %s ****", LuaNode::compileDateTime);
-
 #ifndef _WIN32
 	LuaNode::RegisterSignalHandler(SIGPIPE, SIG_IGN);
 #endif
@@ -742,6 +789,10 @@ int main(int argc, char* argv[])
 	LuaNode::ParseArgs(&argc, argv);
 
 	int result = LuaNode::Load(argc, argv);
-	LogFree();
+
+	delete LuaNode::luaVm; LuaNode::luaVm = NULL;
+	if(LuaNode::exit_code != 0) {
+		return LuaNode::exit_code;
+	}
 	return result;
 }
