@@ -16,6 +16,7 @@ CLuaVM::CLuaVM(/*IHostVirtualMachine& vmHost*/) :
 	////Pm_timestampLastUsed(GetTickCount())
 	m_timestampLastUsed(0)	// until no equivalent function available
 {
+	LogDebug("CLuaVM::CLuaVM (%p)", this);
 	lua_atpanic(m_L, OnPanic);
 
 	// If running under Decoda give the VM a name
@@ -26,7 +27,7 @@ CLuaVM::CLuaVM(/*IHostVirtualMachine& vmHost*/) :
 //////////////////////////////////////////////////////////////////////
 // Destructor
 CLuaVM::~CLuaVM() {
-	LogDebug("CLuaVM::~CLuaVM");
+	LogDebug("CLuaVM::~CLuaVM (%p)", this);
 }
 
 //////////////////////////////////////////////////////////////////////////
