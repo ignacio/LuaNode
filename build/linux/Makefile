@@ -12,7 +12,6 @@ PREFIX ?= /usr/local
 
 PACKAGES = $(INCONCERT_DEVEL)/packages
 BOOST_VERSION = 1_44
-#BOOST_DIR_DEFAULT = $(PACKAGES)/boost_1_47_0
 BOOST_DIR_DEFAULT = $(PREFIX)/include/boost-$(BOOST_VERSION)
 BOOST_DIR ?= $(BOOST_DIR_DEFAULT)
 #BOOST_LIBS_DEFAULT = $(BOOST_DIR)/lib
@@ -41,9 +40,9 @@ Target ?= Release
 
 # All includes:
 INCLUDES =	-I$(INCONCERT_SOURCES)	\
-		-I$(LUA_INC)		\
-		-I$(BOOST_DIR)		\
-		-I$(OPENSSL_INC)
+			-I$(LUA_INC)		\
+			-I$(BOOST_DIR)		\
+			-I$(OPENSSL_INC)
 
 
 # All libs:
