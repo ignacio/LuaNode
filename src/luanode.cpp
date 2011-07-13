@@ -1,6 +1,12 @@
 #include "stdafx.h"
 
-#include "luanode.h"
+#ifdef _MSC_VER
+#  pragma warning(disable:4180)	// warning C4180: qualifier applied to function type has no meaning; ignored
+#  include "luanode.h"			// because the call to LuaNode::GetIoService().post(LuaNode::Tick) does not bind any arg
+#  pragma warning(default:4180)
+#else
+#  include "luanode.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
