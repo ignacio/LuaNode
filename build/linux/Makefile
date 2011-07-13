@@ -11,8 +11,9 @@ INCONCERT_LIB ?= $(INCONCERT_LIB_DEFAULT)
 PREFIX ?= /usr/local
 
 PACKAGES = $(INCONCERT_DEVEL)/packages
-#BOOST_DIR_DEFAULT = $(PACKAGES)/boost_1_44_0
-BOOST_DIR_DEFAULT = $(PREFIX)/include/boost-1_44
+BOOST_VERSION = 1_44
+#BOOST_DIR_DEFAULT = $(PACKAGES)/boost_1_47_0
+BOOST_DIR_DEFAULT = $(PREFIX)/include/boost-$(BOOST_VERSION)
 BOOST_DIR ?= $(BOOST_DIR_DEFAULT)
 #BOOST_LIBS_DEFAULT = $(BOOST_DIR)/lib
 BOOST_LIBS_DEFAULT = $(PREFIX)/lib
@@ -62,8 +63,8 @@ ifeq ($(strip $(LUA)),)
 	LUA = /usr/local/bin/lua
 endif
 
-BOOST_SYSTEM_LIB ?=boost_system-gcc$(GCC_VERSION)-mt
-BOOST_SYSTEM_LIBD ?=boost_system-gcc$(GCC_VERSION)-mt-d
+BOOST_SYSTEM_LIB ?=boost_system-gcc$(GCC_VERSION)-mt-$(BOOST_VERSION)
+BOOST_SYSTEM_LIBD ?=boost_system-gcc$(GCC_VERSION)-mt-d-$(BOOST_VERSION)
 
 ifeq ($(Target), Debug)
 	OUTPUT = $(OUTPUT_BASE)_d
