@@ -9,7 +9,7 @@
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include "shared_const_buffer.h"
-
+#include <boost/asio/placeholders.hpp>
 
 using namespace LuaNode::Crypto;
 
