@@ -434,7 +434,7 @@ static int StartTTYWatcher (lua_State* L) {
 	return 0;
 }
 
-static int StopTTYWatcher (lua_State* L) {
+static int StopTTYWatcher (/*lua_State* L*/) {
 	// hacky way of stopping the thread
 	input.m_run = false;
 	DWORD dwWritten;
@@ -448,12 +448,17 @@ static int StopTTYWatcher (lua_State* L) {
 	return 0;
 }
 
+static int StopTTYWatcher_ (lua_State* L) {
+	StopTTYWatcher();
+	return 0;
+}
+
 static int DestroyTTYWatcher (lua_State* L) {
 	if(!tty_watcher_initialized) {
 		return luaL_error(L, "TTY watcher not initialized");
 	}
 
-	StopTTYWatcher(L);
+	StopTTYWatcher(/*L*/);
 
 	if(tty_error_callback != LUA_NOREF) {
 		luaL_unref(L, LUA_REGISTRYINDEX, tty_error_callback);
@@ -496,7 +501,7 @@ void LuaNode::Stdio::RegisterFunctions (lua_State* L) {
 		{ "initTTYWatcher", InitTTYWatcher },
 		{ "destroyTTYWatcher", DestroyTTYWatcher },
 		{ "startTTYWatcher", StartTTYWatcher },
-		{ "stopTTYWatcher", StopTTYWatcher },
+		{ "stopTTYWatcher", StopTTYWatcher_ },
 		//{ "setRawMode", SetRawMode },
 		{ 0, 0 }
 	};
@@ -516,6 +521,6 @@ void LuaNode::Stdio::RegisterFunctions (lua_State* L) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void LuaNode::Stdio::OnExit (lua_State* L) {
-	StopTTYWatcher(L);
+void LuaNode::Stdio::OnExit (/*lua_State* L*/) {
+	StopTTYWatcher(/*L*/);
 }

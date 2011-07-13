@@ -403,6 +403,6 @@ void LuaNode::Stdio::RegisterFunctions (lua_State* L) {
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void LuaNode::Stdio::OnExit (lua_State* L) {
+void LuaNode::Stdio::OnExit (/*lua_State* L*/) {
 	DisableRawMode(STDIN_FILENO);
 }
