@@ -756,7 +756,6 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 
 			// Stop the io pool
 			LuaNode::GetIoService().stop();
-			Sleep(20000);
 			//AtExit();
 			return TRUE;	// don't call the default handler
 			break;
