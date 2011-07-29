@@ -59,7 +59,7 @@ const File::RegType File::getters[] = {
 //////////////////////////////////////////////////////////////////////////
 /// 
 File::File(lua_State* L) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_fileId(++s_nextFileId)
 {
 	throw "Must not call File constructor directly";

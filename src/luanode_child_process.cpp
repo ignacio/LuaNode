@@ -21,7 +21,7 @@ const ChildProcess::RegType ChildProcess::getters[] = {
 };
 
 ChildProcess::ChildProcess(lua_State* L)
-	: m_L(L)
+	: m_L( LuaNode::GetLuaVM() )
 {
 
 }

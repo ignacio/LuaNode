@@ -57,7 +57,7 @@ const Socket::RegType Socket::getters[] = {
 //////////////////////////////////////////////////////////////////////////
 /// 
 Socket::Socket(lua_State* L) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_socketId(++s_nextSocketId),
 	m_close_pending(false),
 	//m_read_shutdown_pending(false),
@@ -81,7 +81,7 @@ Socket::Socket(lua_State* L) :
 //////////////////////////////////////////////////////////////////////////
 /// This gets called when we accept a connection
 Socket::Socket(lua_State* L, boost::asio::ip::udp::socket* socket) :
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_socketId(++s_nextSocketId),
 	m_close_pending(false),	
 	//m_read_shutdown_pending(false),
@@ -326,7 +326,7 @@ int Socket::SendTo(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleSendTo(int reference, int callback, const boost::system::error_code& error, size_t bytes_transferred) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
@@ -456,7 +456,7 @@ int Socket::Read(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
@@ -534,7 +534,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleReceive(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 	
@@ -641,7 +641,7 @@ int Socket::Connect(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleConnect(int reference, const boost::system::error_code& error) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 

@@ -98,7 +98,7 @@ class PosixStream : public LuaCppBridge::HybridObjectWithProperties<PosixStream>
 public:
 	// Normal constructor
 	PosixStream(lua_State* L) :
-		m_L(L),
+		m_L( LuaNode::GetLuaVM() ),
 		m_socketId(0)
 	{
 		printf("Construyendo PosixStream (%d)\n", luaL_checkinteger(L, 1));
@@ -169,7 +169,7 @@ private:
 	void HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleReadSome(int reference, const boost::system::error_code& error, size_t bytes_transferred)
 	{
-		lua_State* L = m_L;
+		lua_State* L = LuaNode::GetLuaVM();
 		lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 		luaL_unref(L, LUA_REGISTRYINDEX, reference);
 

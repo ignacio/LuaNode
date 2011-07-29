@@ -85,7 +85,7 @@ static int verify_callback(int ok, X509_STORE_CTX *ctx) {
 }
 
 Socket::Socket(lua_State* L) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_socketId(++s_nextSocketId),
 	m_shutdown_pending(false),
 	m_close_pending(false),
@@ -284,7 +284,7 @@ int Socket::DoHandShake(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleHandshake(int reference, const boost::system::error_code& error) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
@@ -378,7 +378,7 @@ int Socket::Write(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
@@ -530,7 +530,7 @@ int Socket::Read(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
@@ -619,7 +619,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleReadSome(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
@@ -748,7 +748,7 @@ int Socket::Shutdown(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Socket::HandleShutdown(int reference, const boost::system::error_code& error) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
@@ -812,10 +812,10 @@ const SecureContext::RegType SecureContext::getters[] = {
 
 typedef boost::asio::ssl::stream<boost::asio::ip::tcp::socket> ssl_socket;
 
-//TODO check if the follwoing applies https://github.com/joyent/node/commit/5c35dff4192b0e204ab4145b7f9dcdba6e76a93e
+//TODO check if the following applies https://github.com/joyent/node/commit/5c35dff4192b0e204ab4145b7f9dcdba6e76a93e
 
 SecureContext::SecureContext(lua_State* L) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_ca_store(0)
 {
 	// TODO: handle other ssl types

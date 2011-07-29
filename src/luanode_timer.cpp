@@ -25,7 +25,7 @@ const Timer::RegType Timer::getters[] = {
 	{0}
 };
 
-// ojo acá que si el código está ejecutando en una corutina, L no es mi main state, sino la propia Corutina
+// Take care: if the code is running on a coroutine, L is not the main state
 Timer::Timer(lua_State* L) : 
 	m_L( LuaNode::GetLuaVM() ),
 	m_repeats(false),
@@ -105,7 +105,7 @@ int Timer::Again(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Timer::OnTimeout(int reference, const boost::system::error_code& ec) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 

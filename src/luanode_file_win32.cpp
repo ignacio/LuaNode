@@ -75,7 +75,7 @@ const File::RegType File::getters[] = {
 //////////////////////////////////////////////////////////////////////////
 /// 
 File::File(lua_State* L) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_fileId(++s_nextFileId),
 	m_file( LuaNode::GetIoService() )
 {
@@ -83,7 +83,7 @@ File::File(lua_State* L) :
 }
 
 File::File(lua_State* L, boost::asio::windows::random_access_handle::native_type& handle) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_fileId(++s_nextFileId),
 	m_file( LuaNode::GetIoService() )
 {
@@ -136,7 +136,7 @@ int File::Read(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void File::HandleRead(int reference, int callback, const boost::system::error_code& error, size_t bytes_transferred) {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 

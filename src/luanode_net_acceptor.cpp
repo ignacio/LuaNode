@@ -40,7 +40,7 @@ const Acceptor::RegType Acceptor::getters[] = {
 };
 
 Acceptor::Acceptor(lua_State* L) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_acceptorId(++s_nextAcceptorId),
 	m_acceptor( GetIoService() )
 {
@@ -167,7 +167,7 @@ int Acceptor::Accept(lua_State* L) {
 /// 
 void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tcp::socket> socket, const boost::system::error_code& error) {
 	LogDebug("Acceptor::HandleAccept (%p) (id=%d) (new socket %p)", this, m_acceptorId, socket.get());
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 

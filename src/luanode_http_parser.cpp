@@ -77,7 +77,7 @@ const Parser::RegType Parser::getters[] = {
 };
 
 Parser::Parser(lua_State* L) : 
-	m_L(L)
+	m_L( LuaNode::GetLuaVM() )
 {
 	LogDebug("Constructing HTTP Parser (%p)", this);
 

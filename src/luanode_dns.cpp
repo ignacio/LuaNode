@@ -28,7 +28,7 @@ const Resolver::RegType Resolver::getters[] = {
 static unsigned long s_resolverCount = 0;
 
 Resolver::Resolver(lua_State* L) : 
-	m_L(L),
+	m_L( LuaNode::GetLuaVM() ),
 	m_resolver( LuaNode::GetIoService() )
 {
 	s_resolverCount++;
@@ -80,7 +80,7 @@ int Resolver::Lookup(lua_State* L) {
 /// 
 void Resolver::HandleResolve(int callback, std::string domain, bool enumerateAll, const boost::system::error_code& error, boost::asio::ip::tcp::resolver::iterator iter)
 {
-	lua_State* L = m_L;
+	lua_State* L = LuaNode::GetLuaVM();
 	
 	lua_rawgeti(L, LUA_REGISTRYINDEX, callback);
 	luaL_unref(L, LUA_REGISTRYINDEX, callback);
