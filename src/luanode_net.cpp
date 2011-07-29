@@ -673,8 +673,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 				break;
 			}
 			
-			//LuaNode::GetLuaVM().call(3, LUA_MULTRET);
-			lua_call(L, 3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 		}
 		else {
 			LogError("Socket::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
