@@ -17,6 +17,7 @@ namespace LuaNode {
 	CLuaVM& GetLuaVM();
 	int BoostErrorCodeToLua(lua_State* L, const boost::system::error_code& ec);
 	bool FatalError(lua_State* L, const char* message);
+	void ReportError(lua_State* L, const char* message);
 	
 	const char* signo_string(int errorno);
 }

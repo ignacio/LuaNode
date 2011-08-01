@@ -178,11 +178,16 @@ static void Tick() {
 	need_tick_cb = false;
 	CLuaVM& vm = LuaNode::GetLuaVM();
 	
+	int top = lua_gettop(vm);
 	// I'd previously stored the callback in the registry
 	lua_rawgeti(vm, LUA_REGISTRYINDEX, tickCallback);
-	if(vm.call(0, LUA_MULTRET) != 0) {
-		// can't call exit() here. Need to stop the IO service first (else it will block forever)
-		LuaNode::GetIoService().stop();
+	vm.call(0, LUA_MULTRET);
+	int results = lua_gettop(vm) - top;
+	if(results && lua_isstring(vm, -1)) {
+		const char* message = lua_tostring(vm, -1);
+		if(!FatalError(vm, message)) {
+			ReportError(vm, message);
+		}
 	}
 
 	lua_settop(vm, 0);
@@ -294,6 +299,26 @@ static int Loop(lua_State* L) {
 /// 
 
 static int uncaught_exception_counter = 0;
+
+void ReportError(lua_State* L, const char* message) {
+	lua_getfield(L, LUA_GLOBALSINDEX, "console");
+	if(lua_istable(L, -1)) {
+		lua_getfield(L, -1, "error");
+		if(lua_type(L, -1) == LUA_TFUNCTION) {
+			lua_pushstring(L, "%s");
+			lua_pushstring(L, message);
+			lua_call(L, 2, 0);
+		}
+		else {
+			fprintf(stderr, "%s\n", message);
+			lua_pop(L, 1);
+		}
+	}
+	else {
+		fprintf(stderr, "%s\n", message);
+	}
+	lua_pop(L, 1);
+}
 
 //////////////////////////////////////////////////////////////////////////
 /// Deals with unhandled Lua errors. Returns true if the error was handled

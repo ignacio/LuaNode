@@ -1,5 +1,3 @@
---este test esta deshabilitado porque no llamo los event handlers con pcall (para facilitar el debug)
-
 module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")
@@ -23,7 +21,7 @@ function test()
 		table.insert(order, "C")
 	end)
 
-	process:addListener('uncaughtException', function()
+	process:addListener('unhandledError', function()
 		if not exceptionHandled then
 			exceptionHandled = true
 			table.insert(order, "B")

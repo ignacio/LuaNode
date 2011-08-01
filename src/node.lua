@@ -14,6 +14,8 @@ end
 
 local path = require "luanode.path"
 
+local stp = require "stacktraceplus"
+
 -- put the current working directory in the modules path
 package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( process.cwd(), process.cwd() )  .. package.path)
 
@@ -38,14 +40,13 @@ process._tickcallback = function()
 	
 	-- can't use ipairs because if a callback calls nextTick it will be called immediately
 	for i=1, l do
-		nextTickQueue[i]()
-		--local ok, err = pcall(nextTickQueue[i])
-		--if not ok then
-			--if i < l then
-				--nextTickQueue = splice(nextTickQueue, i + 1)
-			--end
-			--error(tostring(err))
-		--end
+		local ok, err = xpcall(nextTickQueue[i], stp.stacktrace)
+		if not ok then
+			if i <= l then
+				nextTickQueue = splice(nextTickQueue, i + 1)
+			end
+			return err
+		end
 	end
 	nextTickQueue = splice(nextTickQueue, l + 1)
 end
@@ -286,6 +287,9 @@ end
 --
 --
 function process:exit (code)
+	if process._exit_already_emitted then return end
+	
+	process._exit_already_emitted = true
 	process:emit("exit", code or 0)
 	
 	process.nextTick(function()
@@ -368,7 +372,9 @@ else
 	end
 end
 
-process:emit("exit")
+if not process._exit_already_emitted then
+	process:emit("exit")
+end
 
 return propagate_result
 
