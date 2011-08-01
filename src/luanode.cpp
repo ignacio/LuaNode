@@ -256,6 +256,11 @@ static int Loop(lua_State* L) {
 	// TODO: Ver si esto no jode. Estoy sacando la tabla process del stack de C. Es seguro hacer esto porque en node.lua 
 	// guardé una referencia en _G
 	lua_settop(L, 0);
+	// If Loop was called from a coroutine, also set the main thread's top to zero
+	if(L != LuaNode::GetLuaVM())
+	{
+		lua_settop( LuaNode::GetLuaVM(), 0 );
+	}
 
 	LogDebug("LuaNode.exe: Loop - begin");
 	boost::system::error_code ec;
