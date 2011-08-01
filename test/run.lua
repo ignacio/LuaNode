@@ -44,6 +44,12 @@ lunit.setrunner({
 	end
 })
 
+-- patch process:loop
+local old_loop = process.loop
+process.loop = function()
+	assert(old_loop(process))
+end
+
 --console.begin()
 local stats = lunit.run()
 if stats.failed > 0 or stats.errors > 0 then

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "lua_vm.h"
 #include "blogger.h"
+#include "luanode.h"
 #include <assert.h>
 #include <string>
 
@@ -18,10 +19,6 @@ CLuaVM::CLuaVM(/*IHostVirtualMachine& vmHost*/) :
 {
 	LogDebug("CLuaVM::CLuaVM (%p)", this);
 	lua_atpanic(m_L, OnPanic);
-
-	// If running under Decoda give the VM a name
-	lua_pushfstring(m_L, "Lua VM (%p)", this);
-	lua_setglobal(m_L, "decoda_name");
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -85,6 +82,10 @@ int CLuaVM::OnError(bool hasStackTrace) const {
 		//errorMessage += InternalStackTrace(m_L, 0, true);
 	}
 
+	if(LuaNode::FatalError(m_L, errorMessage.c_str())) {
+		return 1;
+	}
+
 	lua_getfield(m_L, LUA_GLOBALSINDEX, "console");
 	if(lua_istable(m_L, -1)) {
 		lua_getfield(m_L, -1, "error");
@@ -103,6 +104,6 @@ int CLuaVM::OnError(bool hasStackTrace) const {
 	}
 	lua_pop(m_L, 1);
 
-	LogError("%s", errorMessage.c_str());
+	//LogError("%s", errorMessage.c_str());
 	return 1;
 }

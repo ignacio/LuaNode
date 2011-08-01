@@ -52,22 +52,24 @@ public:
 		return iRet;
 	}
 
-	inline int dostring(const char* s) {
+	inline int dostring(const char* s, int params = 0) {
+		int base = lua_gettop(m_L) - params;  /* index of arguments*/
 		int iRet = luaL_loadstring(m_L, s);
 		if(iRet == 0) {
-			int base = lua_gettop(m_L);  /* function index */
+			lua_insert(m_L, base + 1);	/* move chunk below arguments */
 			pushErrorHandler();		/* push traceback function */
-			lua_insert(m_L, base);  /* put it under chunk and args */
-   			iRet = lua_pcall(m_L, 0, LUA_MULTRET, base);
+			lua_insert(m_L, base + 1);  /* put it under chunk and args */
+   			iRet = lua_pcall(m_L, params, LUA_MULTRET, base + 1);
 			if(iRet != 0) {
 				TBase* pT = static_cast<TBase*>(this);
 				pT->OnError(true);	// ya obtuve un stack trace, no intentar obtener uno porque no va a existir
 			}
-			lua_remove(m_L, base);  /* remove traceback function */
+			lua_remove(m_L, base + 1);  /* remove traceback function */
 		}
 		else {
 			TBase* pT = static_cast<TBase*>(this);
 			pT->OnError(false);
+			lua_pop(m_L, params);
 		}
 		return iRet;
 	}

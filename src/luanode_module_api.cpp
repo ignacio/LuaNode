@@ -28,8 +28,8 @@ static void HandleModuleCallback(const char* module_name, const char* function_n
 	lua_pushinteger(L, key);
 	lua_pushlightuserdata(L, userdata);
 	if(vm.call(4, LUA_MULTRET) != 0) {
-		vm.dostring("process:emit('unhandledError')");	// TODO: pass the error's callstack
-		vm.dostring("process:exit(-1)");
+		//vm.dostring("process:emit('unhandledError')");	// the error was already reported in CLuaVM::OnError
+		vm.dostring("process:exit(1)");
 	}
 
 	lua_settop(vm, 0);

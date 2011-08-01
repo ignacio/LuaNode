@@ -177,14 +177,13 @@ static int RegisterSignalHandler(int signal_no, void (*handler)(int)) {
 static void Tick() {
 	need_tick_cb = false;
 	CLuaVM& vm = LuaNode::GetLuaVM();
-	//lua_getfield(vm, LUA_GLOBALSINDEX, "process");			// process
-	//lua_getfield(vm, -1, "_tickcallback");					// process, function
-	//int _tickCallback = luaL_ref(L, LUA_REGISTRYINDEX);
-	//vm.call(0, LUA_MULTRET);
-
+	
 	// I'd previously stored the callback in the registry
 	lua_rawgeti(vm, LUA_REGISTRYINDEX, tickCallback);
-	vm.call(0, LUA_MULTRET);
+	if(vm.call(0, LUA_MULTRET) != 0) {
+		// can't call exit() here. Need to stop the IO service first (else it will block forever)
+		LuaNode::GetIoService().stop();
+	}
 
 	lua_settop(vm, 0);
 }
@@ -244,7 +243,8 @@ static int Exit(lua_State* L) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// The main loop
+/// The main loop. Will return false + error message (or error code) in 
+/// case of an error.
 static int Loop(lua_State* L) {
 	//lua_getfield(L, LUA_GLOBALSINDEX, "process");
 
@@ -276,23 +276,61 @@ static int Loop(lua_State* L) {
 
 	if(ec) {
 		LogError("LuaNode.exe: Loop - ended with error\r\n%s", ec.message().c_str());
-		return ec.value();
+		lua_pushnil(L);
+		lua_pushstring(L, ec.message().c_str());
+		return 2;
 	}
 	LogDebug("LuaNode.exe: Loop - end");
-	return 0;
+	if(exit_code) {
+		lua_pushnil(L);
+		lua_pushnumber(L, exit_code);
+		return 2;
+	}
+	lua_pushboolean(L, true);
+	return 1;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-/*static void OnFatalError(const char* location, const char* message) {
-	if (location) {
-		fprintf(stderr, "FATAL ERROR: %s %s\n", location, message);
-	} else {
-		fprintf(stderr, "FATAL ERROR: %s\n", message);
+
+static int uncaught_exception_counter = 0;
+
+//////////////////////////////////////////////////////////////////////////
+/// Deals with unhandled Lua errors. Returns true if the error was handled
+/// (that is, an 'unhandledError' handler was found).
+bool FatalError(lua_State* L, const char* message)
+{
+	int top = lua_gettop(L);
+	// Check if uncaught_exception_counter indicates a recursion
+	if (uncaught_exception_counter > 0) {
+		LuaNode::GetIoService().stop();
+		return false;
 	}
-	exit(1);
-}*/
+
+	lua_getfield(L, LUA_GLOBALSINDEX, "process");
+	lua_getfield(L, -1, "_events");
+	if(!lua_istable(L, -1)) {
+		uncaught_exception_counter++;
+		LuaNode::luaVm->dostring("process:exit(1)");
+		uncaught_exception_counter--;
+		return false;
+	}
+	lua_getfield(L, -1, "unhandledError");
+	if(!lua_isnil(L, -1)) {
+		uncaught_exception_counter++;
+		lua_pushstring(L, message);
+		LuaNode::luaVm->dostring("process:emit('unhandledError', ...)", 1);
+		uncaught_exception_counter--;
+		lua_settop(L, top);
+		return true;
+	}
+	else {
+		uncaught_exception_counter++;
+		LuaNode::luaVm->dostring("process:exit(1)");
+		uncaught_exception_counter--;
+	}
+	return false;
+}
 
 //////////////////////////////////////////////////////////////////////////
 /// 
@@ -675,7 +713,7 @@ static int Load(int argc, char *argv[]) {
 	lua_pushvalue(L, process);
 
 	if(LuaNode::luaVm->call(1, LUA_MULTRET) != 0) {
-		LuaNode::luaVm->dostring("process:emit('unhandledError')");	// TODO: pass the error's callstack
+		//LuaNode::luaVm->dostring("process:emit('unhandledError')");	// the error was already reported in CLuaVM::OnError
 		LuaNode::luaVm->dostring("process:emit('exit')");
 		return EXIT_FAILURE;
 	}
