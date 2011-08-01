@@ -813,18 +813,20 @@ function Socket:destroy (exception)
 		self.server.clients[self] = nil
 	end
 	
-	-- No puedo cerrar enseguida ?
+	-- Issue a close call once (avoids errors with multiple destroy calls)
 	if self._raw_socket then
 		self._raw_socket:close()
 		self._raw_socket = nil
-		self.secureContext = nil	-- todo: why Net does have to deal with this?
-		m_opened_sockets[self] = nil
-		process.nextTick(function()
-			if exception then self:emit("error", exception) end
-			self:emit("close", exception and true or false)
-			--self.server.clients[self] = nil
-		end)
 	end
+	
+	self.secureContext = nil	-- todo: why Net does have to deal with this?
+	m_opened_sockets[self] = nil
+
+	process.nextTick(function()
+		if exception then self:emit("error", exception) end
+		self:emit("close", exception and true or false)
+		--self.server.clients[self] = nil
+	end)
 end
 
 function Socket:_shutdown()
