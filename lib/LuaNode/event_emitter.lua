@@ -130,6 +130,11 @@ function EventEmitter:wait(kind, coro)
 	return unpack(results)
 end
 
+--[[
+function EventEmitter:resumeOn (kind)
+end
+--]]
+
 --
 --
 EventEmitter.on = EventEmitter.addListener
