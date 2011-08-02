@@ -11,6 +11,7 @@ local EventEmitter = Class{
 	__init = function(class, t)
 		t = t or {}
 		t._events = {}
+		t._co_waiting = {}
 		return Class.base.rawnew(class, t)
 	end
 }
@@ -46,12 +47,21 @@ function EventEmitter:emit(kind, ...)
 		for k,v in ipairs(handler) do listeners[k] = v end
 		--print("before emitting " .. kind)
 		for i = 1, #listeners do
-			result = listeners[i](self, ...)
+			local listener = listeners[i]
+			if type(listener) == "function" then
+				result = listener(self, ...)
+			elseif type(listener) == "thread" and self._co_waiting[listener] == "kind" then
+				result = coroutine.resume(listener, self, ...)
+			end
 			-- Stop propagating if listener returned false
 			if result == false then break end
 		end
 		--print("after emitting " .. kind)
 		--return true
+	elseif type(handler) == "thread" and self._co_waiting[handler] == kind then
+		-- only resume the thread if it is indeed waiting for the event
+		result = coroutine.resume(handler, self, ...)
+		
 	else
 		--return false
 	end
@@ -85,6 +95,39 @@ function EventEmitter:addListener(kind, listener)
 	end
 	
 	return self
+end
+
+--
+-- Wait for a given event, using a coroutine.
+function EventEmitter:wait(kind, coro)
+	coro = coro or coroutine.running()
+	if type(coro) ~= "thread" then
+		error("wait only takes threads as argument (or you're not on a running thread)")
+	end
+	
+	self._events = self._events or {}
+	
+	-- To avoid recursion in the case that kind == "newListeners"! Before
+	-- adding it to the listeners, first emit "newListeners".
+	self:emit("newListener", kind, coro)
+	
+	local listeners = self._events[kind]
+	if not listeners then
+		-- Optimize the case of one listener. Don't need an extra table
+		self._events[kind] = coro
+	elseif type(listeners) == "table" then
+		-- If we've already got an array, just append.
+		listeners[#listeners + 1] = coro
+	else
+		-- Adding the second element, need to change to array.
+		self._events[kind] = { listeners, coro }
+	end
+	
+	self._co_waiting[coro] = kind
+	
+	local results = { coroutine.yield(kind) }
+	self._co_waiting[coro] = nil
+	return unpack(results)
 end
 
 --
