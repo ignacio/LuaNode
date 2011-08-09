@@ -51,8 +51,9 @@ public:
 
 private:
 	void HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred);
-	void HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleReadDelimited(int reference, const std::string& delimiter, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleReadSome(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleReadSize(int reference, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleConnect(int reference, const boost::system::error_code& error);
 
 private:

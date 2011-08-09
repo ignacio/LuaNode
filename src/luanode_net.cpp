@@ -3,6 +3,7 @@
 #include "luanode_net.h"
 #include "blogger.h"
 
+#include <boost/asio/read.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/asio/placeholders.hpp>
@@ -479,6 +480,15 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 }
 
 //////////////////////////////////////////////////////////////////////////
+/// MatchCondition. Read until 'requested_num' bytes
+static std::size_t ReadSizeCondition(std::size_t requested_num, const boost::system::error_code& error, size_t accumulated_len) {
+	if(accumulated_len >= requested_num) {
+		return 0;
+	}
+	return 65536;
+}
+
+//////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::Read(lua_State* L) {
 	// store a reference to self in the registry
@@ -495,33 +505,45 @@ int Socket::Read(lua_State* L) {
 			boost::bind(&Socket::HandleReadSome, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
 	}
-	else if(!lua_isnumber(L, 2)) {
+	else if(lua_type(L, 2) == LUA_TSTRING) {
+		// TODO: generalizar el tema de los delimiters
 		//const char* p = luaL_optstring(L, 2, "*l");
 		std::string delimiter = "\r\n";
 
 		LogDebug("Socket::Read (%p) (id=%d) - ReadLine", this, m_socketId);
 
+		//beware! After a successful async_read_until operation, the streambuf may contain additional data beyond the delimiter. An application will typically leave that data in the streambuf for a subsequent async_read_until operation to examine.
 		m_pending_reads++;
 		boost::asio::async_read_until(
 			*m_socket, 
 			m_inputBuffer, 
 			delimiter,
-			boost::bind(&Socket::HandleRead, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			boost::bind(&Socket::HandleReadDelimited, this, reference, delimiter, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+		);
+	}
+	else if(lua_type(L, 2) == LUA_TNUMBER) {
+		lua_Integer num = lua_tointeger(L, 2);
+		m_pending_reads++;
+
+		// we may have some data left in the input buffer. Read only the amount needed.
+		std::size_t size = m_inputBuffer.size();
+		boost::asio::async_read(
+			*m_socket,
+			m_inputBuffer,
+			boost::bind(&ReadSizeCondition, num - size, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred),
+			boost::bind(&Socket::HandleReadSize, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
 	}
 	else {
-		luaL_error(L, "for the moment the read must be done with nil or a number");
+		luaL_unref(L, LUA_REGISTRYINDEX, reference);
+		luaL_error(L, "argument must be nil, a string or a number");
 	}
-
-	/*boost::asio::async_read(*m_socket, buffer,
-		boost::bind(&Socket::HandleWrite, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
-		);*/
 	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-void Socket::HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
+void Socket::HandleReadDelimited(int reference, const std::string& delimiter, const boost::system::error_code& error, size_t bytes_transferred) {
 	/*lua_State* L = reference->PushCallback();*/
 	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
@@ -534,8 +556,8 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
 			const char* data = (const char*)boost::asio::detail::buffer_cast_helper(m_inputBuffer.data());
-			lua_pushlstring(L, data, m_inputBuffer.size());
-			m_inputBuffer.consume(m_inputBuffer.size());	// its safe to consume, the string has already been interned
+			lua_pushlstring(L, data, bytes_transferred);
+			m_inputBuffer.consume(bytes_transferred);	// its safe to consume, the string has already been interned
 			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
@@ -581,7 +603,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 			}
 
 			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
-			m_inputBuffer.consume(m_inputBuffer.size());
+			m_inputBuffer.consume(bytes_transferred);
 		}
 		else {
 			LogError("Socket::HandleRead with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
@@ -693,6 +715,106 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 		m_socket->close(ec);
 		if(ec) {
 			LogError("Socket::HandleReadSome - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// TODO: refactor al three handleReadxxx ?
+void Socket::HandleReadSize(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
+	/*lua_State* L = reference->PushCallback();*/
+
+	lua_State* L = LuaNode::GetLuaVM();
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
+	m_pending_reads--;
+	if(!error) {
+		LogInfo("Socket::HandleReadSize (%p) (id=%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
+		lua_getfield(L, 1, "read_callback");
+		if(lua_type(L, 2) == LUA_TFUNCTION) {
+			lua_pushvalue(L, 1);
+			const char* data = (const char*)boost::asio::detail::buffer_cast_helper(m_inputBuffer.data());
+			lua_pushlstring(L, data, m_inputBuffer.size());
+			m_inputBuffer.consume(m_inputBuffer.size());	// its safe to consume, the string has already been interned
+			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
+		}
+		else {
+			// do nothing?
+			if(lua_type(L, 1) == LUA_TUSERDATA) {
+				userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
+				LogWarning("Socket::HandleReadSize (%p) (id=%d) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+			}
+			else {
+				LogWarning("Socket::HandleReadSize (%p) (id=%d) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+			}
+		}
+	}
+	else {
+		lua_getfield(L, 1, "read_callback");
+		if(lua_type(L, 2) == LUA_TFUNCTION) {
+			lua_pushvalue(L, 1);
+			lua_pushnil(L);
+
+			switch(error.value()) {
+			case boost::asio::error::eof:
+				lua_pushliteral(L, "eof");
+				break;
+#ifdef _WIN32
+			case ERROR_CONNECTION_ABORTED:
+#endif
+			case boost::asio::error::connection_aborted:
+				lua_pushliteral(L, "aborted");
+				break;
+
+			case boost::asio::error::operation_aborted:
+				lua_pushliteral(L, "aborted");
+				break;
+
+			case boost::asio::error::connection_reset:
+				lua_pushliteral(L, "reset");
+				break;
+
+			default:
+				lua_pushstring(L, error.message().c_str());
+				break;
+			}
+
+			switch(error.value()) {
+				case boost::asio::error::eof:
+					LogDebug("Socket::HandleReadSize (EOF) (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+					break;
+				case boost::asio::error::operation_aborted:
+					LogDebug("Socket::HandleReadSize (operation aborted) (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+					break;
+				case boost::asio::error::connection_reset:
+					LogDebug("Socket::HandleReadSize (connection reset) (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+					break;
+				default:
+					LogError("Socket::HandleReadSize with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+					break;
+			}
+
+			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
+		}
+		else {
+			LogError("Socket::HandleReadSize with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+			if(lua_type(L, 1) == LUA_TUSERDATA) {
+				userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
+				LogWarning("Socket::HandleReadSize (%p) (id=%d) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+			}
+			else {
+				LogWarning("Socket::HandleReadSize (%p) (id=%d) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+			}
+		}
+	}
+	lua_settop(L, 0);
+
+	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_socket->close(ec);
+		if(ec) {
+			LogError("Socket::HandleReadSize - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
 }
