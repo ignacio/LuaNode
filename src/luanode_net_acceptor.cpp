@@ -52,6 +52,15 @@ Acceptor::~Acceptor(void)
 {
 	s_acceptorCount--;
 	LogDebug("Destructing Acceptor (%p) (id=%d). Current acceptor count = %d", this, m_acceptorId, s_acceptorCount);
+
+	// Close the acceptor if it was still open
+	if(m_acceptor.is_open()) {
+		boost::system::error_code ec;
+		m_acceptor.close(ec);
+		if(ec) {
+			LogError("Error closing acceptor (%p) (id=%d) - %s", this, m_acceptorId, ec.message().c_str());
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
