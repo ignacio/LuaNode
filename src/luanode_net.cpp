@@ -176,6 +176,16 @@ Socket::~Socket(void)
 {
 	s_socketCount--;
 	LogDebug("Destructing Socket (%p) (id=%d). Current socket count = %d", this, m_socketId, s_socketCount);
+
+	// Close the socket if it was still open
+	if(m_socket->is_open()) {
+		boost::system::error_code ec;
+		m_socket->shutdown(boost::asio::socket_base::shutdown_both, ec);
+		m_socket->close(ec);
+		if(ec) {
+			LogError("Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
