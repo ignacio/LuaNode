@@ -279,7 +279,7 @@ int Socket::SetOption(lua_State* L) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// 
+/// Maybe remove this methods, unless a reasonable use case is provided...
 int Socket::Bind(lua_State* L) {
 	const char* ip = luaL_checkstring(L, 2);
 	unsigned short port = luaL_checkinteger(L, 3);
@@ -517,32 +517,53 @@ int Socket::Read(lua_State* L) {
 	}
 	else if(lua_type(L, 2) == LUA_TSTRING) {
 		// TODO: generalizar el tema de los delimiters
-		//const char* p = luaL_optstring(L, 2, "*l");
-		std::string delimiter = "\r\n";
+		static const char* options[] = {
+			"*l",
+			"*a",
+			NULL
+		};
+		int chosen_option = luaL_checkoption(L, 2, "*l", options);
+		if(chosen_option == 0) {	/* *l */
+			std::string delimiter = "\r\n";
 
-		LogDebug("Socket::Read (%p) (id=%d) - ReadLine", this, m_socketId);
+			LogDebug("Socket::Read (%p) (id=%d) - ReadLine", this, m_socketId);
 
-		//beware! After a successful async_read_until operation, the streambuf may contain additional data beyond the delimiter. An application will typically leave that data in the streambuf for a subsequent async_read_until operation to examine.
-		m_pending_reads++;
-		boost::asio::async_read_until(
-			*m_socket, 
-			m_inputBuffer, 
-			delimiter,
-			boost::bind(&Socket::HandleReadDelimited, this, reference, delimiter, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
-		);
+			//beware! After a successful async_read_until operation, the streambuf may contain additional data beyond the delimiter. 
+			// An application will typically leave that data in the streambuf for a subsequent async_read_until operation to examine.
+			m_pending_reads++;
+			boost::asio::async_read_until(
+				*m_socket, 
+				m_inputBuffer, 
+				delimiter,
+				boost::bind(&Socket::HandleReadDelimited, this, reference, delimiter, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			);
+		}
+		else if(chosen_option == 1) {	/* *a */
+			LogFatal("NOT IMPLEMENTED YET");
+			luaL_unref(L, LUA_REGISTRYINDEX, reference);
+			luaL_error(L, "*a not implemented yet");
+		}
 	}
 	else if(lua_type(L, 2) == LUA_TNUMBER) {
-		lua_Integer num = lua_tointeger(L, 2);
+		std::size_t num = lua_tointeger(L, 2);
 		m_pending_reads++;
 
 		// we may have some data left in the input buffer. Read only the amount needed.
 		std::size_t size = m_inputBuffer.size();
-		boost::asio::async_read(
-			*m_socket,
-			m_inputBuffer,
-			boost::bind(&ReadSizeCondition, num - size, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred),
-			boost::bind(&Socket::HandleReadSize, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
-		);
+		if(num <= size) {
+			boost::system::error_code ec;
+			m_socket->get_io_service().post(
+				boost::bind(&Socket::HandleReadSize, this, reference, ec, num)
+			);
+		}
+		else {
+			boost::asio::async_read(
+				*m_socket,
+				m_inputBuffer,
+				boost::bind(&ReadSizeCondition, num - size, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred),
+				boost::bind(&Socket::HandleReadSize, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			);
+		}
 	}
 	else {
 		luaL_unref(L, LUA_REGISTRYINDEX, reference);
@@ -745,8 +766,8 @@ void Socket::HandleReadSize(int reference, const boost::system::error_code& erro
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
 			const char* data = (const char*)boost::asio::detail::buffer_cast_helper(m_inputBuffer.data());
-			lua_pushlstring(L, data, m_inputBuffer.size());
-			m_inputBuffer.consume(m_inputBuffer.size());	// its safe to consume, the string has already been interned
+			lua_pushlstring(L, data, bytes_transferred);
+			m_inputBuffer.consume(bytes_transferred);	// its safe to consume, the string has already been interned
 			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
