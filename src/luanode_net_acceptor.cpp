@@ -85,6 +85,11 @@ int Acceptor::Open(lua_State* L) {
 	else if(strcmp(kind, "tcp6") == 0) {
 		m_acceptor.open( boost::asio::ip::tcp::v6(), ec );
 	}
+	else {
+		lua_pushnil(L);
+		lua_pushfstring(L, "unknown protocol %s", kind);
+		return 2;
+	}
 	return BoostErrorCodeToLua(L, ec);
 }
 
