@@ -524,7 +524,7 @@ int Socket::Read(lua_State* L) {
 		};
 		int chosen_option = luaL_checkoption(L, 2, "*l", options);
 		if(chosen_option == 0) {	/* *l */
-			std::string delimiter = "\r\n";
+			std::string delimiter = "\n";
 
 			LogDebug("Socket::Read (%p) (id=%d) - ReadLine", this, m_socketId);
 
