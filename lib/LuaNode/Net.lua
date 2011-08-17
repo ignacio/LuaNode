@@ -266,7 +266,7 @@ end
 
 
 -- paso raw_socket o socket
-local function _doFlush(raw_socket, socket)
+local function _doFlush(raw_socket, ok, socket)
 	-- Socket becomes writable on connect() but don't flush if there's
 	-- nothing actually to write
 	-- hack, lo tendria que mandar ya yo como un socket? (la tabla socket)
@@ -425,17 +425,17 @@ function Socket:setSecure(context)
 	--self._raw_socket = self
 	
 	
-	self._raw_socket.handshake_callback = function(socket)
+	self._raw_socket.handshake_callback = function(raw_socket)
 		self.secureEstablished = true
 
 		if self._events and self._events.secure then
 			self:emit("secure")
 		end
-		socket:read()
+		raw_socket:read()
 		
 		-- Flush socket in case any writes are queued up while connecting.
 		-- ugly
-		_doFlush(socket)
+		_doFlush(raw_socket, true)
 	end
 
 	setImplementationMethods(self)
@@ -647,7 +647,7 @@ local function doConnect(socket, port, host)
 			if socket._writeQueue and #socket._writeQueue > 0 and not socket.secure then
 				-- Flush socket in case any writes are queued up while connecting.
 				-- ugly
-				_doFlush(nil, socket)
+				_doFlush(nil, true, socket)
 			end
 			-- only do an initial read if the socket is not secure (we need to wait till the handshake is done)
 			if socket.readable and not socket.secure then
