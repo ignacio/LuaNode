@@ -25,13 +25,17 @@ function lookup(domain, family, callback)
 	end
 	
 	if not domain then
-		callback(nil, nil, family == 6 and 6 or 4)
+		process.nextTick(function()
+			callback(nil, nil, family == 6 and 6 or 4)
+		end)
 		return
 	end
 	
 	local matchedFamily, f = net.isIP(domain)
 	if matchedFamily then
-		callback(nil, { address = domain, family = f}, domain)
+		process.nextTick(function()
+			callback(nil, { address = domain, family = f}, domain)
+		end)
 	else
 		-- TODO: darle bola al family
 		--local addresses, err = m_resolver:Lookup(domain, "", callback)
@@ -76,13 +80,17 @@ function lookupAll(domain, family, callback)
 	end
 	
 	if not domain then
-		callback(nil, nil, family == 6 and 6 or 4)
+		process.nextTick(function()
+			callback(nil, nil, family == 6 and 6 or 4)
+		end)
 		return
 	end
 	
 	local matchedFamily, f = net.isIP(domain)
 	if matchedFamily then
-		callback(nil, { address = domain, family = f}, domain)
+		process.nextTick(function()
+			callback(nil, { address = domain, family = f}, domain)
+		end)
 	else
 		-- TODO: darle bola al family
 		--local addresses, err = m_resolver:Lookup(domain, "", callback)

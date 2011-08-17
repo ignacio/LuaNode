@@ -67,9 +67,7 @@ int Resolver::Lookup(lua_State* L) {
 
 	boost::asio::ip::tcp::resolver::query query(domain, service);
 
-	// TODO: No hacer que esto sea una clase, sino un par de funciones estáticas
-	// No pasar el this en el handler (el resolver podría ser gc'ed mientras hay un async_resolve flying...
-	// o sino, guardo una ref en la registry mientras tanto...
+	// The resolver is pinned in luanode.dns.lua
 	m_resolver.async_resolve(query, 
 		boost::bind(&Resolver::HandleResolve, this, callback, domain, enumerateAll, boost::asio::placeholders::error, boost::asio::placeholders::iterator)
 	);
