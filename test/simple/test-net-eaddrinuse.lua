@@ -10,8 +10,8 @@ function test()
 	
 	local server2 = net.createServer(function (self, socket)
 	end)
-	server2:addListener('error', function(self, error, msg)
-		assert_true(error == 10048 or error == 98)	-- I really should unify error codes
+	server2:addListener('error', function(self, msg, code)
+		assert_equal(process.constants.EADDRINUSE, code)
 		server1:close()
 	end)
 	server2:listen(common.PORT)

@@ -60,6 +60,7 @@ SET(SOURCES
     src/blogger.cpp
     src/luanode.cpp
     src/luanode_child_process.cpp
+	src/luanode_constants.cpp
     src/luanode_crypto.cpp
     src/luanode_dns.cpp
     src/luanode_http_parser.cpp

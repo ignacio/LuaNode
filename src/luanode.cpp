@@ -31,6 +31,7 @@
 #include "luanode_module_api.h"
 #include "luanode_os.h"
 #include "luanode_stdio.h"
+#include "luanode_constants.h"
 
 #if defined (_WIN32)
 	#include "luanode_file_win32.h"
@@ -96,9 +97,9 @@ static int exit_code = 0;
 /*static*/ int BoostErrorCodeToLua(lua_State* L, const boost::system::error_code& ec) 
 {
 	if(ec) {
-		lua_pushboolean(L, false);
-		lua_pushinteger(L, ec.value());
+		lua_pushnil(L);
 		lua_pushstring(L, ec.message().c_str());
+		lua_pushinteger(L, ec.value());
 		return 3;
 	}
 	lua_pushboolean(L, true);
@@ -637,6 +638,9 @@ static int Load(int argc, char *argv[]) {
 	#error "unsupported platform"
 #endif
 	lua_setfield(L, process, "pid");
+
+	LuaNode::DefineConstants(L);
+	lua_setfield(L, -2, "constants");
 
 	// module api
 	LuaNode::ModuleApi::Register(L, process);

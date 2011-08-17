@@ -288,6 +288,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_constants.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_crypto.cpp"
 				>
 			</File>
@@ -491,6 +495,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_child_process.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_constants.h"
 				>
 			</File>
 			<File
