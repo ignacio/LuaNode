@@ -87,15 +87,18 @@ void Resolver::HandleResolve(int callback, std::string domain, bool enumerateAll
 
 	if(error) {
 		lua_pushstring(L, error.message().c_str());
-		lua_call(L, 1, LUA_MULTRET);
+		lua_pushinteger(L, error.value());
+		lua_call(L, 2, LUA_MULTRET);
 		lua_settop(L, 0);
 		return;
 	}
-	
+
 	boost::asio::ip::tcp::resolver::iterator end;
 	if(iter == end) {
-		lua_pushstring(L, "did not resolve to anything?");	// TODO: proper error message :D
-		lua_call(L, 1, LUA_MULTRET);
+		boost::system::error_code e = boost::asio::error::host_not_found;
+		lua_pushstring(L, e.message().c_str());
+		lua_pushinteger(L, e.value());
+		lua_call(L, 2, LUA_MULTRET);
 		lua_settop(L, 0);
 		return;
 	}
