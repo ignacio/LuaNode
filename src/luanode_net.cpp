@@ -88,19 +88,16 @@ void LuaNode::Net::RegisterFunctions(lua_State* L) {
 	if(!ec) {
 		lua_pushboolean(L, true);
 		lua_pushinteger(L, 4);
+		return 2;
 	}
-	else {
-		boost::asio::ip::address_v6::from_string(address, ec);
-		if(!ec) {
-			lua_pushboolean(L, true);
-			lua_pushinteger(L, 6);
-		}
-		else {
-			lua_pushboolean(L, false);
-			lua_pushstring(L, ec.message().c_str());
-		}
+	
+	boost::asio::ip::address_v6::from_string(address, ec);
+	if(!ec) {
+		lua_pushboolean(L, true);
+		lua_pushinteger(L, 6);
+		return 2;
 	}
-	return 2;
+	return BoostErrorCodeToLua(L, ec);
 }
 
 
@@ -438,33 +435,8 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			lua_pushnil(L);
-
-			switch(error.value()) {
-			case boost::asio::error::eof:
-				lua_pushliteral(L, "eof");
-				break;
-#ifdef _WIN32
-			case ERROR_CONNECTION_ABORTED:
-#endif
-			case boost::asio::error::connection_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::operation_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::connection_reset:
-				lua_pushliteral(L, "reset");
-				break;
-
-			default:
-				lua_pushstring(L, error.message().c_str());
-				break;
-			}
-
-			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
+			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
+			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		}
 		else {
 			LogError("Socket::HandleWrite with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
@@ -608,33 +580,8 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			lua_pushnil(L);
-
-			switch(error.value()) {
-			case boost::asio::error::eof:
-				lua_pushliteral(L, "eof");
-				break;
-#ifdef _WIN32
-			case ERROR_CONNECTION_ABORTED:
-#endif
-			case boost::asio::error::connection_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::operation_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::connection_reset:
-				lua_pushliteral(L, "reset");
-				break;
-
-			default:
-				lua_pushstring(L, error.message().c_str());
-				break;
-			}
-
-			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
+			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
+			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 			m_inputBuffer.consume(bytes_transferred);
 		}
 		else {
@@ -686,31 +633,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			lua_pushnil(L);
-
-			switch(error.value()) {
-			case boost::asio::error::eof:
-				lua_pushliteral(L, "eof");
-				break;
-#ifdef _WIN32
-			case ERROR_CONNECTION_ABORTED:
-#endif
-			case boost::asio::error::connection_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::operation_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::connection_reset:
-				lua_pushliteral(L, "reset");
-				break;
-
-			default:
-				lua_pushstring(L, error.message().c_str());
-				break;
-			}
+			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
 
 			switch(error.value()) {
 				case boost::asio::error::eof:
@@ -727,7 +650,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 				break;
 			}
 			
-			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		}
 		else {
 			LogError("Socket::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
@@ -786,31 +709,7 @@ void Socket::HandleReadSize(int reference, const boost::system::error_code& erro
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			lua_pushnil(L);
-
-			switch(error.value()) {
-			case boost::asio::error::eof:
-				lua_pushliteral(L, "eof");
-				break;
-#ifdef _WIN32
-			case ERROR_CONNECTION_ABORTED:
-#endif
-			case boost::asio::error::connection_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::operation_aborted:
-				lua_pushliteral(L, "aborted");
-				break;
-
-			case boost::asio::error::connection_reset:
-				lua_pushliteral(L, "reset");
-				break;
-
-			default:
-				lua_pushstring(L, error.message().c_str());
-				break;
-			}
+			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
 
 			switch(error.value()) {
 				case boost::asio::error::eof:
@@ -827,7 +726,7 @@ void Socket::HandleReadSize(int reference, const boost::system::error_code& erro
 					break;
 			}
 
-			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
+			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		}
 		else {
 			LogError("Socket::HandleReadSize with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());

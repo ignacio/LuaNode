@@ -19,6 +19,13 @@ local stp = require "stacktraceplus"
 -- put the current working directory in the modules path
 package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( process.cwd(), process.cwd() )  .. package.path)
 
+do
+	local inverse_index = {}
+	local constants = process.constants
+	for k,v in pairs(constants) do inverse_index[v] = k end
+	for k,v in pairs(inverse_index) do constants[k] = v end
+end
+
 -- nextTick()
 
 local nextTickQueue = {}

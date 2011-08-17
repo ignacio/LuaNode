@@ -96,6 +96,7 @@ OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(Target)/blogger.o \
 		$(Target)/luanode.o \
 		$(Target)/luanode_child_process.o \
+		$(Target)/luanode_constants.o \
 		$(Target)/luanode_crypto.o \
 		$(Target)/luanode_dns.o \
 		$(Target)/luanode_file_linux.o \

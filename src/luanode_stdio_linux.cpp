@@ -198,37 +198,13 @@ private:
 			lua_getfield(L, 1, "read_callback");
 			if(lua_type(L, 2) == LUA_TFUNCTION) {
 				lua_pushvalue(L, 1);
-				lua_pushnil(L);
-
-				switch(error.value()) {
-case boost::asio::error::eof:
-	lua_pushliteral(L, "eof");
-	break;
-#ifdef _WIN32
-case ERROR_CONNECTION_ABORTED:
-#endif
-case boost::asio::error::connection_aborted:
-	lua_pushliteral(L, "aborted");
-	break;
-
-case boost::asio::error::operation_aborted:
-	lua_pushliteral(L, "aborted");
-	break;
-
-case boost::asio::error::connection_reset:
-	lua_pushliteral(L, "reset");
-	break;
-
-default:
-	lua_pushstring(L, error.message().c_str());
-	break;
-				}
+				LuaNode::BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
 
 				if(error.value() != boost::asio::error::eof && error.value() != boost::asio::error::operation_aborted) {
 					LogError("PosixStream::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
 				}
 
-				LuaNode::GetLuaVM().call(3, LUA_MULTRET);
+				LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 			}
 			else {
 				LogError("PosixStream::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
