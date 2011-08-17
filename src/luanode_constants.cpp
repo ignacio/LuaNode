@@ -42,4 +42,9 @@ void LuaNode::DefineConstants(lua_State* L)
 	ERRNO_CASE(timed_out, ETIMEDOUT);
 	ERRNO_CASE(try_again, EAGAIN);
 	ERRNO_CASE(would_block, EWOULDBLOCK);
+
+	ERRNO_CASE(host_not_found, HOST_NOT_FOUND);
+	ERRNO_CASE(host_not_found_try_again, TRY_AGAIN);
+	ERRNO_CASE(no_data, NO_DATA);
+	ERRNO_CASE(no_recovery, NO_RECOVERY);
 }
