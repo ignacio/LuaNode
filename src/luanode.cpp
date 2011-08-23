@@ -93,7 +93,7 @@ static int exit_code = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// 
+/// -> nil, error message, error code
 /*static*/ int BoostErrorCodeToLua(lua_State* L, const boost::system::error_code& ec) 
 {
 	if(ec) {

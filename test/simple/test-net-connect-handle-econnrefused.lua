@@ -13,12 +13,11 @@ c:on('connect', function ()
 end)
 
 local gotError = false
-c:on('error', function (self, e)
+c:on('error', function (self, err_msg, err_code)
 	console.debug("couldn't connect.")
 	gotError = true
-	--assert_equal(require('constants').ECONNREFUSED, e.errno)
-	console.error(e)	-- TODO: propagar el codigo de error y no solo el mensaje
-	--assert_equal(require('constants').ECONNREFUSED, e.errno)
+	assert_equal(process.constants.ECONNREFUSED, err_code)
+	console.error(err_msg)
 end)
 
 

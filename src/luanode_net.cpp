@@ -435,7 +435,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
+			BoostErrorCodeToLua(L, error);	// -> nil, error message, error code
 			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		}
 		else {
@@ -580,7 +580,7 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
+			BoostErrorCodeToLua(L, error);	// -> nil, error message, error code
 			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 			m_inputBuffer.consume(bytes_transferred);
 		}
@@ -633,7 +633,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
+			BoostErrorCodeToLua(L, error);	// -> nil, error message, error code
 
 			switch(error.value()) {
 				case boost::asio::error::eof:
@@ -709,7 +709,7 @@ void Socket::HandleReadSize(int reference, const boost::system::error_code& erro
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
+			BoostErrorCodeToLua(L, error);	// -> nil, error message, error code
 
 			switch(error.value()) {
 				case boost::asio::error::eof:
@@ -758,7 +758,13 @@ int Socket::Connect(lua_State* L) {
 
 	LogDebug("Socket::Connect (%p) (id=%d) (%s:%d)", this, m_socketId, ip, port);
 
-	boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string(ip), port );
+	boost::system::error_code ec;
+	boost::asio::ip::address address = boost::asio::ip::address::from_string(ip, ec);
+	if(ec) {
+		return BoostErrorCodeToLua(L, ec);
+	}
+
+	boost::asio::ip::tcp::endpoint endpoint(address, port);
 
 	// store a reference to self in the registry
 	/*LuaNode::LuaCallbackRef::Ptr ref( boost::make_shared<LuaNode::LuaCallbackRef>(L, 1) );*/
@@ -790,10 +796,8 @@ void Socket::HandleConnect(int reference, const boost::system::error_code& error
 			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
-			lua_pushboolean(L, false);
-			lua_pushstring(L, error.message().c_str());
-
-			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
+			BoostErrorCodeToLua(L, error);	// -> nil, error message, error code
+			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		}		
 	}
 	else {
