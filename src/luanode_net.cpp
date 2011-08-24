@@ -472,7 +472,7 @@ static std::size_t ReadSizeCondition(std::size_t requested_num, const boost::sys
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// 
+/// MatchCondition. Read until EOF is detected.
 static std::size_t ReadEofCondition(const boost::system::error_code& error, size_t accumulated_len) {
 	if(error == boost::asio::error::eof) {
 		return 0;
@@ -521,9 +521,6 @@ int Socket::Read(lua_State* L) {
 			);
 		}
 		else if(chosen_option == 1) {	/* *a */
-			/*LogFatal("NOT IMPLEMENTED YET");
-			luaL_unref(L, LUA_REGISTRYINDEX, reference);
-			luaL_error(L, "*a not implemented yet");*/
 			m_pending_reads++;
 			boost::asio::async_read(
 				*m_socket, 
@@ -597,8 +594,18 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
 			BoostErrorCodeToLua(L, error);	// -> nil, error message, error code
-			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
-			m_inputBuffer.consume(bytes_transferred);
+			
+			// regardless of 'bytes_transferred' push whatever is available on m_inputBuffer
+			size_t buf_size = m_inputBuffer.size();
+			if(buf_size > 0) {
+				const char* data = (const char*)boost::asio::detail::buffer_cast_helper(m_inputBuffer.data());
+				lua_pushlstring(L, data, buf_size);
+				m_inputBuffer.consume(buf_size);
+				LuaNode::GetLuaVM().call(5, LUA_MULTRET);
+			}
+			else {
+				LuaNode::GetLuaVM().call(4, LUA_MULTRET);
+			}
 		}
 		else {
 			LogError("Socket::HandleReadDelimited with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
@@ -665,8 +672,8 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 					LogError("Socket::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
 				break;
 			}
-			
 			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
+			
 		}
 		else {
 			LogError("Socket::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
@@ -742,7 +749,16 @@ void Socket::HandleReadSize(int reference, const boost::system::error_code& erro
 					break;
 			}
 
-			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
+			if(bytes_transferred > 0) {
+				const char* data = (const char*)boost::asio::detail::buffer_cast_helper(m_inputBuffer.data());
+				lua_pushlstring(L, data, bytes_transferred);
+				m_inputBuffer.consume(bytes_transferred);	// its safe to consume, the string has already been interned
+
+				LuaNode::GetLuaVM().call(5, LUA_MULTRET);
+			}
+			else {
+				LuaNode::GetLuaVM().call(4, LUA_MULTRET);
+			}
 		}
 		else {
 			LogError("Socket::HandleReadSize with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
