@@ -473,6 +473,15 @@ static std::size_t ReadSizeCondition(std::size_t requested_num, const boost::sys
 
 //////////////////////////////////////////////////////////////////////////
 /// 
+static std::size_t ReadEofCondition(const boost::system::error_code& error, size_t accumulated_len) {
+	if(error == boost::asio::error::eof) {
+		return 0;
+	}
+	return 65536;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
 int Socket::Read(lua_State* L) {
 	// store a reference to self in the registry
 	//LuaNode::LuaCallbackRef::Ptr ref( boost::make_shared<LuaNode::LuaCallbackRef>(L, 1) );
@@ -512,9 +521,16 @@ int Socket::Read(lua_State* L) {
 			);
 		}
 		else if(chosen_option == 1) {	/* *a */
-			LogFatal("NOT IMPLEMENTED YET");
+			/*LogFatal("NOT IMPLEMENTED YET");
 			luaL_unref(L, LUA_REGISTRYINDEX, reference);
-			luaL_error(L, "*a not implemented yet");
+			luaL_error(L, "*a not implemented yet");*/
+			m_pending_reads++;
+			boost::asio::async_read(
+				*m_socket, 
+				m_inputBuffer, 
+				ReadEofCondition,
+				boost::bind(&Socket::HandleReadSize, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			);
 		}
 	}
 	else if(lua_type(L, 2) == LUA_TNUMBER) {
@@ -555,7 +571,7 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 
 	m_pending_reads--;
 	if(!error) {
-		LogInfo("Socket::HandleRead (%p) (id=%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
+		LogInfo("Socket::HandleReadDelimited (%p) (id=%d) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -568,15 +584,15 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 			// do nothing?
 			if(lua_type(L, 1) == LUA_TUSERDATA) {
 				userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-				LogWarning("Socket::HandleRead (%p) (id=%d) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+				LogWarning("Socket::HandleReadDelimited (%p) (id=%d) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
 			}
 			else {
-				LogWarning("Socket::HandleRead (%p) (id=%d) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+				LogWarning("Socket::HandleReadDelimited (%p) (id=%d) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
 			}
 		}
 	}
 	else {
-		LogDebug("Socket::HandleRead with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+		LogDebug("Socket::HandleReadDelimited with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -585,7 +601,7 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 			m_inputBuffer.consume(bytes_transferred);
 		}
 		else {
-			LogError("Socket::HandleRead with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+			LogError("Socket::HandleReadDelimited with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
 		}
 	}
 	lua_settop(L, 0);
@@ -594,7 +610,7 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 		boost::system::error_code ec;
 		m_socket->close(ec);
 		if(ec) {
-			LogError("Socket::HandleRead - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+			LogError("Socket::HandleReadDelimited - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
 }
