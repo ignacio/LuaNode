@@ -39,6 +39,8 @@ SET(LUAS
     lib/LuaNode/Utils
     lib/LuaNode/Script
     lib/LuaNode/Tty
+	lib/LuaNode/luasocket
+	lib/LuaNode/luasocket/cosocket
     ${LUA_OS}
     src/node
     deps/StackTracePlus/src/StackTracePlus

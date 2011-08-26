@@ -133,6 +133,8 @@ LUAS = 	$(Target)/LuaNode/child_process.precomp \
 		$(Target)/LuaNode/Script.precomp \
 		$(Target)/LuaNode/Tty.precomp \
 		$(Target)/LuaNode/Tty_posix.precomp \
+		$(Target)/LuaNode/luasocket.precomp \
+		$(Target)/LuaNode/luasocket/cosocket.precomp \
 		$(Target)/src/node.precomp \
 		$(Target)/StackTracePlus/StackTracePlus.precomp
 

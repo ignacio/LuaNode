@@ -688,6 +688,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lib\LuaNode\luasocket.lua"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\LuaNode\net.lua"
 				>
 			</File>
@@ -736,6 +740,14 @@
 				>
 				<File
 					RelativePath="..\..\deps\StackTracePlus\src\StackTracePlus.lua"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="luasocket"
+				>
+				<File
+					RelativePath="..\..\lib\LuaNode\luasocket\cosocket.lua"
 					>
 				</File>
 			</Filter>
