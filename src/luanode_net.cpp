@@ -132,7 +132,6 @@ Socket::Socket(lua_State* L) :
 	m_L( LuaNode::GetLuaVM() ),
 	m_socketId(++s_nextSocketId),
 	m_close_pending(false),
-	//m_read_shutdown_pending(false),
 	m_write_shutdown_pending(false),
 	m_pending_writes(0),
 	m_pending_reads(0)
@@ -159,7 +158,6 @@ Socket::Socket(lua_State* L, boost::shared_ptr<boost::asio::ip::tcp::socket> soc
 	m_L( LuaNode::GetLuaVM() ),
 	m_socketId(++s_nextSocketId),
 	m_close_pending(false),	
-	//m_read_shutdown_pending(false),
 	m_write_shutdown_pending(false),
 	m_pending_writes(0),
 	m_pending_reads(0),
@@ -326,8 +324,7 @@ int Socket::Shutdown(lua_State* L) {
 		int chosen_option = luaL_checkoption(L, 2, "no_option", options);
 		switch(chosen_option) {
 			case 0:	// read
-				/*m_read_shutdown_pending = true;
-				if(m_pending_reads > 0) {
+				/*if(m_pending_reads > 0) {
 					m_write_shutdown_pending = true;
 				}
 				else {
@@ -356,7 +353,6 @@ int Socket::Shutdown(lua_State* L) {
 					m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
 				}
 				//m_write_shutdown_pending = true;
-				//m_read_shutdown_pending = true;
 				m_socket->shutdown(boost::asio::socket_base::shutdown_receive, ec);
 			break;
 	
@@ -431,7 +427,6 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 	}
 	else {
 		LogDebug("Socket::HandleWrite with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
-		//m_callback.OnWriteCompletionError(shared_from_this(), bytes_transferred, error);
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -498,7 +493,6 @@ int Socket::Read(lua_State* L) {
 		);
 	}
 	else if(lua_type(L, 2) == LUA_TSTRING) {
-		// TODO: generalizar el tema de los delimiters
 		static const char* options[] = {
 			"*l",
 			"*a",
