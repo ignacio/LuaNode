@@ -108,12 +108,12 @@ local function bind(socket, port, ip)
 	if process.platform ~= "windows" then
 		socket:setoption("reuseaddr", true)
 	end
-	local ok, err, msg = socket:bind(ip, port)
+	local ok, err_msg, err_code = socket:bind(ip, port)
 	if not ok then
-		console.error("bind('%s', '%s', '%s') failed with error: %s\r\n%s", socket, port, ip, err, msg)
-		return false, err, msg
+		console.error("bind('%s', '%s', '%s') failed with error: %s\r\n%s", socket, port, ip, err_msg, err_code)
+		return false, err_msg, err_code
 	end
-	return true	-- TODO: homogeneizar el manejo de errores
+	return true
 end
 
 
@@ -293,19 +293,18 @@ local function initSocket(self)
 	-- @param raw_socket is the socket
 	-- @param data is the data that has been read or nil if the socket has been closed
 	-- @param reason is present when the socket is closed, with the reason
-	self._raw_socket.read_callback = function(raw_socket, data, reason)
+	self._raw_socket.read_callback = function(raw_socket, data, err_msg, err_code)
 		if not data or #data == 0 then
 			self.readable = false
-			--if reason == "eof" or reason == "closed" or reason == "aborted" or reason == "reset" then
-				if not self.writable then
-					self:destroy()
-					-- note: 'close' not emitted until nextTick
-				end
-				self:emit("end")
-				if type(self.onend) == "function" then
-					self:onend()
-				end
-			--end
+			if not self.writable then
+				self:destroy()
+				-- note: 'close' not emitted until nextTick
+			end
+			self:emit("end")
+			if type(self.onend) == "function" then
+				self:onend()
+			end
+
 		elseif #data > 0 then
 			if self._raw_socket then	-- the socket may have been closed on Stream.destroy
 				Timers.Active(self)
@@ -620,9 +619,9 @@ function Socket:setEncoding(encoding)
 end
 
 local function doConnect(socket, port, host)
-	local ok, err = socket._raw_socket:connect(host, port)
+	local ok, err_msg, err_code = socket._raw_socket:connect(host, port)
 	if not ok then
-		socket:destroy(err)
+		socket:destroy(err_msg, err_code)
 		return
 	end
 	
@@ -631,7 +630,7 @@ local function doConnect(socket, port, host)
 	-- Don't start the read watcher until connection is established
 	--socket._readWatcher.set(socket.fd, true, false)
 	
-	socket._raw_socket.connect_callback = function(raw_socket, ok, err)
+	socket._raw_socket.connect_callback = function(raw_socket, ok, err_msg, err_code)
 		socket._raw_socket.connect_callback = nil
 		if ok then
 			socket._connecting = false
@@ -655,7 +654,7 @@ local function doConnect(socket, port, host)
 			end
 			return
 		else
-			socket:destroy(err)
+			socket:destroy(err_msg, err_code)
 		end
 	end
 end
@@ -777,7 +776,7 @@ end
 
 --
 --
-function Socket:destroy (exception)
+function Socket:destroy (err_msg, err_code)
 	-- pool is shared between sockets, so don't need to free it here.
 	-- TODO would like to set _writeQueue to null to avoid extra object alloc,
 	-- but lots of code assumes this._writeQueue is always an array.
@@ -823,8 +822,12 @@ function Socket:destroy (exception)
 	m_opened_sockets[self] = nil
 
 	process.nextTick(function()
-		if exception then self:emit("error", exception) end
-		self:emit("close", exception and true or false)
+		if err_msg then
+			self:emit("error", err_msg, err_code)
+			self:emit("close", err_msg, err_code)
+		else
+			self:emit("close", false)
+		end
 		--self.server.clients[self] = nil
 	end)
 end
@@ -1073,9 +1076,9 @@ function Server:listen (port, host, callback)
 end
 
 function Server:_doListen(port, ip)
-	local ok, err, msg = bind(self.acceptor, port, ip)
+	local ok, err_msg, err_code = bind(self.acceptor, port, ip)
 	if not ok then
-		self:emit("error", err, msg)
+		self:emit("error", err_msg, err_code)
 		return false
 	end
 	process.nextTick(function()
@@ -1086,9 +1089,9 @@ function Server:_doListen(port, ip)
 		-- It could be that server.close() was called between the time the
 		-- original listen command was issued and this. Bail if that's the case.
 		-- See test/simple/test-net-eaddrinuse.js
-		local ok, err, msg = self.acceptor:listen(self._backlog or 128)	-- el backlog
+		local ok, err_msg, err_code = self.acceptor:listen(self._backlog or 128)	-- el backlog
 		if not ok then
-			self:emit("error", err, msg)
+			self:emit("error", err_msg, err_code)
 			--error( console.error("listen() failed with error: %s", err) )
 			return
 		end

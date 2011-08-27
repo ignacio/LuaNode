@@ -88,7 +88,12 @@ int Acceptor::Open(lua_State* L) {
 	else {
 		lua_pushnil(L);
 		lua_pushfstring(L, "unknown protocol %s", kind);
-		return 2;
+#if defined(WSAEPROTONOSUPPORT)
+		lua_pushinteger(L, WSAEPROTONOSUPPORT);
+#else
+		lua_pushinteger(L, EPROTONOSUPPORT);
+#endif
+		return 3;
 	}
 	return BoostErrorCodeToLua(L, ec);
 }
@@ -108,11 +113,16 @@ int Acceptor::SetOption(lua_State* L) {
 	const char* option = luaL_checkstring(L, 2);
 	LogDebug("Acceptor::SetOption (%p) (id=%d) - %s", this, m_acceptorId, option);
 
+	boost::system::error_code ec;
+
 	if(strcmp(option, "reuseaddr") == 0) {
 		bool value = lua_toboolean(L, 3) != 0;
-		m_acceptor.set_option( boost::asio::socket_base::reuse_address(value) );
+		m_acceptor.set_option( boost::asio::socket_base::reuse_address(value), ec );
 	}
-	return 0;
+	else {
+		ec = boost::asio::error::invalid_argument;
+	}
+	return BoostErrorCodeToLua(L, ec);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -187,7 +197,6 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 
 	if(!error) {
 		boost::asio::ip::address address = socket->remote_endpoint().address();
-		//OnConnectionEstablished(socket, address);
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_newtable(L);
