@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "luanode.h"
 #include "luanode_constants.h"
 
