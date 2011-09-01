@@ -51,7 +51,7 @@ int Resolver::Lookup(lua_State* L) {
 	luaL_checktype(L, 4, LUA_TFUNCTION);
 	lua_pushvalue(L, 4);
 	callback = luaL_ref(L, LUA_REGISTRYINDEX);
-	bool enumerateAll = lua_toboolean(L, 5);
+	bool enumerateAll = lua_toboolean(L, 5) != 0;
 
 	/*if(lua_type(L, 3) == LUA_TSTRING) {
 		service = lua_tostring(L, 3);
