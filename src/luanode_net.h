@@ -51,15 +51,15 @@ public:
 
 private:
 	void HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred);
-	void HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleReadDelimited(int reference, const std::string& delimiter, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleReadSome(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleReadSize(int reference, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleConnect(int reference, const boost::system::error_code& error);
 
 private:
 	lua_State* m_L;
 	const unsigned long m_socketId;
 	bool m_close_pending;
-	//bool m_read_shutdown_pending;
 	bool m_write_shutdown_pending;
 	unsigned long m_pending_writes;
 	unsigned long m_pending_reads;

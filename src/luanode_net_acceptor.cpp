@@ -182,7 +182,6 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 
 	if(!error) {
 		boost::asio::ip::address address = socket->remote_endpoint().address();
-		//OnConnectionEstablished(socket, address);
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_newtable(L);
