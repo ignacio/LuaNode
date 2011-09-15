@@ -3,6 +3,7 @@
 
 #include <boost/asio/io_service.hpp>
 #include "lua_vm.h"
+#include "blogger.h"
 
 /*#include <sys/types.h>
 
@@ -20,6 +21,8 @@ namespace LuaNode {
 	void ReportError(lua_State* L, const char* message);
 	
 	const char* signo_string(int errorno);
+
+	CLogger& Logger();
 }
 
 #endif

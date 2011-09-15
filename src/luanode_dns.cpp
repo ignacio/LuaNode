@@ -32,13 +32,13 @@ Resolver::Resolver(lua_State* L) :
 	m_resolver( LuaNode::GetIoService() )
 {
 	s_resolverCount++;
-	LogDebug("Constructing Resolver (%p). Current resolver count = %d", this, s_resolverCount);
+	LogDebug("Constructing Resolver (%p). Current resolver count = %lu", this, s_resolverCount);
 }
 
 Resolver::~Resolver(void)
 {
 	s_resolverCount--;
-	LogDebug("Destructing Resolver (%p). Current resolver count = %d", this, s_resolverCount);
+	LogDebug("Destructing Resolver (%p). Current resolver count = %lu", this, s_resolverCount);
 }
 
 //////////////////////////////////////////////////////////////////////////

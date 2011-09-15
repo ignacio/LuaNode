@@ -1,141 +1,166 @@
 #include "stdafx.h"
 #include "blogger.h"
 #include <stdio.h>
+#include "luanode.h"
+
 
 #ifdef ENABLE_LIBBLOGGER
-extern "C" {
-#include <libBlogger2/libblogger2.h>
-}
-#include <stdarg.h>
 
-static bool bFirstRun = true;
-static logger_instance objLog = NULL;
+static bool first_run = true;
+static CLogger* logger;
 
-//////////////////////////////////////////////////////////////////////////
-/// 
-//extern BOOL WINAPI ConsoleControlHandler(DWORD ctrlType);
-
-//////////////////////////////////////////////////////////////////////////
-/// 
 static void Initialize() {
-	// Create a log file using the service's name
-	//if(lstrlen(_Module.m_szServiceName) == 0) {
-		objLog = liblogger_CreateLogger("LuaNode");
-	/*}
-	else {
-		objLog = CreateLog2(_Module.m_szServiceName);
-	}*/
+	logger = &LuaNode::Logger();
 }
+
+#define CHECK_LOG if(first_run) { Initialize(); first_run = false; }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-void LogFree() {
-	if(objLog) {
-		liblogger_DeleteLogger(objLog);
-		objLog = NULL;
-		bFirstRun = true;
-	}
-}
+void LogDebug(const char* format, ...) {
+	CHECK_LOG;
 
-//////////////////////////////////////////////////////////////////////////
-///
-void LogDebug(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
 	va_list argptr;
-	va_start(argptr, strFormat);
-	liblogger_DebugV(objLog, strFormat, argptr);
+	va_start(argptr, format);
+	LuaNode::Logger().Debug(format, argptr);
 	va_end(argptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-void LogInfo(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+void LogInfo(const char* format, ...) {
+	CHECK_LOG;
+
 	va_list argptr;
-	va_start(argptr, strFormat);
-	liblogger_InfoV(objLog, strFormat, argptr);
+	va_start(argptr, format);
+	LuaNode::Logger().Info(format, argptr);
 	va_end(argptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-void LogProfile(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+void LogProfile(const char* format, ...) {
+	CHECK_LOG;
+
 	va_list argptr;
-	va_start(argptr, strFormat);
-	liblogger_ProfileV(objLog, strFormat, argptr);
+	va_start(argptr, format);
+	LuaNode::Logger().Profile(format, argptr);
 	va_end(argptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-void LogWarning(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+void LogWarning(const char* format, ...) {
+	CHECK_LOG;
+
 	va_list argptr;
-	va_start(argptr, strFormat);
-	liblogger_WarningV(objLog, strFormat, argptr);
+	va_start(argptr, format);
+	LuaNode::Logger().Warning(format, argptr);
 	va_end(argptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-void LogError(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+void LogError(const char* format, ...) {
+	CHECK_LOG;
+
 	va_list argptr;
-	va_start(argptr, strFormat);
-	liblogger_ErrorV(objLog, strFormat, argptr);
+	va_start(argptr, format);
+	LuaNode::Logger().Error(format, argptr);
 	va_end(argptr);
 }
 
 //////////////////////////////////////////////////////////////////////////
 ///
-void LogFatal(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+void LogFatal(const char* format, ...) {
+	CHECK_LOG;
+
 	va_list argptr;
-	va_start(argptr, strFormat);
-	liblogger_FatalV(objLog, strFormat, argptr);
+	va_start(argptr, format);
+	LuaNode::Logger().Fatal(format, argptr);
 	va_end(argptr);
 }
+
+
+CLogger::CLogger(const char* application_name)
+	: m_log(liblogger_CreateLogger(application_name))
+{
+}
+
+CLogger::~CLogger() {
+	liblogger_DeleteLogger(m_log);
+}
+
+void CLogger::Fatal(const char* format, va_list vargs)
+{
+	liblogger_FatalV(m_log, format, vargs);
+}
+
+void CLogger::Error(const char* format, va_list vargs) {
+	liblogger_ErrorV(m_log, format, vargs);
+}
+
+void CLogger::Warning(const char* format, va_list vargs) {
+	liblogger_WarningV(m_log, format, vargs);
+}
+
+void CLogger::Info(const char* format, va_list vargs) {
+	liblogger_InfoV(m_log, format, vargs);
+}
+
+void CLogger::Debug(const char* format, va_list vargs) {
+	liblogger_DebugV(m_log, format, vargs);
+}
+
+void CLogger::Profile(const char* format, va_list vargs) {
+	liblogger_ProfileV(m_log, format, vargs);
+}
+
+
 
 #else
 
-#include <stdarg.h>
+CLogger::CLogger(const char* application_name)
+{
+}
 
-static bool bFirstRun = true;
+CLogger::~CLogger() {
+}
 
-//////////////////////////////////////////////////////////////////////////
-/// 
-static void Initialize() {}
+void CLogger::Fatal(const char* format, va_list vargs)
+{
+}
 
-//////////////////////////////////////////////////////////////////////////
-///
-void LogFree() {}
+void CLogger::Error(const char* format, va_list vargs) {
+}
+
+void CLogger::Warning(const char* format, va_list vargs) {
+}
+
+void CLogger::Info(const char* format, va_list vargs) {
+}
+
+void CLogger::Debug(const char* format, va_list vargs) {
+}
+
+void CLogger::Profile(const char* format, va_list vargs) {
+}
+
+
+static bool first_run = true;
+static CLogger* logger;
+
+static void Initialize() {
+	logger = &LuaNode::Logger();
+}
+
+#define CHECK_LOG if(first_run) { Initialize(); first_run = false; }
 
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogDebug(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+	CHECK_LOG;
+
 	va_list argptr;
 	va_start(argptr, strFormat);
 	//vfprintf(stderr, strFormat, argptr);
@@ -146,10 +171,8 @@ void LogDebug(const char* strFormat, ...) {
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogInfo(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+	CHECK_LOG;
+
 	va_list argptr;
 	va_start(argptr, strFormat);
 	//vfprintf(stderr, strFormat, argptr);
@@ -160,10 +183,8 @@ void LogInfo(const char* strFormat, ...) {
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogProfile(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+	CHECK_LOG;
+
 	va_list argptr;
 	va_start(argptr, strFormat);
 	vfprintf(stderr, strFormat, argptr);
@@ -174,10 +195,8 @@ void LogProfile(const char* strFormat, ...) {
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogWarning(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+	CHECK_LOG;
+
 	va_list argptr;
 	va_start(argptr, strFormat);
 	vfprintf(stderr, strFormat, argptr);
@@ -188,10 +207,8 @@ void LogWarning(const char* strFormat, ...) {
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogError(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+	CHECK_LOG;
+
 	va_list argptr;
 	va_start(argptr, strFormat);
 	vfprintf(stderr, strFormat, argptr);
@@ -202,10 +219,8 @@ void LogError(const char* strFormat, ...) {
 //////////////////////////////////////////////////////////////////////////
 ///
 void LogFatal(const char* strFormat, ...) {
-	if(bFirstRun) {
-		Initialize();
-		bFirstRun = false;
-	}
+	CHECK_LOG;
+
 	va_list argptr;
 	va_start(argptr, strFormat);
 	vfprintf(stderr, strFormat, argptr);
@@ -213,3 +228,4 @@ void LogFatal(const char* strFormat, ...) {
 	va_end(argptr);
 }
 #endif
+
