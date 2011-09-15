@@ -4,6 +4,7 @@
 #pragma once
 
 #include <stdarg.h>
+#include <lua.hpp>
 
 #ifdef ENABLE_LIBBLOGGER
 extern "C" {
@@ -25,6 +26,12 @@ void LogWarning(const char* strFormat, ...) CHECK_PRINTF(1,2);
 void LogError(const char* strFormat, ...) CHECK_PRINTF(1,2);
 void LogFatal(const char* strFormat, ...) CHECK_PRINTF(1,2);
 
+int LogDebug(lua_State* L);
+int LogInfo(lua_State* L);
+int LogProfile(lua_State* L);
+int LogWarning(lua_State* L);
+int LogError(lua_State* L);
+int LogFatal(lua_State* L);
 
 class CLogger {
 public:

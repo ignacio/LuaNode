@@ -607,6 +607,23 @@ static int Load(int argc, char *argv[]) {
 	lua_pushcfunction(L, LuaNode::Platform::SetConsoleBackgroundColor);
 	lua_setfield(L, process, "set_console_bg_color");
 
+	// internal stuff
+	lua_newtable(L);
+	int internal = lua_gettop(L);
+	lua_pushcfunction(L, LogDebug);
+	lua_setfield(L, internal, "LogDebug");
+	lua_pushcfunction(L, LogInfo);
+	lua_setfield(L, internal, "LogInfo");
+	lua_pushcfunction(L, LogProfile);
+	lua_setfield(L, internal, "LogProfile");
+	lua_pushcfunction(L, LogWarning);
+	lua_setfield(L, internal, "LogWarning");
+	lua_pushcfunction(L, LogError);
+	lua_setfield(L, internal, "LogError");
+	lua_pushcfunction(L, LogFatal);
+	lua_setfield(L, internal, "LogFatal");
+	lua_setfield(L, process, "__internal");
+
 	// process.argv
 	lua_newtable(L);
 	int argArray = lua_gettop(L);

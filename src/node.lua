@@ -147,38 +147,37 @@ end
 
 function LogDebug(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogDebug(msg)
+	process.__internal.LogDebug(msg)
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
 
 function LogInfo(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogInfo(msg)
+	process.__internal.LogInfo(msg)
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
 
 function LogWarning(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogWarning(msg)
-	io.write(msg); io.write("\r\n")
+	process.__internal.LogWarning(msg)
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
 end
 
 function LogError(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogError(msg)
-	io.write(msg); io.write("\r\n")
+	process.__internal.LogError(msg)
+	io.stderr:write(msg); io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
 	return msg
 end
 
 function LogFatal(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogFatal(msg)
-	io.write(msg); io.write("\r\n")
+	process.__internal.LogFatal(msg)
+	io.stderr:write(msg); io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[FATAL] " .. msg) end
 	return msg
 end

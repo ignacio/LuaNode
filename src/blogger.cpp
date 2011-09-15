@@ -229,3 +229,28 @@ void LogFatal(const char* strFormat, ...) {
 }
 #endif
 
+
+int LogDebug(lua_State* L) {
+	LogDebug("%s", luaL_checkstring(L, 1));
+	return 0;
+}
+int LogInfo(lua_State* L) {
+	LogInfo("%s", luaL_checkstring(L, 1));
+	return 0;
+}
+int LogProfile(lua_State* L) {
+	LogProfile("%s", luaL_checkstring(L, 1));
+	return 0;
+}
+int LogWarning(lua_State* L) {
+	LogWarning("%s", luaL_checkstring(L, 1));
+	return 0;
+}
+int LogError(lua_State* L) {
+	LogError("%s", luaL_checkstring(L, 1));
+	return 0;
+}
+int LogFatal(lua_State* L) {
+	LogFatal("%s", luaL_checkstring(L, 1));
+	return 0;
+}
