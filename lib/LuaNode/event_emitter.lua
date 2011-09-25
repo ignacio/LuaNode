@@ -25,7 +25,7 @@ function EventEmitter:emit(kind, ...)
 			-- squash the arguments and build an error message
 			local msg = ""
 			for i=1, select("#", ...) do
-				msg = tostring( select(i, ...) ) .. "\n"
+				msg = msg .. tostring( select(i, ...) ) .. "\n"
 			end
 			error(msg, 2)
 		end
