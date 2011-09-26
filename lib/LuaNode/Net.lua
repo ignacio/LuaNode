@@ -289,6 +289,8 @@ local function initSocket(self)
 	-- en lugar de usar _readWatcher, recibo los eventos de read en _raw_socket.read_callback
 	--self._readWatcher = {}
 	--self._readWatcher.callback = function()
+	self.readable = false
+	self.destroyed = false
 	
 	-- @param raw_socket is the socket
 	-- @param data is the data that has been read or nil if the socket has been closed
@@ -619,6 +621,8 @@ function Socket:setEncoding(encoding)
 end
 
 local function doConnect(socket, port, host)
+	if socket.destroyed then return end
+	
 	local ok, err_msg, err_code = socket._raw_socket:connect(host, port)
 	if not ok then
 		socket:destroy(err_msg, err_code)
@@ -806,30 +810,33 @@ function Socket:destroy (err_msg, err_code)
 	--end
 
 	-- TODO: por qué es el socket el que tiene que updatear esto que es del server ?
-	if self.server then
+	if self.server and not self.destroyed then
 		self.server.connections = self.server.connections - 1
 		
 		self.server.clients[self] = nil
 	end
 	
 	-- Issue a close call once (avoids errors with multiple destroy calls)
+	-- That is, it IS possible to get multiple destroy calls, see test-http-parser-reuse
 	if self._raw_socket then
 		self._raw_socket:close()
 		self._raw_socket = nil
+		
+		process.nextTick(function()
+			if err_msg then
+				self:emit("error", err_msg, err_code)
+				self:emit("close", err_msg, err_code)
+			else
+				self:emit("close", false)
+			end
+		end)
 	end
 	
 	self.secureContext = nil	-- todo: why Net does have to deal with this?
+
 	m_opened_sockets[self] = nil
 
-	process.nextTick(function()
-		if err_msg then
-			self:emit("error", err_msg, err_code)
-			self:emit("close", err_msg, err_code)
-		else
-			self:emit("close", false)
-		end
-		--self.server.clients[self] = nil
-	end)
+	self.destroyed = true
 end
 
 function Socket:_shutdown()
