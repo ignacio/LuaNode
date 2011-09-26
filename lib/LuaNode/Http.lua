@@ -4,7 +4,7 @@ local net = require "luanode.net"
 local EventEmitter = require "luanode.event_emitter"
 local stream = require "luanode.stream"
 local FreeList = require "luanode.free_list"
-local HTTPParser = process.HTTPParser	--local HTTPParser = require "HTTPParser"
+local HTTPParser = process.HTTPParser
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
@@ -732,15 +732,13 @@ local function httpSocketSetup (socket)
 	end
 end
 
-
---local parsers = FreeList.new("parsers", 1000, function ()
 parsers = FreeList.new("parsers", 1000, function ()
 	local parser = HTTPParser("request")
 	
 	parser.onMessageBegin = function (self)
-		parser.incoming = IncomingMessage(parser.socket)
-		parser.field = nil
-		parser.value = nil
+		self.incoming = IncomingMessage(self.socket)
+		self.field = nil
+		self.value = nil
 	end
 	
 	-- Only servers will get URL events
@@ -754,11 +752,11 @@ parsers = FreeList.new("parsers", 1000, function ()
 		end
 	end]]
 	parser.onURL = function (self, data)
-		if #parser.incoming.url ~= 0 then
-			parser.incoming.url = parser.incoming.url .. data
+		if #self.incoming.url ~= 0 then
+			self.incoming.url = self.incoming.url .. data
 		else
 			-- Almost always will branch here
-			parser.incoming.url = data
+			self.incoming.url = data
 		end
 	end
 	
@@ -779,15 +777,15 @@ parsers = FreeList.new("parsers", 1000, function ()
 	--]]
 	parser.onHeaderField = function (self, data)
 		data = data:lower()
-		if parser.value then
-			parser.incoming:_addHeaderLine(parser.field, parser.value)
-			parser.field = nil
-			parser.value = nil
+		if self.value then
+			self.incoming:_addHeaderLine(self.field, self.value)
+			self.field = nil
+			self.value = nil
 		end
-		if parser.field then
-			parser.field = parser.field .. data
+		if self.field then
+			self.field = self.field .. data
 		else
-			parser.field = data
+			self.field = data
 		end
 	end
 	
@@ -802,40 +800,40 @@ parsers = FreeList.new("parsers", 1000, function ()
 	end
 	--]]
 	parser.onHeaderValue = function (self, data)
-		if parser.value then
-			parser.value = parser.value .. data
+		if self.value then
+			self.value = self.value .. data
 		else
-			parser.value = data
+			self.value = data
 		end
 	end
 	
 	parser.onHeadersComplete = function (self, info)
-		if parser.field and parser.value then
-			parser.incoming:_addHeaderLine(parser.field, parser.value)
-			parser.field = nil
-			parser.value = nil
+		if self.field and self.value then
+			self.incoming:_addHeaderLine(self.field, self.value)
+			self.field = nil
+			self.value = nil
 		end
 		
-		parser.incoming.httpVersionMajor = info.versionMajor
-		parser.incoming.httpVersionMinor = info.versionMinor
-		parser.incoming.httpVersion = info.versionMajor .. "." .. info.versionMinor
+		self.incoming.httpVersionMajor = info.versionMajor
+		self.incoming.httpVersionMinor = info.versionMinor
+		self.incoming.httpVersion = info.versionMajor .. "." .. info.versionMinor
 		
 		if info.method then
 			-- server only
-			parser.incoming.method = info.method
+			self.incoming.method = info.method
 		else
 			-- client only
-			parser.incoming.statusCode = info.statusCode
+			self.incoming.statusCode = info.statusCode
 		end
 		
-		parser.incoming.upgrade = info.upgrade
+		self.incoming.upgrade = info.upgrade
 		
 		local isHeadResponse = false
 		
 		if not info.upgrade then
 			-- For upgraded connections, we'll emit this after parser.execute
 			-- so that we can capture the first part of the new protocol
-			isHeadResponse = parser:onIncoming(parser.incoming, info.shouldKeepAlive)
+			isHeadResponse = self:onIncoming(self.incoming, info.shouldKeepAlive)
 		end
 		
 		return isHeadResponse
@@ -845,22 +843,22 @@ parsers = FreeList.new("parsers", 1000, function ()
 		-- TODO: body encoding?
 		--local slice = b.slice(start, start + len)
 		local slice = b
-		if parser.incoming._decoder then
-			local string = parser.incoming._decoder:write(slice)
-			if #string then parser.incoming:_emit("data", string) end
+		if self.incoming._decoder then
+			local string = self.incoming._decoder:write(slice)
+			if #string then self.incoming:_emit("data", string) end
 		else
-			parser.incoming:_emit("data", slice)
+			self.incoming:_emit("data", slice)
 		end
 	end
 	
 	parser.onMessageComplete = function (self)
 		self.incoming.complete = true
-		if parser.field and parser.value then
-			parser.incoming:_addHeaderLine(parser.field, parser.value)
+		if self.field and self.value then
+			self.incoming:_addHeaderLine(self.field, self.value)
 		end
-		if not parser.incoming.upgrade then
+		if not self.incoming.upgrade then
 			-- For upgraded connections, also emit this after parser.execute
-			parser.incoming:_emit("end")
+			self.incoming:_emit("end")
 		end
 	end
 	
@@ -936,6 +934,12 @@ local function connectionListener (server, socket)
 	socket:addListener("close", function (self)
 		-- unref the parser for easy gc
 		parsers:free(parser)
+		-- clean up data we may have stored in the parser
+		parser.incoming = nil
+		parser.field = nil
+		parser.value = nil
+		parser.socket = nil
+		parser.onIncoming = nil
 	end)
 	
 	-- At the end of each response message, after it has been flushed to the
