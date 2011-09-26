@@ -17,7 +17,6 @@ server:listen(30303)
 local client = net.createConnection(30303)
 client:on("connect", function()
 	console.log("client: connected")
-	client:destroy()
 	error("die!")
 end)
 
