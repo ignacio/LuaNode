@@ -52,13 +52,16 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
  - [lunit][10]
  
 ### Debian installation #
-The following has been tested on Ubuntu Desktop 10.10.
+The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
 
- - Install Lua
-   - sudo apt-get install lua5.1
-   
+ - Install Lua and librairies
+   - sudo apt-get install lua5.1 liblua5.1-0-dev luasocket-dev liblua5.1-json
+
  - Install OpenSSL
    - sudo apt-get install libssl-dev
+
+ - Install Boost
+   - sudo apt-get install libboost1.46-dev libboost-system1.46-dev
    
  - Install Boost (tested with 1.44)
    - Download [boost_1_44_0.tar.bz2](http://sourceforge.net/projects/boost/files/boost/1.44.0/boost_1_44_0.tar.bz2/download)
