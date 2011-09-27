@@ -8,7 +8,7 @@
 
 #ifdef ENABLE_LIBBLOGGER
 extern "C" {
-	#include <libBlogger2/libblogger2.h>
+	#include <libblogger2/libBlogger2.hpp>
 }
 #endif
 
