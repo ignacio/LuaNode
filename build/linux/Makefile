@@ -66,17 +66,18 @@ BOOST_SYSTEM_LIBD ?=boost_system-gcc$(GCC_VERSION)-mt-d-$(BOOST_VERSION)
 
 ifeq ($(Target), Debug)
 	OUTPUT = $(OUTPUT_BASE)_d
-	CFLAGS = -Wall -c -g -D_DEBUG
+	CFLAGS = -Wall -c -g -D_DEBUG -DENABLE_LIBBLOGGER
 	LFLAGS = -Wall -g -Wl,-E
 	SPECIFIC_LIBS = -l$(BOOST_SYSTEM_LIBD) \
 			$(LUA_LIB) \
 			-ldl \
 			-lssl \
 			-lpthread \
-			-lcrypto
+			-lcrypto \
+			-lblogger2
 else
 	OUTPUT = $(OUTPUT_BASE)
-	CFLAGS = -Wall -c -O2 -D_NDEBUG -Wno-strict-aliasing
+	CFLAGS = -Wall -c -O2 -D_NDEBUG -Wno-strict-aliasing -Werror
 	LFLAGS = -Wall -Wl,-E
 	SPECIFIC_LIBS = -l$(BOOST_SYSTEM_LIB) \
 			$(LUA_LIB) \
