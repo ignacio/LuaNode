@@ -293,7 +293,8 @@ void Socket::HandleHandshake(int reference, const boost::system::error_code& err
 		lua_getfield(L, 1, "handshake_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			LuaNode::GetLuaVM().call(1, LUA_MULTRET);
+			lua_pushboolean(L, 1);
+			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
@@ -363,7 +364,8 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
-			LuaNode::GetLuaVM().call(1, LUA_MULTRET);
+			lua_pushboolean(L, 1);
+			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 		else {
 			// do nothing?
