@@ -216,10 +216,10 @@ end
 console["error"] = function (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogError(msg)
-	console.color("lightred")
-	io.write(msg)
-	console.reset_color()
-	io.write("\r\n")
+	console.color("lightred", "stderr")
+	io.stderr:write(msg)
+	console.reset_color("stderr")
+	io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
 	return msg
 end
@@ -227,11 +227,11 @@ end
 function console.fatal (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
 	--print(msg) --scriptLogger.LogFatal(msg)
-	console.color("lightred")
-	console.bgcolor("white")
-	io.write(msg)
-	console.reset_color()
-	io.write("\r\n")
+	console.color("lightred", "stderr")
+	console.bgcolor("white", "stderr")
+	io.stderr:write(msg)
+	console.reset_color("stderr")
+	io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[FATAL] " .. msg) end
 	return msg
 end
