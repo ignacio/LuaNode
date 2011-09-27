@@ -270,6 +270,10 @@ local function _doFlush(raw_socket, ok, socket)
 	-- Socket becomes writable on connect() but don't flush if there's
 	-- nothing actually to write
 	-- hack, lo tendria que mandar ya yo como un socket? (la tabla socket)
+	if not ok then
+		--console.error("%s: %s", ok, socket)
+		return
+	end
 	if not socket then
 		socket = raw_socket._owner
 	end
