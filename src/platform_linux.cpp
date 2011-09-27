@@ -6,6 +6,12 @@
 
 using namespace LuaNode;
 
+static const char* console_output_options[] = {
+	"stdout",
+	"stderr",
+	NULL
+};
+
 
 int Platform::GetExecutablePath(char* buffer, size_t* size) {
 	*size = readlink("/proc/self/exe", buffer, *size - 1);
@@ -20,13 +26,23 @@ const char* Platform::GetPlatform() {
 
 int Platform::SetConsoleForegroundColor(lua_State* L) {
 	const char* color = luaL_checkstring(L, 1);
-	printf("%s", color);
+	if(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) {
+		printf("%s", color);
+	}
+	else {
+		fprintf(stderr, "%s", color);
+	}
 	return 0;
 }
 
 int Platform::SetConsoleBackgroundColor(lua_State* L) {
 	const char* color = luaL_checkstring(L, 1);
-	printf("%s", color);
+	if(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) {
+		printf("%s", color);
+	}
+	else {
+		fprintf(stderr, "%s", color);
+	}
 	return 0;
 }
 

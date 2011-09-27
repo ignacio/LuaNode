@@ -51,9 +51,9 @@ if process.platform == "windows" then
 		white        = BACKGROUND_RED + BACKGROUND_GREEN + BACKGROUND_BLUE + BACKGROUND_INTENSITY,
 	}
 	
-	reset_color = function()
-		process.set_console_bg_color(bg_colors.black)
-		process.set_console_fg_color(fg_colors.gray)
+	reset_color = function(stream)
+		process.set_console_bg_color(bg_colors.black, stream)
+		process.set_console_fg_color(fg_colors.gray, stream)
 	end
 	
 else
@@ -97,8 +97,8 @@ else
 		white = esc.."[1m"..esc.."[47m",
 	}
 	
-	reset_color = function()
-		process.set_console_fg_color(esc.."[0m")
+	reset_color = function(stream)
+		process.set_console_fg_color(esc.."[0m", stream)
 	end
 	
 	--BLACK_BACK = "\033[40m"
@@ -128,16 +128,16 @@ function getBgColor(value)
 	return bg_colors[value]
 end
 
-function color(value)
+function color(value, stream)
 	local v = fg_colors[value]
 	if v then
-		process.set_console_fg_color(v)
+		process.set_console_fg_color(v, stream)
 	end
 end
 
 function bgcolor(value)
 	local v = bg_colors[value]
 	if v then
-		process.set_console_bg_color(v)
+		process.set_console_bg_color(v, stream)
 	end
 end
