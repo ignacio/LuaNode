@@ -68,7 +68,7 @@ Acceptor::~Acceptor(void)
 /*static*/ int Acceptor::tostring_T(lua_State* L) {
 	userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
 	Acceptor* obj = ud->pT;
-	lua_pushfstring(L, "%s (%p) (id:%u)", className, obj, obj->m_acceptorId);
+	lua_pushfstring(L, "%s (%p) (id:%d)", className, obj, obj->m_acceptorId);
 	return 1;
 }
 

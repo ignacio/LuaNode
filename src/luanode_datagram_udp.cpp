@@ -105,7 +105,7 @@ Socket::~Socket(void)
 /*static*/ int Socket::tostring_T(lua_State* L) {
 	userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
 	Socket* obj = ud->pT;
-	lua_pushfstring(L, "%s (%p) (id:%u)", className, obj, obj->m_socketId);
+	lua_pushfstring(L, "%s (%p) (id:%d)", className, obj, obj->m_socketId);
 	return 1;
 }
 
