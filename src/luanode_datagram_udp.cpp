@@ -66,7 +66,7 @@ Socket::Socket(lua_State* L) :
 	m_pending_reads(0)
 {
 	s_socketCount++;
-	LogDebug("Constructing Socket (%p) (id:%lu). Current socket count = %lu", this, m_socketId, s_socketCount);
+	LogDebug("Constructing Socket (%p) (id:%u). Current socket count = %lu", this, m_socketId, s_socketCount);
 
 	const char* kind = luaL_checkstring(L, 1);
 	LogDebug("Socket::Socket(%s)", kind);
@@ -91,13 +91,13 @@ Socket::Socket(lua_State* L, boost::asio::ip::udp::socket* socket) :
 	m_socket(socket)
 {
 	s_socketCount++;
-	LogDebug("Constructing Socket (%p) (id:%lu). Current socket count = %lu", this, m_socketId, s_socketCount);
+	LogDebug("Constructing Socket (%p) (id:%u). Current socket count = %lu", this, m_socketId, s_socketCount);
 }
 
 Socket::~Socket(void)
 {
 	s_socketCount--;
-	LogDebug("Destructing Socket (%p) (id:%lu). Current socket count = %lu", this, m_socketId, s_socketCount);
+	LogDebug("Destructing Socket (%p) (id:%u). Current socket count = %lu", this, m_socketId, s_socketCount);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ int Socket::SetOption(lua_State* L) {
 		NULL
 	};
 	const char* option = luaL_checkstring(L, 2);
-	LogDebug("Socket::SetOption (id:%lu) - %s", m_socketId, option);
+	LogDebug("Socket::SetOption (id:%u) - %s", m_socketId, option);
 
 	int chosen_option = luaL_checkoption(L, 2, "no_option", options);
 	switch(chosen_option) {
@@ -190,14 +190,14 @@ int Socket::Bind(lua_State* L) {
 int Socket::Close(lua_State* L) {
 	// Q: should I do the same when there are pending reads? probably not. One tends to have always a pending read.
 	if(m_pending_writes) {
-		LogDebug("Socket::Close - Socket (%p) (id:%lu) marked for closing", this, m_socketId);
+		LogDebug("Socket::Close - Socket (%p) (id:%u) marked for closing", this, m_socketId);
 		// can't close the socket right away, just flag it and close it when there are no more queued ops
 		m_close_pending = true;
 		lua_pushboolean(L, true);
 		return 1;
 	}
 	// nothing is waiting, just close the socket right away
-	LogDebug("Socket::Close - Socket (%p) (id:%lu) closing now", this, m_socketId);
+	LogDebug("Socket::Close - Socket (%p) (id:%u) closing now", this, m_socketId);
 	boost::system::error_code ec;
 	m_socket->shutdown(boost::asio::socket_base::shutdown_both, ec);
 	m_socket->close(ec);
@@ -230,14 +230,14 @@ int Socket::Shutdown(lua_State* L) {
 				else {
 					m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
 				}*/
-				LogDebug("Socket::Shutdown (%p) (id:%lu) - %s", this, m_socketId, option);
+				LogDebug("Socket::Shutdown (%p) (id:%u) - %s", this, m_socketId, option);
 				m_socket->shutdown(boost::asio::socket_base::shutdown_receive, ec);
 			break;
 	
 			case 1:	// write
 				if(m_pending_writes > 0) {
 					m_write_shutdown_pending = true;
-					LogDebug("Socket::Shutdown (%p) (id:%lu) - Marked for shutdown - %s", this, m_socketId, option);
+					LogDebug("Socket::Shutdown (%p) (id:%u) - Marked for shutdown - %s", this, m_socketId, option);
 				}
 				else {
 					m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
@@ -247,7 +247,7 @@ int Socket::Shutdown(lua_State* L) {
 			case 2:	// both
 				if(m_pending_writes > 0) {
 					m_write_shutdown_pending = true;
-					LogDebug("Socket::Shutdown (%p) (id:%lu) - Marked for shutdown - write", this, m_socketId);
+					LogDebug("Socket::Shutdown (%p) (id:%u) - Marked for shutdown - write", this, m_socketId);
 				}
 				else {
 					m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
@@ -262,10 +262,10 @@ int Socket::Shutdown(lua_State* L) {
 		}
 	}
 	else {
-		LogDebug("Socket::Shutdown (%p) (id:%lu) - both", this, m_socketId);
+		LogDebug("Socket::Shutdown (%p) (id:%u) - both", this, m_socketId);
 		if(m_pending_writes > 0) {
 			m_write_shutdown_pending = true;
-			LogDebug("Socket::Shutdown (%p) (id:%lu) - Marked for shutdown - write", this, m_socketId);
+			LogDebug("Socket::Shutdown (%p) (id:%u) - Marked for shutdown - write", this, m_socketId);
 		}
 		else {
 			m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
@@ -304,7 +304,7 @@ int Socket::SendTo(lua_State* L) {
 		std::string d(data, length);
 		shared_const_buffer buffer(d);
 
-		LogDebug("Socket::Write (%p) (id:%lu) - Length=%lu, \r\n'%s'", this, m_socketId, (unsigned long)length, data);
+		LogDebug("Socket::Write (%p) (id:%u) - Length=%lu, \r\n'%s'", this, m_socketId, (unsigned long)length, data);
 	
 		m_pending_writes++;
 		////P
@@ -339,7 +339,7 @@ void Socket::HandleSendTo(int reference, int callback, const boost::system::erro
 
 	m_pending_writes--;
 	if(!error) {
-		LogInfo("Socket::HandleSendTo (%p) (id:%lu) - Bytes Transferred (%lu)", this, m_socketId, 
+		LogInfo("Socket::HandleSendTo (%p) (id:%u) - Bytes Transferred (%lu)", this, m_socketId, 
 			(unsigned long)bytes_transferred);
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -350,7 +350,7 @@ void Socket::HandleSendTo(int reference, int callback, const boost::system::erro
 		}
 	}
 	else {
-		LogDebug("Socket::HandleSendTo with error (%p) (id:%lu) - %s", this, m_socketId, error.message().c_str());
+		LogDebug("Socket::HandleSendTo with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 		//m_callback.OnWriteCompletionError(shared_from_this(), bytes_transferred, error);
 		//lua_getfield(L, 1, "write_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
@@ -359,17 +359,17 @@ void Socket::HandleSendTo(int reference, int callback, const boost::system::erro
 			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		}
 		else {
-			LogError("Socket::HandleSendTo with error (%p) (id:%lu) - %s", this, m_socketId, error.message().c_str());
+			LogError("Socket::HandleSendTo with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 		}
 	}
 	lua_settop(L, 0);
 
 	if(m_write_shutdown_pending && m_pending_writes == 0) {
-		LogDebug("Socket::HandleSendTo - Applying delayed send shutdown (%p) (id:%lu) (send)", this, m_socketId);
+		LogDebug("Socket::HandleSendTo - Applying delayed send shutdown (%p) (id:%u) (send)", this, m_socketId);
 		boost::system::error_code ec;
 		m_socket->shutdown(boost::asio::socket_base::shutdown_send, ec);
 		if(ec) {
-			LogError("Socket::HandleSendTo - Error shutting down socket (%p) (id:%lu) (send) - %s", this, m_socketId, ec.message().c_str());
+			LogError("Socket::HandleSendTo - Error shutting down socket (%p) (id:%u) (send) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
 
@@ -377,7 +377,7 @@ void Socket::HandleSendTo(int reference, int callback, const boost::system::erro
 		boost::system::error_code ec;
 		m_socket->close(ec);
 		if(ec) {
-			LogError("Socket::HandleSendTo - Error closing socket (%p) (id:%lu) - %s", this, m_socketId, ec.message().c_str());
+			LogError("Socket::HandleSendTo - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
 }
@@ -390,7 +390,7 @@ int Socket::Read(lua_State* L) {
 	int reference = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	if(lua_isnoneornil(L, 2)) {
-		LogDebug("Socket::Read (%p) (id:%lu) - ReadSome", this, m_socketId);
+		LogDebug("Socket::Read (%p) (id:%u) - ReadSome", this, m_socketId);
 
 		m_pending_reads++;
 		m_socket->async_receive(
@@ -407,7 +407,7 @@ int Socket::Read(lua_State* L) {
 		//const char* p = luaL_optstring(L, 2, "*l");
 		std::string delimiter = "\r\n";
 
-		LogDebug("Socket::Read (%p) (id:%lu) - ReadLine", this, m_socketId);
+		LogDebug("Socket::Read (%p) (id:%u) - ReadLine", this, m_socketId);
 
 		m_pending_reads++;
 		////P
@@ -438,7 +438,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 
 	m_pending_reads--;
 	if(!error) {
-		LogInfo("Socket::HandleRead (%p) (id:%lu) - Bytes Transferred (%lu)", this, m_socketId, 
+		LogInfo("Socket::HandleRead (%p) (id:%u) - Bytes Transferred (%lu)", this, m_socketId, 
 			(unsigned long)bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
@@ -452,15 +452,15 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 			// do nothing?
 			if(lua_type(L, 1) == LUA_TUSERDATA) {
 				userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-				LogWarning("Socket::HandleRead (%p) (id:%lu) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+				LogWarning("Socket::HandleRead (%p) (id:%u) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
 			}
 			else {
-				LogWarning("Socket::HandleRead (%p) (id:%lu) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+				LogWarning("Socket::HandleRead (%p) (id:%u) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
 			}
 		}
 	}
 	else {
-		LogDebug("Socket::HandleRead with error (%p) (id:%lu) - %s", this, m_socketId, error.message().c_str());
+		LogDebug("Socket::HandleRead with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -469,7 +469,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 			m_inputBuffer.consume(m_inputBuffer.size());
 		}
 		else {
-			LogError("Socket::HandleRead with error (%p) (id:%lu) - %s", this, m_socketId, error.message().c_str());
+			LogError("Socket::HandleRead with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 		}
 	}
 	lua_settop(L, 0);
@@ -478,7 +478,7 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 		boost::system::error_code ec;
 		m_socket->close(ec);
 		if(ec) {
-			LogError("Socket::HandleRead - Error closing socket (%p) (id:%lu) - %s", this, m_socketId, ec.message().c_str());
+			LogError("Socket::HandleRead - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
 }
@@ -492,7 +492,7 @@ void Socket::HandleReceive(int reference, const boost::system::error_code& error
 	
 	m_pending_reads--;
 	if(!error) {
-		LogInfo("Socket::HandleReceive (%p) (id:%lu) - Bytes Transferred (%lu)", this, m_socketId, 
+		LogInfo("Socket::HandleReceive (%p) (id:%u) - Bytes Transferred (%lu)", this, m_socketId, 
 			(unsigned long)bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
@@ -505,10 +505,10 @@ void Socket::HandleReceive(int reference, const boost::system::error_code& error
 			// do nothing?
 			if(lua_type(L, 1) == LUA_TUSERDATA) {
 				userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-				LogWarning("Socket::HandleReceive (%p) (id:%lu) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+				LogWarning("Socket::HandleReceive (%p) (id:%u) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
 			}
 			else {
-				LogWarning("Socket::HandleReceive (%p) (id:%lu) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+				LogWarning("Socket::HandleReceive (%p) (id:%u) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
 			}
 		}
 	}
@@ -519,19 +519,19 @@ void Socket::HandleReceive(int reference, const boost::system::error_code& error
 			BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
 
 			if(error.value() != boost::asio::error::eof && error.value() != boost::asio::error::operation_aborted) {
-				LogError("Socket::HandleReceive with error (%p) (id:%lu) - %s", this, m_socketId, error.message().c_str());
+				LogError("Socket::HandleReceive with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 			}
 
 			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		}
 		else {
-			LogError("Socket::HandleReceive with error (%p) (id:%lu) - %s", this, m_socketId, error.message().c_str());
+			LogError("Socket::HandleReceive with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 			if(lua_type(L, 1) == LUA_TUSERDATA) {
 				userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-				LogWarning("Socket::HandleReceive (%p) (id:%lu) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+				LogWarning("Socket::HandleReceive (%p) (id:%u) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
 			}
 			else {
-				LogWarning("Socket::HandleReceive (%p) (id:%lu) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+				LogWarning("Socket::HandleReceive (%p) (id:%u) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
 			}
 		}
 	}
@@ -541,7 +541,7 @@ void Socket::HandleReceive(int reference, const boost::system::error_code& error
 		boost::system::error_code ec;
 		m_socket->close(ec);
 		if(ec) {
-			LogError("Socket::HandleReceive - Error closing socket (%p) (id:%lu) - %s", this, m_socketId, ec.message().c_str());
+			LogError("Socket::HandleReceive - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
 }
@@ -552,7 +552,7 @@ int Socket::Connect(lua_State* L) {
 	const char* ip = luaL_checkstring(L, 2);
 	unsigned short port = luaL_checkinteger(L, 3);
 
-	LogDebug("Socket::Connect (%p) (id:%lu) (%s:%hu)", this, m_socketId, ip, port);
+	LogDebug("Socket::Connect (%p) (id:%u) (%s:%hu)", this, m_socketId, ip, port);
 
 	boost::asio::ip::udp::endpoint endpoint( boost::asio::ip::address::from_string(ip), port );
 
@@ -574,7 +574,7 @@ void Socket::HandleConnect(int reference, const boost::system::error_code& error
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
-	LogInfo("Socket::HandleConnect (%p) (id:%lu)", this, m_socketId);
+	LogInfo("Socket::HandleConnect (%p) (id:%u)", this, m_socketId);
 	lua_getfield(L, 1, "connect_callback");
 	if(lua_type(L, 2) == LUA_TFUNCTION) {
 		lua_pushvalue(L, 1);
@@ -590,7 +590,7 @@ void Socket::HandleConnect(int reference, const boost::system::error_code& error
 		}		
 	}
 	else {
-		LogError("Socket::HandleConnect with error (%p) (id:%lu) - %s", this, m_socketId, error.message().c_str());
+		LogError("Socket::HandleConnect with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 	}
 	lua_settop(L, 0);
 }
