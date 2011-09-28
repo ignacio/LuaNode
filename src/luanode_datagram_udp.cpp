@@ -105,7 +105,7 @@ Socket::~Socket(void)
 /*static*/ int Socket::tostring_T(lua_State* L) {
 	userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
 	Socket* obj = ud->pT;
-	lua_pushfstring(L, "%s (%p) (id:%lu)", className, obj, obj->m_socketId);
+	lua_pushfstring(L, "%s (%p) (id:%u)", className, obj, obj->m_socketId);
 	return 1;
 }
 
@@ -304,7 +304,7 @@ int Socket::SendTo(lua_State* L) {
 		std::string d(data, length);
 		shared_const_buffer buffer(d);
 
-		LogDebug("Socket::Write (%p) (id:%lu) - Length=%d, \r\n'%s'", this, m_socketId, length, data);
+		LogDebug("Socket::Write (%p) (id:%lu) - Length=%lu, \r\n'%s'", this, m_socketId, (unsigned long)length, data);
 	
 		m_pending_writes++;
 		////P
@@ -339,7 +339,8 @@ void Socket::HandleSendTo(int reference, int callback, const boost::system::erro
 
 	m_pending_writes--;
 	if(!error) {
-		LogInfo("Socket::HandleSendTo (%p) (id:%lu) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
+		LogInfo("Socket::HandleSendTo (%p) (id:%lu) - Bytes Transferred (%lu)", this, m_socketId, 
+			(unsigned long)bytes_transferred);
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
 			LuaNode::GetLuaVM().call(1, LUA_MULTRET);
@@ -437,7 +438,8 @@ void Socket::HandleRead(int reference, const boost::system::error_code& error, s
 
 	m_pending_reads--;
 	if(!error) {
-		LogInfo("Socket::HandleRead (%p) (id:%lu) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
+		LogInfo("Socket::HandleRead (%p) (id:%lu) - Bytes Transferred (%lu)", this, m_socketId, 
+			(unsigned long)bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -490,7 +492,8 @@ void Socket::HandleReceive(int reference, const boost::system::error_code& error
 	
 	m_pending_reads--;
 	if(!error) {
-		LogInfo("Socket::HandleReceive (%p) (id:%lu) - Bytes Transferred (%d)", this, m_socketId, bytes_transferred);
+		LogInfo("Socket::HandleReceive (%p) (id:%lu) - Bytes Transferred (%lu)", this, m_socketId, 
+			(unsigned long)bytes_transferred);
 		lua_getfield(L, 1, "read_callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
 			lua_pushvalue(L, 1);
@@ -549,7 +552,7 @@ int Socket::Connect(lua_State* L) {
 	const char* ip = luaL_checkstring(L, 2);
 	unsigned short port = luaL_checkinteger(L, 3);
 
-	LogDebug("Socket::Connect (%p) (id:%lu) (%s:%d)", this, m_socketId, ip, port);
+	LogDebug("Socket::Connect (%p) (id:%lu) (%s:%hu)", this, m_socketId, ip, port);
 
 	boost::asio::ip::udp::endpoint endpoint( boost::asio::ip::address::from_string(ip), port );
 

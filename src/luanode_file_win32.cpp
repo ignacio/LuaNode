@@ -88,7 +88,7 @@ File::File(lua_State* L, boost::asio::windows::random_access_handle::native_type
 	m_file( LuaNode::GetIoService() )
 {
 	s_fileCount++;
-	LogDebug("Constructing File (%p) (id=%d). Current file count = %d", this, m_fileId, s_fileCount);
+	LogDebug("Constructing File (%p) (id:%u). Current file count = %lu", this, m_fileId, s_fileCount);
 
 	boost::system::error_code ec;
 	m_file.assign(handle, ec);
@@ -97,7 +97,7 @@ File::File(lua_State* L, boost::asio::windows::random_access_handle::native_type
 File::~File(void)
 {
 	s_fileCount--;
-	LogDebug("Destructing File (%p) (id=%d). Current file count = %d", this, m_fileId, s_fileCount);
+	LogDebug("Destructing File (%p) (id:%u). Current file count = %lu", this, m_fileId, s_fileCount);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ void File::HandleRead(int reference, int callback, const boost::system::error_co
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
 	if(!error || error == boost::asio::error::eof) {
-		LogInfo("File::HandleRead (%p) (id=%d) - Bytes Transferred (%d)", this, m_fileId, bytes_transferred);
+		LogInfo("File::HandleRead (%p) (id:%u) - Bytes Transferred (%lu)", this, m_fileId, (unsigned long)bytes_transferred);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, callback);
 		luaL_unref(L, LUA_REGISTRYINDEX, callback);
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
@@ -156,15 +156,16 @@ void File::HandleRead(int reference, int callback, const boost::system::error_co
 			// do nothing?
 			if(lua_type(L, 1) == LUA_TUSERDATA) {
 				userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-				LogWarning("File::HandleRead (%p) (id=%d) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_fileId, luaL_typename(L, 1), ud, ud->pT);
+				LogWarning("File::HandleRead (%p) (id:%u) - No read_callback set on %s (address: %p, possible obj: %p)", 
+					this, m_fileId, luaL_typename(L, 1), ud, ud->pT);
 			}
 			else {
-				LogWarning("File::HandleRead (%p) (id=%d) - No read_callback set on %s", this, m_fileId, luaL_typename(L, 1));
+				LogWarning("File::HandleRead (%p) (id:%u) - No read_callback set on %s", this, m_fileId, luaL_typename(L, 1));
 			}
 		}
 	}
 	else {
-		LogDebug("File::HandleRead with error (%p) (id=%d) - %s", this, m_fileId, error.message().c_str());
+		LogDebug("File::HandleRead with error (%p) (id:%u) - %s", this, m_fileId, error.message().c_str());
 		lua_rawgeti(L, LUA_REGISTRYINDEX, callback);
 		luaL_unref(L, LUA_REGISTRYINDEX, callback);
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
@@ -174,7 +175,7 @@ void File::HandleRead(int reference, int callback, const boost::system::error_co
 			LuaNode::GetLuaVM().call(3, LUA_MULTRET);
 		}
 		else {
-			LogError("File::HandleRead with error (%p) (id=%d) - %s", this, m_fileId, error.message().c_str());
+			LogError("File::HandleRead with error (%p) (id:%u) - %s", this, m_fileId, error.message().c_str());
 		}
 	}
 	lua_settop(L, 0);

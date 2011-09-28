@@ -130,7 +130,7 @@ int Parser::Execute(lua_State* L) {
 
 	if(!m_parser.upgrade && nparsed != len) {
 		lua_pushnil(L);
-		lua_pushfstring(L, "Parse error. %d bytes parsed", nparsed);
+		lua_pushfstring(L, "Parse error. %lu bytes parsed", (unsigned long)nparsed);
 		return 2;
 	}
 

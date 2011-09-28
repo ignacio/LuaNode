@@ -66,7 +66,7 @@ BOOST_SYSTEM_LIBD ?=boost_system-gcc$(GCC_VERSION)-mt-d-$(BOOST_VERSION)
 
 ifeq ($(Target), Debug)
 	OUTPUT = $(OUTPUT_BASE)_d
-	CFLAGS = -Wall -c -g -D_DEBUG -DENABLE_LIBBLOGGER
+	CFLAGS = -Wall -c -g -D_DEBUG -DENABLE_LIBBLOGGER -Werror
 	LFLAGS = -Wall -g -Wl,-E
 	SPECIFIC_LIBS = -l$(BOOST_SYSTEM_LIBD) \
 			$(LUA_LIB) \
