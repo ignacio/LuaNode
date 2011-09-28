@@ -337,7 +337,7 @@ int Socket::Write(lua_State* L) {
 		std::string d(data, length);
 		shared_const_buffer buffer(d);
 
-		LogDebug("SecureSocket::Write (%p) (id:%lu) - Length=%d, \r\n'%s'", this, m_socketId, length, data);
+		LogDebug("SecureSocket::Write (%p) (id:%lu) - Length=%lu, \r\n'%s'", this, m_socketId, (unsigned long)length, data);
 
 		m_pending_writes++;
 		boost::asio::async_write(*m_ssl_socket, buffer,
