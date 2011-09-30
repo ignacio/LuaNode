@@ -823,17 +823,17 @@ function Socket:destroy (err_msg, err_code)
 	-- Issue a close call once (avoids errors with multiple destroy calls)
 	-- That is, it IS possible to get multiple destroy calls, see test-http-parser-reuse
 	if self._raw_socket then
-		self._raw_socket:close()
-		self._raw_socket = nil
-		
-		process.nextTick(function()
+		-- setup a callback that will be called when the socket is actually closed
+		self._raw_socket.close_callback = function()
 			if err_msg then
 				self:emit("error", err_msg, err_code)
 				self:emit("close", err_msg, err_code)
 			else
 				self:emit("close", false)
 			end
-		end)
+		end
+		self._raw_socket:close()
+		self._raw_socket = nil
 	end
 	
 	self.secureContext = nil	-- todo: why Net does have to deal with this?

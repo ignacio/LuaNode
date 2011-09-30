@@ -302,6 +302,17 @@ int Socket::Close(lua_State* L) {
 	boost::system::error_code ec;
 	m_socket->shutdown(boost::asio::socket_base::shutdown_both, ec);
 	m_socket->close(ec);
+	if(!ec) {
+		// If the socket could be closed right away, call the close_callback asynchronously
+		lua_getfield(L, 1, "close_callback");
+		if(lua_type(L, 2) == LUA_TFUNCTION) {
+			lua_pushvalue(L, 1);
+			int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+			m_socket->get_io_service().post(
+				boost::bind(&Socket::HandleCloseCallback, this, reference)
+			);
+		}
+	}
 	return BoostErrorCodeToLua(L, ec);
 }
 
@@ -438,7 +449,6 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 			LogError("Socket::HandleWrite with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 		}
 	}
-	lua_settop(L, 0);
 
 	if(m_write_shutdown_pending && m_pending_writes == 0) {
 		LogDebug("Socket::HandleWrite - Applying delayed send shutdown (%p) (id:%u) (send)", this, m_socketId);
@@ -448,14 +458,10 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 			LogError("Socket::HandleWrite - Error shutting down socket (%p) (id:%u) (send) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
+	
+	if(m_close_pending) CallCloseCallback(L);
 
-	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
-		boost::system::error_code ec;
-		m_socket->close(ec);
-		if(ec) {
-			LogError("Socket::HandleWrite - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
-		}
-	}
+	lua_settop(L, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -607,15 +613,9 @@ void Socket::HandleReadDelimited(int reference, const std::string& delimiter, co
 			LogError("Socket::HandleReadDelimited with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 		}
 	}
+	
+	if(m_close_pending) CallCloseCallback(L);
 	lua_settop(L, 0);
-
-	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
-		boost::system::error_code ec;
-		m_socket->close(ec);
-		if(ec) {
-			LogError("Socket::HandleReadDelimited - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -686,15 +686,9 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 			}
 		}
 	}
+	
+	if(m_close_pending) CallCloseCallback(L);
 	lua_settop(L, 0);
-
-	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
-		boost::system::error_code ec;
-		m_socket->close(ec);
-		if(ec) {
-			LogError("Socket::HandleReadSome - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -772,15 +766,9 @@ void Socket::HandleReadSize(int reference, const boost::system::error_code& erro
 			}
 		}
 	}
+	
+	if(m_close_pending) CallCloseCallback(L);
 	lua_settop(L, 0);
-
-	if(m_close_pending && m_pending_writes == 0 && m_pending_reads == 0) {
-		boost::system::error_code ec;
-		m_socket->close(ec);
-		if(ec) {
-			LogError("Socket::HandleReadSize - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -839,3 +827,39 @@ void Socket::HandleConnect(int reference, const boost::system::error_code& error
 	lua_settop(L, 0);
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Calls the close callback. See 'Close' method.
+void Socket::HandleCloseCallback(int reference) {
+	lua_State* L = LuaNode::GetLuaVM();
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
+	lua_getfield(L, 1, "close_callback");
+	if(lua_type(L, 2) == LUA_TFUNCTION) {
+		lua_pushvalue(L, 1);
+		lua_pushboolean(L, 1);
+		LuaNode::GetLuaVM().call(2, LUA_MULTRET);
+	}
+	lua_settop(L, 0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Checks if there are no more pending operations and closes the socket if none.
+/// Then calls the close_callback on the socket if available
+void Socket::CallCloseCallback(lua_State* L) {
+	if(m_pending_writes == 0 && m_pending_reads == 0) {
+		boost::system::error_code ec;
+		m_socket->close(ec);
+		if(ec) {
+			LogError("Socket::CallCloseCallback - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
+		}
+		else {
+			lua_getfield(L, 1, "close_callback");
+			if(lua_type(L, 2) == LUA_TFUNCTION) {
+				lua_pushvalue(L, 1);
+				lua_pushboolean(L, 1);
+				LuaNode::GetLuaVM().call(2, LUA_MULTRET);
+			}
+		}
+	}
+}
