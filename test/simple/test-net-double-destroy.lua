@@ -17,15 +17,19 @@ local server = net.createServer(function() end)
 
 server:listen(common.PORT)
 
-local client = net.createConnection(common.PORT)
-client:on("connect", function()
-	client:destroy()
-	client:destroy()
-end)
+server:on("listening", function()
 
-client:on("close", function()
-	catched = catched + 1
-	server:close()
+	local client = net.createConnection(common.PORT)
+	client:on("connect", function()
+		client:destroy()
+		client:destroy()
+	end)
+
+	client:on("close", function()
+		catched = catched + 1
+		server:close()
+	end)
+	
 end)
 
 process:loop()
