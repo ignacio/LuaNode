@@ -195,20 +195,30 @@ Socket::~Socket(void)
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::GetRemoteAddress(lua_State* L) {
-	const boost::asio::ip::tcp::endpoint& endpoint = m_socket->remote_endpoint();
-
-	lua_pushstring(L, endpoint.address().to_string().c_str());
-	lua_pushinteger(L, endpoint.port());
+	try {
+		const boost::asio::ip::tcp::endpoint& endpoint = m_socket->remote_endpoint();
+		lua_pushstring(L, endpoint.address().to_string().c_str());
+		lua_pushinteger(L, endpoint.port());
+	}
+	catch(boost::system::system_error& e) {
+		lua_pushnil(L);
+		lua_pushstring(L, e.what());
+	}
 	return 2;
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Socket::GetLocalAddress(lua_State* L) {
-	const boost::asio::ip::tcp::endpoint& endpoint = m_socket->local_endpoint();
-
-	lua_pushstring(L, endpoint.address().to_string().c_str());
-	lua_pushinteger(L, endpoint.port());
+	try {
+		const boost::asio::ip::tcp::endpoint& endpoint = m_socket->local_endpoint();
+		lua_pushstring(L, endpoint.address().to_string().c_str());
+		lua_pushinteger(L, endpoint.port());
+	}
+	catch(boost::system::system_error& e) {
+		lua_pushnil(L);
+		lua_pushstring(L, e.what());
+	}
 	return 2;
 }
 
