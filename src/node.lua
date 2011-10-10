@@ -244,7 +244,7 @@ console.timeEnd = function(label)
 end
 
 console.trace = function(label)
-	console.error("%s - %s", label, debug.traceback())
+	console.error("%s", debug.traceback(label or "", 2))
 end
 
 -- TODO: Sería la misma??
