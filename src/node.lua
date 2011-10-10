@@ -186,7 +186,6 @@ console = require "luanode.console"
 
 function console.log (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogDebug(msg)
 	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
@@ -196,7 +195,6 @@ console.debug = console.log
 
 function console.info (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogInfo(msg)
 	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
@@ -204,7 +202,6 @@ end
 
 function console.warn (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogWarning(msg)
 	console.color("yellow")
 	io.write(msg)
 	console.reset_color()
@@ -215,7 +212,6 @@ end
 
 console["error"] = function (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogError(msg)
 	console.color("lightred", "stderr")
 	io.stderr:write(msg)
 	console.reset_color("stderr")
@@ -226,7 +222,6 @@ end
 
 function console.fatal (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogFatal(msg)
 	console.color("lightred", "stderr")
 	console.bgcolor("white", "stderr")
 	io.stderr:write(msg)
