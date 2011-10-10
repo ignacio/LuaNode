@@ -673,7 +673,7 @@ end
 -- socket.connect('/tmp/socket')    - UNIX connect to socket specified by path
 
 -- ojo! Http crea el stream y entra derecho por acá, no llama a net.createConnection
-function Socket:connect(port, host)
+function Socket:connect(port, host, callback)
 	if self.fd then error("Socket already opened") end
 	
 	--if not self._raw_socket.read_callback then error("No read_callback") end
@@ -681,6 +681,16 @@ function Socket:connect(port, host)
 	Timers.Active(self)	-- ver cómo
 	self._connecting = true	--set false in doConnect
 	self.writable = true
+	
+	if type(host) == "function" and not callback then
+		callback = host
+		host = nil
+	end
+	
+	if type(callback) == "function" then
+		self:on("connect", callback)
+	end
+	
 	if type(port) == "string" and not tonumber(port) then
 		--unix path, cagamos
 		local path = port
