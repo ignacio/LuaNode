@@ -360,7 +360,7 @@ else
 	--code, err = loadstring(code, "@"..process.argv[0])
 	--code, err = loadstring(code, process.argv[0])
 	if not code then
-		error(err)
+		error(err, 2)	-- skip this level
 	end
 	
 	-- put the directory name of the main script in the "require" path
