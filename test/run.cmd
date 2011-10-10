@@ -11,4 +11,4 @@ for %%f in (simple\*.lua) do (
 	set /A noProcessed += 1
 )
 
-echo Run %noProcessed% tests. Ended without errors.
+echo Ran %noProcessed% tests. Ended without errors.

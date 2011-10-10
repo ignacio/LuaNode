@@ -19,4 +19,4 @@ for i in $( ls -1 --hide=disabled simple ); do
 	((noProcessed=noProcessed+1))
 done
 
-echo "Run $noProcessed tests. Ended without errors."
+echo "Ran $noProcessed tests. Ended without errors."
