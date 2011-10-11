@@ -6,8 +6,10 @@ namespace LuaNode {
 class Platform {
 public:
 	static char** SetupArgs(int argc, char *argv[]);
-	static void SetProcessTitle(char *title);
+	static void SetProcessTitle(const char *title);
+	static int SetProcessTitle(lua_State* L);
 	static const char* GetProcessTitle(int *len);
+	static int GetProcessTitle(lua_State* L);
 
 	static int GetMemory(size_t *rss, size_t *vsize);
 	static int GetExecutablePath(char* buffer, size_t* size);

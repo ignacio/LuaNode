@@ -85,8 +85,18 @@ setmetatable(process, {
 			end
 			rawset(t, key, stdin)
 			return stdin
+		elseif key == "title" then
+			return process.get_process_title()
 		end
 		return events[key]
+	end,
+	
+	__newindex = function(t, key, value)
+		if key == "title" then
+			process.set_process_title(value)
+		else
+			rawset(t, key, value)
+		end
 	end
 })
 

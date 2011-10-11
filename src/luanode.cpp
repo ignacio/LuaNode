@@ -607,6 +607,12 @@ static int Load(int argc, char *argv[]) {
 	lua_pushcfunction(L, LuaNode::Platform::SetConsoleBackgroundColor);
 	lua_setfield(L, process, "set_console_bg_color");
 
+	// this also shouldn't be here
+	lua_pushcfunction(L, LuaNode::Platform::SetProcessTitle);
+	lua_setfield(L, process, "set_process_title");
+	lua_pushcfunction(L, LuaNode::Platform::GetProcessTitle);
+	lua_setfield(L, process, "get_process_title");
+
 	// internal stuff
 	lua_newtable(L);
 	int internal = lua_gettop(L);

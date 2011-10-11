@@ -25,6 +25,29 @@ static CONSOLE_SCREEN_BUFFER_INFO CConsoleGetInfo() {
 
 using namespace LuaNode;
 
+
+int Platform::SetProcessTitle(lua_State* L) {
+	::SetConsoleTitle(luaL_checkstring(L, 1));
+	return 0;
+}
+void Platform::SetProcessTitle(const char* title) {
+	::SetConsoleTitle(title);
+}
+
+const char* Platform::GetProcessTitle(int *len) {
+	static char title[64];
+	::GetConsoleTitleA(title, 64);
+	*len = strlen(title);
+	return title;
+}
+
+int Platform::GetProcessTitle(lua_State* L) {
+	int len;
+	const char* title = GetProcessTitle(&len);
+	lua_pushlstring(L, title, len);
+	return 1;
+}
+
 int Platform::GetExecutablePath(char* buffer, size_t* size) {
 	*size = GetModuleFileName(NULL, buffer, *size - 1);
 	if(*size <= 0) {
