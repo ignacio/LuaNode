@@ -20,9 +20,11 @@ end)
 
 server:listen(common.PORT)
 
-local client = net.createConnection(common.PORT)
-client:on("connect", function(self)
-	self:destroy()
+server:on("listening", function()
+	local client = net.createConnection(common.PORT)
+	client:on("connect", function(self)
+		self:destroy()
+	end)
 end)
 
 process:loop()
