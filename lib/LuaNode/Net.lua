@@ -745,11 +745,13 @@ function Socket:connect(port, host, callback)
 end
 
 function Socket:address()
-	return self._raw_socket:getsockname()
+	if self._raw_socket then
+		return self._raw_socket:getsockname()
+	end
 end
 
 function Socket:remoteAddress()
-	return self._raw_socket:getpeername()
+	return self._remoteAddress, self._remotePort
 end
 
 function Socket:setNoDelay(v)
@@ -972,8 +974,8 @@ function Server:__init(listener)
 		newServer.connections = newServer.connections + 1
 		local s = Socket(peer.socket, newServer.type)
 		s:open(peer.socket, newServer.type) --newServer:open(fd, kind)
-		--s.remoteAddress = peer.address
-		s.remotePort = peer.port
+		s._remoteAddress = peer.address
+		s._remotePort = peer.port
 		s.server = newServer
 		newServer.clients[s] = s
 		
@@ -987,13 +989,13 @@ function Server:__init(listener)
 			--s.destroy(e)
 			--return
 		--}
-		
-		if s.secure then
-			s._raw_socket:doHandShake()
-		else
-			s:resume()
+		if not s.destroyed then
+			if s.secure then
+				s._raw_socket:doHandShake()
+			else
+				s:resume()
+			end
 		end
-		
 		-- accept another connection (unles the server was explicitly closed)
 		if newServer.acceptor then
 			newServer.acceptor:accept()
