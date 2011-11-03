@@ -3,8 +3,6 @@ local console = require "luanode.console"
 local tostring, type, process = tostring, type, process
 local rawget, ipairs, pairs = rawget, ipairs, pairs
 
-local print = print
-
 module((...))
 
 ---
