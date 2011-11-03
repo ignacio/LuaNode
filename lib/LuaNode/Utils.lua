@@ -3,6 +3,8 @@ local console = require "luanode.console"
 local tostring, type, process = tostring, type, process
 local rawget, ipairs, pairs = rawget, ipairs, pairs
 
+local print = print
+
 module((...))
 
 ---
@@ -178,6 +180,7 @@ function inspect(value, showHidden, depth, colors)
 			local t_is_array_like = isArray(t)
 			
 			putln(t_is_array_like and '[' or '{')
+			eat_last_comma()
 			
 			local max = 0
 			if not not_clever then
@@ -206,7 +209,7 @@ function inspect(value, showHidden, depth, colors)
 				end
 			end
 			eat_last_comma()
-			putln(oldindent .. (t_is_array_like and ']' or '}') )
+			putln(oldindent .. (t_is_array_like and ']' or '}') ..",")
 		else
 			putln(tostring(t))
 		end
