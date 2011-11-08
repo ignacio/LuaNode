@@ -56,9 +56,12 @@ private:
 	void HandleReadSize(int reference, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleConnect(int reference, const boost::system::error_code& error);
 
+	void HandleCloseCallback(int reference);
+	void CallCloseCallback(lua_State* L);
+
 private:
 	lua_State* m_L;
-	const unsigned long m_socketId;
+	const unsigned int m_socketId;
 	bool m_close_pending;
 	bool m_write_shutdown_pending;
 	unsigned long m_pending_writes;

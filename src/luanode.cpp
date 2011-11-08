@@ -78,6 +78,7 @@ static int tickCallback = LUA_NOREF;
 static boost::asio::io_service io_service;
 static CLuaVM* luaVm = NULL;
 static int exit_code = 0;
+static CLogger* logger = NULL;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,6 +91,12 @@ static int exit_code = 0;
 /// 
 /*static*/ CLuaVM& GetLuaVM() {
 	return *luaVm;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+/*static*/ CLogger& Logger() {
+	return *logger;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -600,6 +607,29 @@ static int Load(int argc, char *argv[]) {
 	lua_pushcfunction(L, LuaNode::Platform::SetConsoleBackgroundColor);
 	lua_setfield(L, process, "set_console_bg_color");
 
+	// this also shouldn't be here
+	lua_pushcfunction(L, LuaNode::Platform::SetProcessTitle);
+	lua_setfield(L, process, "set_process_title");
+	lua_pushcfunction(L, LuaNode::Platform::GetProcessTitle);
+	lua_setfield(L, process, "get_process_title");
+
+	// internal stuff
+	lua_newtable(L);
+	int internal = lua_gettop(L);
+	lua_pushcfunction(L, LogDebug);
+	lua_setfield(L, internal, "LogDebug");
+	lua_pushcfunction(L, LogInfo);
+	lua_setfield(L, internal, "LogInfo");
+	lua_pushcfunction(L, LogProfile);
+	lua_setfield(L, internal, "LogProfile");
+	lua_pushcfunction(L, LogWarning);
+	lua_setfield(L, internal, "LogWarning");
+	lua_pushcfunction(L, LogError);
+	lua_setfield(L, internal, "LogError");
+	lua_pushcfunction(L, LogFatal);
+	lua_setfield(L, internal, "LogFatal");
+	lua_setfield(L, process, "__internal");
+
 	// process.argv
 	lua_newtable(L);
 	int argArray = lua_gettop(L);
@@ -775,6 +805,11 @@ static void ParseArgs(int *argc, char **argv) {
 		} else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
 			PrintUsage();
 			exit(EXIT_SUCCESS);
+		} else if (strcmp(arg, "--logname") == 0 && i != *argc) {
+			const char* app_name = argv[i+1];
+			LuaNode::logger = new CLogger(app_name);
+			argv[i] = const_cast<char*>("");
+			argv[++i] = const_cast<char*>("");
 		} else if (argv[i][0] != '-') {
 			break;
 		}
@@ -800,7 +835,11 @@ static void AtExit() {
 		delete luaVm;
 		luaVm = NULL;
 	}
-	LogFree();
+	//LogFree();
+	if(logger) {
+		delete logger;
+		logger = NULL;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -842,8 +881,6 @@ BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 /// 
 int main(int argc, char* argv[])
 {
-	LuaNode::luaVm = new CLuaVM;
-
 #if defined(_WIN32)
 	if(!SetConsoleCtrlHandler((PHANDLER_ROUTINE)LuaNode::ConsoleControlHandler, TRUE)) {
 		LogError("SetConsoleCtrlHandler failed");
@@ -851,6 +888,13 @@ int main(int argc, char* argv[])
 	}
 #endif
 	// TODO: Parsear argumentos
+	// Parse a few arguments which are specific to Node.
+	LuaNode::ParseArgs(&argc, argv);
+	if(!LuaNode::logger) {
+		LuaNode::logger = new CLogger("LuaNode");
+	}
+
+	LuaNode::luaVm = new CLuaVM;
 
 	// TODO: wrappear el log en un objeto (o usar libblogger2cpp)
 	LogInfo("**** Starting LuaNode - Built on %s ****", LuaNode::compileDateTime);
@@ -862,12 +906,11 @@ int main(int argc, char* argv[])
 
 	atexit(LuaNode::AtExit);
 
-	// Parse a few arguments which are specific to Node.
-	LuaNode::ParseArgs(&argc, argv);
-
 	int result = LuaNode::Load(argc, argv);
 
 	delete LuaNode::luaVm; LuaNode::luaVm = NULL;
+	delete LuaNode::logger; LuaNode::logger = NULL;
+
 	if(LuaNode::exit_code != 0) {
 		return LuaNode::exit_code;
 	}

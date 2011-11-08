@@ -16,8 +16,8 @@ t.PORT = 12346
 
 local assert = assert
 
-t.debug = LogDebug
-t.error = LogError
+t.debug = console.debug
+t.error = console.error
 
 t.p = print
 

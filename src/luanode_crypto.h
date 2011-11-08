@@ -54,7 +54,7 @@ private:
 
 private:
 	lua_State* m_L;
-	const unsigned long m_socketId;
+	const unsigned int m_socketId;
 	bool m_shutdown_pending;
 	bool m_close_pending;
 	unsigned long m_pending_writes;

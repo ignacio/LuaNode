@@ -85,8 +85,18 @@ setmetatable(process, {
 			end
 			rawset(t, key, stdin)
 			return stdin
+		elseif key == "title" then
+			return process.get_process_title()
 		end
 		return events[key]
+	end,
+	
+	__newindex = function(t, key, value)
+		if key == "title" then
+			process.set_process_title(value)
+		else
+			rawset(t, key, value)
+		end
 	end
 })
 
@@ -147,38 +157,37 @@ end
 
 function LogDebug(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogDebug(msg)
+	process.__internal.LogDebug(msg)
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
 
 function LogInfo(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogInfo(msg)
+	process.__internal.LogInfo(msg)
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
 
 function LogWarning(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogWarning(msg)
-	io.write(msg); io.write("\r\n")
+	process.__internal.LogWarning(msg)
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
 end
 
 function LogError(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogError(msg)
-	io.write(msg); io.write("\r\n")
+	process.__internal.LogError(msg)
+	io.stderr:write(msg); io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
 	return msg
 end
 
 function LogFatal(fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogFatal(msg)
-	io.write(msg); io.write("\r\n")
+	process.__internal.LogFatal(msg)
+	io.stderr:write(msg); io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[FATAL] " .. msg) end
 	return msg
 end
@@ -187,7 +196,6 @@ console = require "luanode.console"
 
 function console.log (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogDebug(msg)
 	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
@@ -197,7 +205,6 @@ console.debug = console.log
 
 function console.info (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogInfo(msg)
 	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
@@ -205,7 +212,6 @@ end
 
 function console.warn (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogWarning(msg)
 	console.color("yellow")
 	io.write(msg)
 	console.reset_color()
@@ -216,23 +222,21 @@ end
 
 console["error"] = function (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogError(msg)
-	console.color("lightred")
-	io.write(msg)
-	console.reset_color()
-	io.write("\r\n")
+	console.color("lightred", "stderr")
+	io.stderr:write(msg)
+	console.reset_color("stderr")
+	io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
 	return msg
 end
 
 function console.fatal (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	--print(msg) --scriptLogger.LogFatal(msg)
-	console.color("lightred")
-	console.bgcolor("white")
-	io.write(msg)
-	console.reset_color()
-	io.write("\r\n")
+	console.color("lightred", "stderr")
+	console.bgcolor("white", "stderr")
+	io.stderr:write(msg)
+	console.reset_color("stderr")
+	io.stderr:write("\r\n")
 	if decoda_output then decoda_output("[FATAL] " .. msg) end
 	return msg
 end
@@ -250,7 +254,7 @@ console.timeEnd = function(label)
 end
 
 console.trace = function(label)
-	console.error("%s - %s", label, debug.traceback())
+	console.error("%s", debug.traceback(label or "", 2))
 end
 
 -- TODO: Sería la misma??
@@ -361,7 +365,7 @@ else
 	--code, err = loadstring(code, "@"..process.argv[0])
 	--code, err = loadstring(code, process.argv[0])
 	if not code then
-		error(err)
+		error(err, 2)	-- skip this level
 	end
 	
 	-- put the directory name of the main script in the "require" path

@@ -45,20 +45,20 @@ Acceptor::Acceptor(lua_State* L) :
 	m_acceptor( GetIoService() )
 {
 	s_acceptorCount++;
-	LogDebug("Constructing Acceptor (%p) (id=%d). Current acceptor count = %d", this, m_acceptorId, s_acceptorCount);
+	LogDebug("Constructing Acceptor (%p) (id:%u). Current acceptor count = %lu", this, m_acceptorId, s_acceptorCount);
 }
 
 Acceptor::~Acceptor(void)
 {
 	s_acceptorCount--;
-	LogDebug("Destructing Acceptor (%p) (id=%d). Current acceptor count = %d", this, m_acceptorId, s_acceptorCount);
+	LogDebug("Destructing Acceptor (%p) (id:%u). Current acceptor count = %lu", this, m_acceptorId, s_acceptorCount);
 
 	// Close the acceptor if it was still open
 	if(m_acceptor.is_open()) {
 		boost::system::error_code ec;
 		m_acceptor.close(ec);
 		if(ec) {
-			LogError("Error closing acceptor (%p) (id=%d) - %s", this, m_acceptorId, ec.message().c_str());
+			LogError("Error closing acceptor (%p) (id:%u) - %s", this, m_acceptorId, ec.message().c_str());
 		}
 	}
 }
@@ -68,7 +68,7 @@ Acceptor::~Acceptor(void)
 /*static*/ int Acceptor::tostring_T(lua_State* L) {
 	userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
 	Acceptor* obj = ud->pT;
-	lua_pushfstring(L, "%s (%p) (id=%d)", className, obj, obj->m_acceptorId);
+	lua_pushfstring(L, "%s (%p) (id:%d)", className, obj, obj->m_acceptorId);
 	return 1;
 }
 
@@ -76,7 +76,7 @@ Acceptor::~Acceptor(void)
 /// Open the acceptor using the specified protocol
 int Acceptor::Open(lua_State* L) {
 	const char* kind = luaL_checkstring(L, 2);
-	LogDebug("Acceptor::Open (%p) (id=%d) - %s", this, m_acceptorId, kind);
+	LogDebug("Acceptor::Open (%p) (id:%u) - %s", this, m_acceptorId, kind);
 
 	boost::system::error_code ec;
 	if(strcmp(kind, "tcp4") == 0) {
@@ -101,7 +101,7 @@ int Acceptor::Open(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Acceptor::Close(lua_State* L) {
-	LogDebug("Acceptor::Close (%p) (id=%d)", this, m_acceptorId);
+	LogDebug("Acceptor::Close (%p) (id:%u)", this, m_acceptorId);
 	boost::system::error_code ec;
 	m_acceptor.close(ec);
 	return BoostErrorCodeToLua(L, ec);
@@ -111,7 +111,9 @@ int Acceptor::Close(lua_State* L) {
 /// 
 int Acceptor::SetOption(lua_State* L) {
 	const char* option = luaL_checkstring(L, 2);
-	LogDebug("Acceptor::SetOption (%p) (id=%d) - %s", this, m_acceptorId, option);
+	LogDebug("Acceptor::SetOption (%p) (id:%u) - %s", this, m_acceptorId, option);
+
+	boost::system::error_code ec;
 
 	boost::system::error_code ec;
 
@@ -145,7 +147,7 @@ int Acceptor::Bind(lua_State* L) {
 	const char* ip = luaL_checkstring(L, 2);
 	unsigned short port = luaL_checkinteger(L, 3);
 
-	LogDebug("Acceptor::Bind (%p) (id=%d) - (%s,%d)", this, m_acceptorId, ip, port);
+	LogDebug("Acceptor::Bind (%p) (id:%u) - (%s,%hu)", this, m_acceptorId, ip, port);
 
 	boost::system::error_code ec;
 	boost::asio::ip::address address = boost::asio::ip::address::from_string(ip, ec);
@@ -162,7 +164,7 @@ int Acceptor::Bind(lua_State* L) {
 /// 
 int Acceptor::Listen(lua_State* L) {
 	int backlog = luaL_optinteger(L, 2, boost::asio::socket_base::max_connections);
-	LogDebug("Acceptor::Listen (%p) (id=%d) - backlog = %d", this, m_acceptorId, backlog);
+	LogDebug("Acceptor::Listen (%p) (id:%u) - backlog = %d", this, m_acceptorId, backlog);
 
 	boost::system::error_code ec;
 	m_acceptor.listen(backlog, ec);
@@ -172,7 +174,7 @@ int Acceptor::Listen(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 int Acceptor::Accept(lua_State* L) {
-	LogDebug("Acceptor::Accept (%p) (id=%d)", this, m_acceptorId);
+	LogDebug("Acceptor::Accept (%p) (id:%u)", this, m_acceptorId);
 
 	boost::shared_ptr<boost::asio::ip::tcp::socket> socket = boost::make_shared<boost::asio::ip::tcp::socket>( boost::ref(GetIoService()) );
 
@@ -190,7 +192,7 @@ int Acceptor::Accept(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tcp::socket> socket, const boost::system::error_code& error) {
-	LogDebug("Acceptor::HandleAccept (%p) (id=%d) (new socket %p)", this, m_acceptorId, socket.get());
+	LogDebug("Acceptor::HandleAccept (%p) (id:%u) (new socket %p)", this, m_acceptorId, socket.get());
 	lua_State* L = LuaNode::GetLuaVM();
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
@@ -224,7 +226,7 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 	}
 	else {
 		if(error != boost::asio::error::operation_aborted) {
-			LogError("Acceptor::HandleAccept (%p) (id=%d) (new socket %p) - %s", this, m_acceptorId, socket.get(), error.message().c_str());
+			LogError("Acceptor::HandleAccept (%p) (id:%u) (new socket %p) - %s", this, m_acceptorId, socket.get(), error.message().c_str());
 		}
 	}
 	lua_settop(L, 0);

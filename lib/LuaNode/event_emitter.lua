@@ -138,14 +138,12 @@ end
 --
 --
 EventEmitter.on = EventEmitter.addListener
-
 function EventEmitter:once(kind, listener)
-	local t = {}
-	t.callback = function(...)
-		self:removeListener(kind, t.callback)
+	local function callback(...)
+		self:removeListener(kind, callback)
 		listener(...)
 	end
-	self:on(kind, t.callback)
+	self:on(kind, callback)
 end
 
 --

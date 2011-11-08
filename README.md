@@ -52,15 +52,18 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
  - [lunit][10]
  
 ### Debian installation #
-The following has been tested on Ubuntu Desktop 10.10.
+The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
 
- - Install Lua
-   - sudo apt-get install lua5.1
-   
+ - Install Lua and libraries
+   - sudo apt-get install lua5.1 liblua5.1-0-dev luasocket-dev liblua5.1-json
+
  - Install OpenSSL
    - sudo apt-get install libssl-dev
+
+ - Install Boost
+   - sudo apt-get install libboost1.46-dev libboost-system1.46-dev
    
- - Install Boost (tested with 1.44)
+ - Install Boost (tested with 1.44 to 1.47)
    - Download [boost_1_44_0.tar.bz2](http://sourceforge.net/projects/boost/files/boost/1.44.0/boost_1_44_0.tar.bz2/download)
    - Unpack
    - ./bootstrap.sh
@@ -68,9 +71,9 @@ The following has been tested on Ubuntu Desktop 10.10.
    - sudo ldconfig -v
    
  - Install LuaRocks
-   - wget http://luarocks.org/releases/luarocks-2.0.3.tar.gz
-   - tar xvf luarocks-2.0.3.tar.gz
-   - cd luarocks-2.0.3
+   - wget http://luarocks.org/releases/luarocks-2.0.5.tar.gz
+   - tar xvf luarocks-2.0.5.tar.gz
+   - cd luarocks-2.0.5
    - ./configure
    - make
    - sudo make install

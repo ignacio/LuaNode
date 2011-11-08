@@ -5,7 +5,15 @@
 
 #include <direct.h>	//< contigo seguro que voy a tener problemas
 
+// I don't think I should cache this...
 static HANDLE m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+static HANDLE m_hConsoleError = GetStdHandle(STD_ERROR_HANDLE);
+
+static const char* console_output_options[] = {
+	"stdout",
+	"stderr",
+	NULL
+};
 
 static CONSOLE_SCREEN_BUFFER_INFO CConsoleGetInfo() {
 	CONSOLE_SCREEN_BUFFER_INFO csbi = {0};
@@ -16,6 +24,29 @@ static CONSOLE_SCREEN_BUFFER_INFO CConsoleGetInfo() {
 
 
 using namespace LuaNode;
+
+
+int Platform::SetProcessTitle(lua_State* L) {
+	::SetConsoleTitle(luaL_checkstring(L, 1));
+	return 0;
+}
+void Platform::SetProcessTitle(const char* title) {
+	::SetConsoleTitle(title);
+}
+
+const char* Platform::GetProcessTitle(int *len) {
+	static char title[64];
+	::GetConsoleTitleA(title, 64);
+	*len = strlen(title);
+	return title;
+}
+
+int Platform::GetProcessTitle(lua_State* L) {
+	int len;
+	const char* title = GetProcessTitle(&len);
+	lua_pushlstring(L, title, len);
+	return 1;
+}
 
 int Platform::GetExecutablePath(char* buffer, size_t* size) {
 	*size = GetModuleFileName(NULL, buffer, *size - 1);
@@ -35,7 +66,10 @@ int Platform::SetConsoleForegroundColor(lua_State* L) {
 	CONSOLE_SCREEN_BUFFER_INFO csbi = CConsoleGetInfo();
 	csbi.wAttributes &= BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY;
 	csbi.wAttributes |= wRGBI; 
-	SetConsoleTextAttribute(m_hConsole, csbi.wAttributes);
+	
+	SetConsoleTextAttribute(
+		(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) ? m_hConsole : m_hConsoleError,
+		csbi.wAttributes);
 	return 0;
 }
 
@@ -44,7 +78,10 @@ int Platform::SetConsoleBackgroundColor(lua_State* L) {
 	CONSOLE_SCREEN_BUFFER_INFO csbi = CConsoleGetInfo();
 	csbi.wAttributes &= FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
 	csbi.wAttributes |= wRGBI; 
-	SetConsoleTextAttribute(m_hConsole, csbi.wAttributes);
+
+	SetConsoleTextAttribute(
+		(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) ? m_hConsole : m_hConsoleError,
+		csbi.wAttributes);
 	return 0;
 }
 

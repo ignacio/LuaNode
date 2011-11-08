@@ -104,6 +104,6 @@ int CLuaVM::OnError(bool hasStackTrace) const {
 	}
 	lua_pop(m_L, 1);
 
-	//LogError("%s", errorMessage.c_str());
+	LogError("%s", errorMessage.c_str());
 	return 1;
 }

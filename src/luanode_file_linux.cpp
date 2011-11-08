@@ -68,7 +68,7 @@ File::File(lua_State* L) :
 File::~File(void)
 {
 	s_fileCount--;
-	LogDebug("Destructing File (%p) (id=%d). Current file count = %d", this, m_fileId, s_fileCount);
+	LogDebug("Destructing File (%p) (id:%u). Current file count = %lu", this, m_fileId, s_fileCount);
 }
 
 //////////////////////////////////////////////////////////////////////////

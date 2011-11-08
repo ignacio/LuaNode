@@ -40,7 +40,7 @@ private:
 
 private:
 	lua_State* m_L;
-	unsigned long m_acceptorId;
+	unsigned int m_acceptorId;
 	// Our socket acceptor
 	boost::asio::ip::tcp::acceptor m_acceptor;
 };

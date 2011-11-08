@@ -101,7 +101,7 @@ public:
 		m_L( LuaNode::GetLuaVM() ),
 		m_socketId(0)
 	{
-		printf("Construyendo PosixStream (%d)\n", luaL_checkinteger(L, 1));
+		printf("Construyendo PosixStream (%d)\n", (int)luaL_checkinteger(L, 1));
 		int fd = ::dup(STDIN_FILENO);
 		//EnableRawMode(fd);
 
@@ -140,7 +140,7 @@ public:
 		lua_pushvalue(L, 1);
 		int reference = luaL_ref(L, LUA_REGISTRYINDEX);
 		if(lua_isnoneornil(L, 2)) {
-			LogDebug("Socket::Read (%p) (id=%d) - ReadSome", this, m_socketId);
+			LogDebug("Socket::Read (%p) (id:%u) - ReadSome", this, m_socketId);
 
 			m_pending_reads++;
 			m_socket->async_read_some(
@@ -175,7 +175,7 @@ private:
 
 		m_pending_reads--;
 		if(!error) {
-			printf("PosixStream::HandleReadSome (%p) (id=%d) - Bytes Transferred (%d)\n", this, (int)m_socketId, bytes_transferred);
+			LogDebug("PosixStream::HandleReadSome (%p) (id:%u) - Bytes Transferred (%lu)\n", this, m_socketId, (unsigned long)bytes_transferred);
 			lua_getfield(L, 1, "read_callback");
 			if(lua_type(L, 2) == LUA_TFUNCTION) {
 				lua_pushvalue(L, 1);
@@ -187,10 +187,10 @@ private:
 				// do nothing?
 				if(lua_type(L, 1) == LUA_TUSERDATA) {
 					userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-					LogWarning("PosixStream::HandleReadSome (%p) (id=%d) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+					LogWarning("PosixStream::HandleReadSome (%p) (id:%u) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
 				}
 				else {
-					LogWarning("PosixStream::HandleReadSome (%p) (id=%d) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+					LogWarning("PosixStream::HandleReadSome (%p) (id:%u) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
 				}
 			}
 		}
@@ -201,19 +201,19 @@ private:
 				LuaNode::BoostErrorCodeToLua(L, error);	// -> nil, error code, error message
 
 				if(error.value() != boost::asio::error::eof && error.value() != boost::asio::error::operation_aborted) {
-					LogError("PosixStream::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+					LogError("PosixStream::HandleReadSome with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 				}
 
 				LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 			}
 			else {
-				LogError("PosixStream::HandleReadSome with error (%p) (id=%d) - %s", this, m_socketId, error.message().c_str());
+				LogError("PosixStream::HandleReadSome with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 				if(lua_type(L, 1) == LUA_TUSERDATA) {
 					userdataType* ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-					LogWarning("PosixStream::HandleReadSome (%p) (id=%d) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
+					LogWarning("PosixStream::HandleReadSome (%p) (id:%u) - No read_callback set on %s (address: %p, possible obj: %p)", this, m_socketId, luaL_typename(L, 1), ud, ud->pT);
 				}
 				else {
-					LogWarning("PosixStream::HandleReadSome (%p) (id=%d) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
+					LogWarning("PosixStream::HandleReadSome (%p) (id:%u) - No read_callback set on %s", this, m_socketId, luaL_typename(L, 1));
 				}
 			}
 		}
@@ -223,7 +223,7 @@ private:
 			boost::system::error_code ec;
 			m_socket->close(ec);
 			if(ec) {
-				LogError("PosixStream::HandleReadSome - Error closing socket (%p) (id=%d) - %s", this, m_socketId, ec.message().c_str());
+				LogError("PosixStream::HandleReadSome - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
 			}
 		}
 	}
@@ -231,7 +231,7 @@ private:
 
 private:
 	lua_State* m_L;
-	const unsigned long m_socketId;
+	const unsigned int m_socketId;
 	bool m_close_pending;
 	//bool m_read_shutdown_pending;
 	bool m_write_shutdown_pending;

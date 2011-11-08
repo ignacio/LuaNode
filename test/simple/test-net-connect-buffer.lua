@@ -1,4 +1,3 @@
--- no anda porque el finish cuando el socket aun no esta conectado pierde los datos
 module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")
@@ -7,8 +6,8 @@ local net = require("luanode.net")
 function test()
 local tcpPort = common.PORT
 
---tcp = net.createServer(function (self, socket)
-tcp = net.Server:new(function (self, s)
+local tcp
+tcp = net.Server(function (self, s)
 	tcp:close()
 
 	console.log("tcp server connection")
@@ -30,29 +29,29 @@ tcp = net.Server:new(function (self, s)
 	end)
 end)
 
-function startClient ()
-	local socket = net.Stream:new()
+tcp:listen(common.PORT, function()
+	local socket = net.Socket()
 
 	console.log("Connecting to socket")
 
-	socket:connect(tcpPort)
-	--socket._stream._stream = socket
-
-	socket:on('connect', function ()
+	socket:connect(tcpPort, function()
 		console.log('socket connected')
-		--socket:finish()		-- asi anda
+		connectHappened = true
 	end)
 
 	assert_equal("opening", socket:readyState())
+	
+	local r = socket:write("foo", function()
+		fooWritten = true
+		assert_true(connectHappened)
+		console.error("foo written")
+	end)
 
-	assert_equal(false, socket:write("foo"))
+	assert_equal(false, r)
 	socket:finish("bar")
-	--socket:write("bar")	-- asi anda
 
 	assert_equal("opening", socket:readyState())
-end
-
-tcp:listen(tcpPort, startClient)
+end)
 
 process:loop()
 end

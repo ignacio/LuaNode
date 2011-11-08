@@ -49,7 +49,7 @@ private:
 private:
 	boost::asio::windows::random_access_handle m_file;
 	lua_State* m_L;
-	const unsigned long m_fileId;
+	const unsigned int m_fileId;
 	boost::array<char, 8192> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
 };
 
