@@ -115,8 +115,6 @@ int Acceptor::SetOption(lua_State* L) {
 
 	boost::system::error_code ec;
 
-	boost::system::error_code ec;
-
 	if(strcmp(option, "reuseaddr") == 0) {
 		bool value = lua_toboolean(L, 3) != 0;
 		m_acceptor.set_option( boost::asio::socket_base::reuse_address(value), ec );
