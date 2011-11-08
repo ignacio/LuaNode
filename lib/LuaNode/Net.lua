@@ -270,6 +270,10 @@ local function _doFlush(raw_socket, ok, socket)
 	-- Socket becomes writable on connect() but don't flush if there's
 	-- nothing actually to write
 	-- hack, lo tendria que mandar ya yo como un socket? (la tabla socket)
+	if not ok then
+		--console.error("%s: %s", ok, socket)
+		return
+	end
 	if not socket then
 		socket = raw_socket._owner
 	end
@@ -289,6 +293,8 @@ local function initSocket(self)
 	-- en lugar de usar _readWatcher, recibo los eventos de read en _raw_socket.read_callback
 	--self._readWatcher = {}
 	--self._readWatcher.callback = function()
+	self.readable = false
+	self.destroyed = false
 	
 	-- @param raw_socket is the socket
 	-- @param data is the data that has been read or nil if the socket has been closed
@@ -619,6 +625,8 @@ function Socket:setEncoding(encoding)
 end
 
 local function doConnect(socket, port, host)
+	if socket.destroyed then return end
+	
 	local ok, err_msg, err_code = socket._raw_socket:connect(host, port)
 	if not ok then
 		socket:destroy(err_msg, err_code)
@@ -665,7 +673,7 @@ end
 -- socket.connect('/tmp/socket')    - UNIX connect to socket specified by path
 
 -- ojo! Http crea el stream y entra derecho por acá, no llama a net.createConnection
-function Socket:connect(port, host)
+function Socket:connect(port, host, callback)
 	if self.fd then error("Socket already opened") end
 	
 	--if not self._raw_socket.read_callback then error("No read_callback") end
@@ -673,6 +681,16 @@ function Socket:connect(port, host)
 	Timers.Active(self)	-- ver cómo
 	self._connecting = true	--set false in doConnect
 	self.writable = true
+	
+	if type(host) == "function" and not callback then
+		callback = host
+		host = nil
+	end
+	
+	if type(callback) == "function" then
+		self:on("connect", callback)
+	end
+	
 	if type(port) == "string" and not tonumber(port) then
 		--unix path, cagamos
 		local path = port
@@ -727,11 +745,13 @@ function Socket:connect(port, host)
 end
 
 function Socket:address()
-	return self._raw_socket:getsockname()
+	if self._raw_socket then
+		return self._raw_socket:getsockname()
+	end
 end
 
 function Socket:remoteAddress()
-	return self._raw_socket:getpeername()
+	return self._remoteAddress, self._remotePort
 end
 
 function Socket:setNoDelay(v)
@@ -806,30 +826,33 @@ function Socket:destroy (err_msg, err_code)
 	--end
 
 	-- TODO: por qué es el socket el que tiene que updatear esto que es del server ?
-	if self.server then
+	if self.server and not self.destroyed then
 		self.server.connections = self.server.connections - 1
 		
 		self.server.clients[self] = nil
 	end
 	
 	-- Issue a close call once (avoids errors with multiple destroy calls)
+	-- That is, it IS possible to get multiple destroy calls, see test-http-parser-reuse
 	if self._raw_socket then
+		-- setup a callback that will be called when the socket is actually closed
+		self._raw_socket.close_callback = function()
+			if err_msg then
+				self:emit("error", err_msg, err_code)
+				self:emit("close", err_msg, err_code)
+			else
+				self:emit("close", false)
+			end
+		end
 		self._raw_socket:close()
 		self._raw_socket = nil
 	end
 	
 	self.secureContext = nil	-- todo: why Net does have to deal with this?
+
 	m_opened_sockets[self] = nil
 
-	process.nextTick(function()
-		if err_msg then
-			self:emit("error", err_msg, err_code)
-			self:emit("close", err_msg, err_code)
-		else
-			self:emit("close", false)
-		end
-		--self.server.clients[self] = nil
-	end)
+	self.destroyed = true
 end
 
 function Socket:_shutdown()
@@ -951,8 +974,8 @@ function Server:__init(listener)
 		newServer.connections = newServer.connections + 1
 		local s = Socket(peer.socket, newServer.type)
 		s:open(peer.socket, newServer.type) --newServer:open(fd, kind)
-		--s.remoteAddress = peer.address
-		s.remotePort = peer.port
+		s._remoteAddress = peer.address
+		s._remotePort = peer.port
 		s.server = newServer
 		newServer.clients[s] = s
 		
@@ -966,14 +989,14 @@ function Server:__init(listener)
 			--s.destroy(e)
 			--return
 		--}
-		
-		if s.secure then
-			s._raw_socket:doHandShake()
-		else
-			s:resume()
+		if not s.destroyed then
+			if s.secure then
+				s._raw_socket:doHandShake()
+			else
+				s:resume()
+			end
 		end
-		
-		-- accept another connection (unles the server was explicitly closed)
+		-- accept another connection (unless the server was explicitly closed)
 		if newServer.acceptor then
 			newServer.acceptor:accept()
 		end
