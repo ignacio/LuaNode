@@ -639,7 +639,8 @@ local function doConnect(socket, port, host)
 	--socket._readWatcher.set(socket.fd, true, false)
 	
 	socket._raw_socket.connect_callback = function(raw_socket, ok, err_msg, err_code)
-		socket._raw_socket.connect_callback = nil
+		raw_socket.connect_callback = nil
+		local socket = assert(raw_socket._owner)
 		if ok then
 			socket._connecting = false
 			--socket:resume()
