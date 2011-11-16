@@ -301,7 +301,8 @@ function process:exit (code)
 	if process._exit_already_emitted then return end
 	
 	process._exit_already_emitted = true
-	process:emit("exit", code or 0)
+	pcall(process.emit, process, "exit", code or 0)
+	process:removeAllListeners("exit")
 	
 	process.nextTick(function()
 		process._exit(code or 0)
