@@ -1,6 +1,9 @@
 local assert = assert
-require "luarocks.require"
--- TODO: traerse esto para adentro
+
+if process.platform == "windows" then
+	require "luarocks.require"
+	-- TODO: traerse esto para adentro
+end
 local Url = require "socket.url"
 
 -- TODO: sacar el seeall
