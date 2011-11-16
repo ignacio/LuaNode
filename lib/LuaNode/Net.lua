@@ -624,6 +624,36 @@ function Socket:setEncoding(encoding)
 	-- como que acá en Lua no aplica mucho esto
 end
 
+-- Declare the connect callback outside of doConnect, in order to create only one copy of it
+local connect_callback = function(raw_socket, ok, err_msg, err_code)
+	raw_socket.connect_callback = nil
+	local socket = assert(raw_socket._owner)
+	if ok then
+		socket._connecting = false
+		--socket:resume()
+		socket.readable = true
+		socket.writable = true
+		socket._raw_socket.write_callback = _doFlush
+		local ok, err = pcall(socket.emit, socket, "connect")
+		if not ok then
+			socket:destroy(err)
+		end
+		
+		if socket._writeQueue and #socket._writeQueue > 0 and not socket.secure then
+			-- Flush socket in case any writes are queued up while connecting.
+			-- ugly
+			_doFlush(nil, true, socket)
+		end
+		-- only do an initial read if the socket is not secure (we need to wait till the handshake is done)
+		if socket.readable and not socket.secure then
+			socket:resume()
+		end
+		return
+	else
+		socket:destroy(err_msg, err_code)
+	end
+end
+
 local function doConnect(socket, port, host)
 	if socket.destroyed then return end
 	
@@ -638,34 +668,7 @@ local function doConnect(socket, port, host)
 	-- Don't start the read watcher until connection is established
 	--socket._readWatcher.set(socket.fd, true, false)
 	
-	socket._raw_socket.connect_callback = function(raw_socket, ok, err_msg, err_code)
-		raw_socket.connect_callback = nil
-		local socket = assert(raw_socket._owner)
-		if ok then
-			socket._connecting = false
-			--socket:resume()
-			socket.readable = true
-			socket.writable = true
-			socket._raw_socket.write_callback = _doFlush
-			local ok, err = pcall(socket.emit, socket, "connect")
-			if not ok then
-				socket:destroy(err)
-			end
-			
-			if socket._writeQueue and #socket._writeQueue > 0 and not socket.secure then
-				-- Flush socket in case any writes are queued up while connecting.
-				-- ugly
-				_doFlush(nil, true, socket)
-			end
-			-- only do an initial read if the socket is not secure (we need to wait till the handshake is done)
-			if socket.readable and not socket.secure then
-				socket:resume()
-			end
-			return
-		else
-			socket:destroy(err_msg, err_code)
-		end
-	end
+	socket._raw_socket.connect_callback = connect_callback
 end
 
 -- var socket = new Socket()
