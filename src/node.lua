@@ -359,7 +359,7 @@ else
 		return err
 	end
 	--local code = file:read("*a")
-	--file:close()
+	file:close()
 	
 	--code = code .. "\r\nprocess:loop()"
 	code, err = loadfile(process.argv[0])
