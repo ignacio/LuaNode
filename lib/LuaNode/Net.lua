@@ -650,7 +650,7 @@ local connect_callback = function(raw_socket, ok, err_msg, err_code)
 		end
 		return
 	else
-		local msg = ("failed to connect to %s:%d - %s"):format(socket._remoteAddress, socket._remotePort, err_msg)
+		local msg = ("Failed to connect to %s:%d - %s"):format(socket._remoteAddress, socket._remotePort, err_msg)
 		socket:destroy(msg, err_code)
 	end
 end
@@ -660,7 +660,7 @@ local function doConnect(socket, port, host)
 	
 	local ok, err_msg, err_code = socket._raw_socket:connect(host, port)
 	if not ok then
-		local msg = ("failed to connect to %s:%d - %s"):format(host, port, err_msg)
+		local msg = ("Failed to connect to %s:%d - %s"):format(host, port, err_msg)
 		socket:destroy(msg, err_code)
 		return
 	end
