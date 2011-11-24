@@ -326,6 +326,7 @@ void ReportError(lua_State* L, const char* message) {
 		fprintf(stderr, "%s\n", message);
 	}
 	lua_pop(L, 1);
+	LogError("%s", message);
 }
 
 //////////////////////////////////////////////////////////////////////////
