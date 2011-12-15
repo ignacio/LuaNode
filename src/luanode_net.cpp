@@ -672,6 +672,11 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 				case boost::asio::error::connection_aborted:
 					LogDebug("Socket::HandleReadSome (connection aborted) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 				break;
+#ifdef _WIN32
+				case ERROR_CONNECTION_ABORTED:
+					LogDebug("Socket::HandleReadSome (ERROR_CONNECTION_ABORTED) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+				break;
+#endif
 				case boost::asio::error::operation_aborted:
 					LogDebug("Socket::HandleReadSome (operation aborted) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 				break;
