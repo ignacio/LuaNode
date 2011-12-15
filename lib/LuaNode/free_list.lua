@@ -27,10 +27,11 @@ function FreeList:free(element)
 	-- print("free " .. self.name .. " " .. self.#list)
 	if self.count < self.max then
 		if self.map[element] then
-			console_warn("element %q has been already freed")
+			console_warn("element %q has been already freed", self.map[element])
+		else
+			self.map[element] = element
+			self.count = self.count + 1
 		end
-		self.map[element] = element
-		self.count = self.count + 1
 	end
 end
 
