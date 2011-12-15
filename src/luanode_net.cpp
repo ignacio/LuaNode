@@ -885,3 +885,4 @@ void Socket::CallCloseCallback(lua_State* L) {
 			}
 		}
 	}
+}
