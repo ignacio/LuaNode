@@ -862,7 +862,7 @@ void Socket::HandleCloseCallback(int reference) {
 /// Checks if there are no more pending operations and closes the socket if none.
 /// Then calls the close_callback on the socket if available
 void Socket::CallCloseCallback(lua_State* L) {
-	if(m_pending_writes == 0/* && m_pending_reads == 0*/) {
+	if(m_pending_writes == 0) {
 		m_close_pending = false;
 
 		boost::system::error_code ec;
