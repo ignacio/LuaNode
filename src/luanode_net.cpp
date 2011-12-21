@@ -868,21 +868,25 @@ void Socket::CallCloseCallback(lua_State* L) {
 		boost::system::error_code ec;
 		m_socket->shutdown(boost::asio::socket_base::shutdown_both, ec);
 		if(ec) {
-			LogError("Socket::CallCloseCallback - Error shuttding down socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
+			if(ec.value() != boost::asio::error::not_connected && ec.value() != boost::asio::error::broken_pipe) {
+				LogError("Socket::CallCloseCallback - Error shutting down socket (%p) (id:%u) - %d: %s", 
+					this, m_socketId, ec.value(), ec.message().c_str());
+			}
 		}
-		else {
-			m_socket->close(ec);
-			if(ec) {
-				LogError("Socket::CallCloseCallback - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
+		m_socket->close(ec);
+		if(ec) {
+			if(ec.value() != boost::asio::error::not_connected && ec.value() != boost::asio::error::broken_pipe) {
+				LogError("Socket::CallCloseCallback - Error closing socket (%p) (id:%u) - %d: %s", 
+					this, m_socketId, ec.value(), ec.message().c_str());
 			}
-			else {
-				lua_getfield(L, 1, "close_callback");
-				if(lua_type(L, 2) == LUA_TFUNCTION) {
-					lua_pushvalue(L, 1);
-					lua_pushboolean(L, 1);
-					LuaNode::GetLuaVM().call(2, LUA_MULTRET);
-				}
-			}
+		}
+
+		// call the callback anyway
+		lua_getfield(L, 1, "close_callback");
+		if(lua_type(L, 2) == LUA_TFUNCTION) {
+			lua_pushvalue(L, 1);
+			lua_pushboolean(L, 1);
+			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 	}
 }
