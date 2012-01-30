@@ -843,6 +843,10 @@ static void AtExit() {
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Para poder bajar el servicio, si tengo la consola habilitada
+#if defined(_WIN32)
+
 static void SafeLog(const char* message) {
 	bool can_log = (logger != NULL);
 	if(can_log) {
@@ -854,9 +858,6 @@ static void SafeLog(const char* message) {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
-/// Para poder bajar el servicio, si tengo la consola habilitada
-#if defined(_WIN32)
 BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
 	SafeLog("***** Console Event Detected *****");
 	switch(ctrlType) {
