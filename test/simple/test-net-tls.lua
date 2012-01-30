@@ -5,6 +5,7 @@ local net = require "luanode.net"
 local json = require "json"
 local fs = require('luanode.fs')
 
+
 function test()
 local have_openssl
 
@@ -16,9 +17,9 @@ if not have_openssl then
 	process:exit()
 end
 
-local caPem = fs.readFileSync(common.fixturesDir .. "/test_ca.pem", 'ascii')
-local certPem = fs.readFileSync(common.fixturesDir .. "/test_cert.pem", 'ascii')
-local keyPem = fs.readFileSync(common.fixturesDir .. "/test_key.pem", 'ascii')
+local caPem = fs.readFileSync(common.fixturesDir .. "/keys/ca1-cert.pem", 'ascii')
+local certPem = fs.readFileSync(common.fixturesDir .. "/keys/agent1-cert.pem", 'ascii')
+local keyPem = fs.readFileSync(common.fixturesDir .. "/keys/agent1-key.pem", 'ascii')
 
 --try{
 local context = crypto.createContext({key=keyPem, cert=certPem, ca=caPem})
@@ -40,19 +41,13 @@ local secureServer = net.createServer(function (self, connection)
 	connection:setEncoding("UTF8")
 
 	connection:addListener("secure", function ()
-		
 		local verified = connection:verifyPeer()
-		local peerDN = connection:getPeerCertificate()
 		assert_equal(true, verified)
 
-		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.subject)
-		assert_equal("/C=UY/ST=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.issuer)
-
-		assert_equal("Nov  9 15:44:54 2010 GMT", peerDN.valid_from)
-		assert_equal("Nov  9 15:44:54 2011 GMT", peerDN.valid_to)	-- should extend this
-		
-		assert_equal("A1:2F:6E:F0:DE:10:CB:CC:2E:DC:4A:31:AC:F7:B6:9D:E3:98:B5:58", peerDN.fingerprint)
-		
+		local peerDN = connection:getPeerCertificate()
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=agent1/emailAddress=iburgueno@gmail.com", peerDN.subject)
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=ca1/emailAddress=iburgueno@gmail.com", peerDN.issuer)
+	
 		gotSecureServer = true
 	end)
 
@@ -78,23 +73,17 @@ secureServer:addListener("listening", function()
 	end)
 
 	secureClient:addListener("secure", function ()
-			--[[
 		local verified = secureClient:verifyPeer()
 		local peerDN = secureClient:getPeerCertificate()
+		
 		assert_equal(true, verified)
-		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.subject)
-		assert_equal("/C=UY/ST=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.issuer)
-
-		assert_equal("Nov  9 15:44:54 2010 GMT", peerDN.valid_from)
-		assert_equal("Nov  9 15:44:54 2011 GMT", peerDN.valid_to)	-- should extend this
-		assert_equal("A1:2F:6E:F0:DE:10:CB:CC:2E:DC:4A:31:AC:F7:B6:9D:E3:98:B5:58", peerDN.fingerprint)
-		--]]
-
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=agent1/emailAddress=iburgueno@gmail.com", peerDN.subject)
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=ca1/emailAddress=iburgueno@gmail.com", peerDN.issuer)
+		
 		secureClient:write(testData)
 		secureClient:finish()
 		
 		gotSecureClient = true
-		--]]
 	end)
 
 	secureClient:addListener("data", function (self, chunk)
