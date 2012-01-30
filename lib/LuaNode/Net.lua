@@ -453,6 +453,9 @@ end
 
 function Socket:verifyPeer()
 	assert(self.secure, "Socket is not a secure socket.")
+	if not self._raw_socket then
+		return false, "Socket is closed."
+	end
 	return self._raw_socket:verifyPeer(self.secureContext)
 end
 
@@ -469,6 +472,9 @@ end
 
 function Socket:getPeerCertificate()
 	assert(self.secure, "Socket is not a secure socket.")
+	if not self._raw_socket then
+		return false, "Socket is closed."
+	end
 	return self._raw_socket:getPeerCertificate(self.secureContext)
 end
 
