@@ -197,6 +197,43 @@ private:
 };
 
 
+class Open : public LuaCppBridge::RawObject<Open> {
+public:
+	Open(lua_State* L);
+	virtual ~Open();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Open);
+
+	int Update(lua_State* L);
+	int Final(lua_State* L);
+
+private:
+	EVP_CIPHER_CTX m_context;
+	const EVP_CIPHER* m_cipher;
+	unsigned char m_outputMode;	/* 0 = binary, 1 = hexadecimal */
+};
+
+
+class Seal : public LuaCppBridge::RawObject<Seal> {
+public:
+	Seal(lua_State* L);
+	virtual ~Seal();
+
+public:
+	LCB_RO_DECLARE_EXPORTABLE(Seal);
+
+	int Update(lua_State* L);
+	int Final(lua_State* L);
+
+private:
+	EVP_CIPHER_CTX m_context;
+	int m_eklen;
+	unsigned char m_iv[EVP_MAX_IV_LENGTH];
+	unsigned char* m_ek;
+	unsigned char m_outputMode;	/* 0 = binary, 1 = hexadecimal */
+};
+
 }
 
 }

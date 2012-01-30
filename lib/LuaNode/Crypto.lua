@@ -7,6 +7,8 @@ local Signer = process.Signer
 local Verifier = process.Verifier
 local Cipher = process.Cipher
 local Decipher = process.Decipher
+local Open = process.Open
+local Seal = process.Seal
 local ipairs = ipairs
 
 module((...))
@@ -3809,6 +3811,14 @@ end
 
 function createVerify(algorithm)
 	return Verifier(algorithm)
+end
+
+function createOpener(algorithm, priv_key, encrypted_key, iv, output)
+	return Open(algorithm, priv_key, encrypted_key, iv, output or "binary")
+end
+
+function createSealer(algorithm, key, output)
+	return Seal(algorithm, key, output or "binary")
 end
 
 _M.RootCaCerts = RootCaCerts

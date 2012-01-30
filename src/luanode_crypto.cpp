@@ -48,6 +48,8 @@ void LuaNode::Crypto::Register(lua_State* L) {
 	Verifier::Register(L, true);
 	Cipher::Register(L, true);
 	Decipher::Register(L, true);
+	Open::Register(L, true);
+	Seal::Register(L, true);
 }
 
 
@@ -1294,4 +1296,196 @@ int Decipher::Final(lua_State* L) {
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	return 1;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Open::className = "Open";
+const Open::RegType Open::methods[] = {
+	{"update", &Open::Update},
+	{"final", &Open::Final},
+	{0}
+};
+
+
+Open::Open(lua_State* L) : m_cipher(0)
+{
+	const char* algorithm_name = luaL_checkstring(L, 1);
+	m_cipher = EVP_get_cipherbyname(algorithm_name);
+	if(m_cipher == NULL) {
+		luaL_argerror(L, 1, "invalid cipher type");
+	}
+
+	const unsigned char* encrypted_key = (const unsigned char*)luaL_checkstring(L, 3); /* checks for the encrypted key */
+	const unsigned char* iv = (const unsigned char*)luaL_checkstring(L, 4); /* checks for the initialization vector */
+
+	if ((size_t)EVP_CIPHER_iv_length(m_cipher) != lua_objlen(L, 4)) {
+		luaL_argerror(L, 4, "invalid iv length");
+	}
+	const char* privatekey_pem = luaL_checkstring(L, 2);
+
+	int keylen = lua_objlen(L, 3);
+	BIO* bp = BIO_new(BIO_s_mem());
+	if(!BIO_write(bp, privatekey_pem, lua_objlen(L, 2))) {
+		BIO_free(bp);
+		crypto_error(L, "Open::Open");
+	}
+	EVP_PKEY* pkey = PEM_read_bio_PrivateKey(bp, NULL, NULL, NULL);
+	if(pkey == NULL) {
+		BIO_free(bp);
+		crypto_error(L, "Open::Open");
+	}
+
+	m_outputMode = (unsigned char)luaL_checkoption(L, 5, "binary", encoding_options);	/* 0 = binary, 1 = hexadecimal */
+
+	EVP_CIPHER_CTX_init(&m_context);
+	if (!EVP_OpenInit(&m_context, m_cipher, encrypted_key, (int)lua_objlen(L, 3), iv, pkey)) {
+		EVP_PKEY_free(pkey);
+		BIO_free(bp);
+		crypto_error(L, "Open::Open");
+	}
+	EVP_PKEY_free(pkey);
+	BIO_free(bp);
+}
+
+
+Open::~Open(void)
+{
+	EVP_CIPHER_CTX_cleanup(&m_context);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Open::Update(lua_State* L) {
+	size_t input_len = 0;
+	const unsigned char* input = (const unsigned char*)luaL_checklstring(L, 2, &input_len);
+	unsigned char* buffer = (unsigned char*)malloc(input_len + EVP_CIPHER_CTX_block_size(&m_context));
+
+	int output_len = 0;
+	if(!EVP_OpenUpdate(&m_context, buffer, &output_len, input, input_len)) {
+		free(buffer);
+		crypto_error(L, "Decipher::Update");
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
+	free(buffer);
+
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Open::Final(lua_State* L) {
+	int output_len = 0;
+	unsigned char buffer[EVP_MAX_BLOCK_LENGTH];
+
+	if(!EVP_DecryptFinal(&m_context, buffer, &output_len)) {
+		crypto_error(L, "Open::Final");
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
+	return 1;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+const char* Seal::className = "Seal";
+const Seal::RegType Seal::methods[] = {
+	{"update", &Seal::Update},
+	{"final", &Seal::Final},
+	{0}
+};
+
+
+Seal::Seal(lua_State* L) : m_eklen(0), m_ek(0)
+{
+	const char* cipher_type = luaL_checkstring(L, 1);
+	const EVP_CIPHER* cipher = EVP_get_cipherbyname(cipher_type);
+	if(cipher == NULL) {
+		luaL_argerror(L, 1, "invalid encrypt cipher");
+	}
+	
+	m_outputMode = (unsigned char)luaL_checkoption(L, 3, "binary", encoding_options);	/* 0 = binary, 1 = hexadecimal */
+
+	const char* key_pem = luaL_checklstring(L, 2, (size_t*)&m_eklen);
+
+	BIO* bp = BIO_new(BIO_s_mem());
+	if(!BIO_write(bp, key_pem, m_eklen)) {
+		BIO_free(bp);
+		crypto_error(L, "Seal::Seal");
+	}
+
+	X509* x509 = PEM_read_bio_X509(bp, NULL, NULL, NULL);
+	EVP_PKEY* pkey = X509_get_pubkey(x509);
+	if(pkey == NULL) {
+		X509_free(x509);
+		BIO_free(bp);
+		crypto_error(L, "Seal::Seal");
+	}
+
+	int npubk = 1;
+	m_ek = (unsigned char*)malloc((size_t)EVP_PKEY_size(pkey) * (size_t)npubk);
+
+	EVP_CIPHER_CTX_init(&m_context);
+
+	if (!EVP_SealInit(&m_context, cipher, &m_ek, &m_eklen, m_iv, &pkey, npubk)) {
+		free(m_ek);
+		m_ek = NULL;
+		EVP_PKEY_free(pkey);
+		X509_free(x509);
+		BIO_free(bp);
+		crypto_error(L, "Seal::Seal");
+	}
+	EVP_PKEY_free(pkey);
+	X509_free(x509);
+	BIO_free(bp);
+}
+
+
+Seal::~Seal(void)
+{
+	EVP_CIPHER_CTX_cleanup(&m_context);
+	if(m_ek) {
+		free(m_ek);
+		m_ek = NULL;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Seal::Update(lua_State* L) {
+	size_t input_len = 0;
+	const unsigned char* input = (const unsigned char*)luaL_checklstring(L, 2, &input_len);
+	unsigned char* buffer = (unsigned char*)malloc(input_len + EVP_CIPHER_CTX_block_size(&m_context));
+
+	int output_len = 0;
+	if(!EVP_SealUpdate(&m_context, buffer, &output_len, input, input_len)) {
+		free(buffer);
+		crypto_error(L, "Seal::Update");
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
+	free(buffer);
+
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+int Seal::Final(lua_State* L) {
+	int output_len = 0;
+	unsigned char buffer[EVP_MAX_BLOCK_LENGTH];
+
+	if(!EVP_SealFinal(&m_context, buffer, &output_len)) {
+		crypto_error(L, "Open::Final");
+	}
+	encode_output(L, m_outputMode, buffer, output_len);
+
+	lua_pushlstring(L, (const char*)m_ek, (size_t)m_eklen);
+	lua_pushlstring(L, (const char*)m_iv, (size_t)EVP_CIPHER_iv_length(m_context.cipher));
+
+	return 3;
 }
