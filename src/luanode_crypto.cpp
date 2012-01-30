@@ -1327,7 +1327,6 @@ Open::Open(lua_State* L) : m_cipher(0)
 	}
 	const char* privatekey_pem = luaL_checkstring(L, 2);
 
-	int keylen = lua_objlen(L, 3);
 	BIO* bp = BIO_new(BIO_s_mem());
 	if(!BIO_write(bp, privatekey_pem, lua_objlen(L, 2))) {
 		BIO_free(bp);
