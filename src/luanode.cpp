@@ -843,28 +843,39 @@ static void AtExit() {
 	}
 }
 
+static void SafeLog(const char* message) {
+	bool can_log = (logger != NULL);
+	if(can_log) {
+		LogInfo("%s", message);
+	}
+	else {
+		fprintf(stderr, message);
+		fprintf(stderr, "\n");
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 /// Para poder bajar el servicio, si tengo la consola habilitada
 #if defined(_WIN32)
 BOOL WINAPI ConsoleControlHandler(DWORD ctrlType) {
-	LogInfo("***** Console Event Detected *****");
+	SafeLog("***** Console Event Detected *****");
 	switch(ctrlType) {
 		case CTRL_LOGOFF_EVENT:
-			LogInfo("Event: CTRL-LOGOFF Event");
+			SafeLog("Event: CTRL-LOGOFF Event");
 			return TRUE;
 			break;
 		case CTRL_C_EVENT:
 		case CTRL_BREAK_EVENT:
-			LogInfo("Event: CTRL-C or CTRL-BREAK Event");
+			SafeLog("Event: CTRL-C or CTRL-BREAK Event");
 
 			// Stop the io pool
 			LuaNode::GetIoService().stop();
-			LogInfo("After CTRL-C event");
+			SafeLog("After CTRL-C event");
 			return TRUE;
 			break;
 		case CTRL_CLOSE_EVENT:
 		case CTRL_SHUTDOWN_EVENT:
-			LogInfo("Event: CTRL-CLOSE or CTRL-SHUTDOWN Event");
+			SafeLog("Event: CTRL-CLOSE or CTRL-SHUTDOWN Event");
 
 			// Stop the io pool
 			LuaNode::GetIoService().stop();
