@@ -20,7 +20,7 @@ static int crypto_error(lua_State* L, const char* func_name) {
 	unsigned long e = ERR_get_error();
 	ERR_load_crypto_strings();
 	ERR_error_string_n(e, buf, sizeof(buf));
-	return luaL_error(L, "%s - error %u\n%s", func_name, (unsigned int)e, buf);
+	return luaL_error(L, "%s - error %d\n%s", func_name, (int)e, buf);
 }
 
 static int push_crypto_error(lua_State* L) {
@@ -345,7 +345,7 @@ int Socket::Write(lua_State* L) {
 			);
 	}
 	else {
-		luaL_error(L, "SecureSocket::Write (%p) (id:%u), unhandled type '%s'", this, m_socketId, luaL_typename(L, 2));
+		luaL_error(L, "SecureSocket::Write (%p) (id:%d), unhandled type '%s'", this, (int)m_socketId, luaL_typename(L, 2));
 	}
 	lua_pushboolean(L, true);
 	return 1;
