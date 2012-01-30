@@ -11,9 +11,9 @@ local fs = require('luanode.fs')
 local path = require('luanode.path')
 
 -- Test Certificates
-local caPem = fs.readFileSync(common.fixturesDir .. '/test_ca.pem', 'ascii')
-local certPem = fs.readFileSync(common.fixturesDir .. '/test_cert.pem', 'ascii')
-local keyPem = fs.readFileSync(common.fixturesDir .. '/test_key.pem', 'ascii')
+local caPem = fs.readFileSync(common.fixturesDir .. '/keys/ca1-cert.pem', 'ascii')
+local certPem = fs.readFileSync(common.fixturesDir .. '/keys/agent1-cert.pem', 'ascii')
+local keyPem = fs.readFileSync(common.fixturesDir .. '/keys/agent1-key.pem', 'ascii')
 
 -- Test HMAC
 local h1 = crypto.createHmac('sha1', 'Node')
