@@ -9,7 +9,10 @@ build/cmake_install.cmake
 build/CMakeCache.txt
 build/Makefile
 build/temp
-test/fixtures
+test/fixtures/keys/.rnd
+test/fixtures/keys/ca2-database.txt
+test/fixtures/keys/ca2-database.txt.attr
+test/fixtures/keys/ca2-database.txt.old
 src/Network_old
 deps/libeio
 deps/dirent.?
