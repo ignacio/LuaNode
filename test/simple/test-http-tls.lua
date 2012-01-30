@@ -22,9 +22,9 @@ local request_number = 0
 local requests_sent = 0
 local server_response = ""
 local client_got_eof = false
-local caPem = fs.readFileSync(common.fixturesDir .. "/test_ca.pem", 'ascii')
-local certPem = fs.readFileSync(common.fixturesDir .. "/test_cert.pem", 'ascii')
-local keyPem = fs.readFileSync(common.fixturesDir .. "/test_key.pem", 'ascii')
+local caPem = fs.readFileSync(common.fixturesDir .. "/keys/ca1-cert.pem", 'ascii')
+local certPem = fs.readFileSync(common.fixturesDir .. "/keys/agent1-cert.pem", 'ascii')
+local keyPem = fs.readFileSync(common.fixturesDir .. "/keys/agent1-key.pem", 'ascii')
 
 --try{
 	local context = crypto.createContext{key = keyPem, cert = certPem, ca = caPem}
@@ -42,12 +42,8 @@ local https_server = http.createServer(function (self, req, res)
 	local verified = res.connection:verifyPeer()
 	local peerDN = req.connection:getPeerCertificate()
 	assert_equal(true, verified)
-	assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.subject)
-	assert_equal("/C=UY/ST=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.issuer)
-
-	assert_equal("Nov  9 15:44:54 2010 GMT", peerDN.valid_from)
-	assert_equal("Nov  9 15:44:54 2011 GMT", peerDN.valid_to)	-- should extend this
-	assert_equal("A1:2F:6E:F0:DE:10:CB:CC:2E:DC:4A:31:AC:F7:B6:9D:E3:98:B5:58", peerDN.fingerprint)
+	assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=agent1/emailAddress=iburgueno@gmail.com", peerDN.subject)
+	assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=ca1/emailAddress=iburgueno@gmail.com", peerDN.issuer)
 
 	if req.id == 0 then
 		assert_equal("GET", req.method)
@@ -94,12 +90,9 @@ https_server:addListener("listening", function()
 		local peerDN = c:getPeerCertificate()
 		assert_equal(true, verified)
 		
-		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.subject)
-		assert_equal("/C=UY/ST=Montevideo/O=LuaNode/CN=Ignacio Burgueno/emailAddress=iburgueno@gmail.com", peerDN.issuer)
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=agent1/emailAddress=iburgueno@gmail.com", peerDN.subject)
+		assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=ca1/emailAddress=iburgueno@gmail.com", peerDN.issuer)
 
-		assert_equal("Nov  9 15:44:54 2010 GMT", peerDN.valid_from)
-		assert_equal("Nov  9 15:44:54 2011 GMT", peerDN.valid_to)	-- should extend this
-		assert_equal("A1:2F:6E:F0:DE:10:CB:CC:2E:DC:4A:31:AC:F7:B6:9D:E3:98:B5:58", peerDN.fingerprint)
 		c:write( "GET /hello?hello=world&foo=bar HTTP/1.1\r\n\r\n" );
 		requests_sent = requests_sent + 1
 	end)
