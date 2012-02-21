@@ -23,12 +23,15 @@ function ReadStream:__init(fd)
 		newStream:emit("error", err)
 	end
 	
-	local function onKeypress(char, key)
-		newStream:emit("keypress", char, key)
+	local function onKeypress(char)
+		newStream:_emitKey(char)
+		--[[
+		newStream:emit("keypress", char)
 		if #dataListeners > 0 and char then
 			--self:emit("data", dataUseString and 
 			newStream:emit("data", char)
 		end
+		]]
 	end
 	
 	local function onResize()
@@ -41,6 +44,103 @@ function ReadStream:__init(fd)
 end
 
 ReadStream.isTTY = true
+
+--[[
+  Some patterns seen in terminal key escape codes, derived from combos seen
+  at http://www.midnight-commander.org/browser/lib/tty/key.c
+
+  ESC letter
+  ESC [ letter
+  ESC [ modifier letter
+  ESC [ 1 ; modifier letter
+  ESC [ num char
+  ESC [ num ; modifier char
+  ESC O letter
+  ESC O modifier letter
+  ESC O 1 ; modifier letter
+  ESC N letter
+  ESC [ [ num ; modifier char
+  ESC [ [ 1 ; modifier letter
+  ESC ESC [ num char
+  ESC ESC O letter
+
+  - char is usually ~ but $ and ^ also happen with rxvt
+  - modifier is 1 +
+                (shift     * 1) +
+                (left_alt  * 2) +
+                (ctrl      * 4) +
+                (right_alt * 8)
+  - two leading ESCs apparently mean the same as one leading ESC
+--]]
+
+function ReadStream:_emitKey (s)
+    local key = {
+        name = nil,
+        ctrl = false,
+        meta = false,
+        shift = false
+	}
+    local parts
+
+    if s == "\r" or s == "\n" then
+    	-- enter
+    	key.name = "enter"
+    
+    elseif s == "\t" then
+    	-- tab
+    	key.name = "tab"
+    
+	elseif s == "\b" or s == "\127" or s == "\027\127" or s == "\027\b" then
+		-- backspace or ctrl+h
+		key.name = "backspace"
+		key.meta = s:sub(1,1) == "\027"
+	
+	elseif s == "\027" or s == "\027\027" then
+		-- escape key
+		key.name = "escape"
+		key.meta = #s == 2
+	
+	elseif s == " " or s == "\027 " then
+		key.name = "space"
+		key.meta = #s == 2
+	
+	elseif s <= "\026" then
+		-- ctrl+letter
+		key.name = string.char( string.byte(s) + string.byte("a") - 1)
+		key.ctrl = true
+	
+	elseif #s == 1 and s >= "a" and s <= "z" then
+		-- lowercase letter
+		key.name = s
+	
+	elseif #s == 1 and s >= "A" and s <= "Z" then
+		-- shift+letter
+		key.name = s:lower()
+		key.shift = true
+	
+	--elseif parts 
+		-- TODO: other combinations and function keys
+	--else
+		--console.error("unhandled key", key.name, key.meta, key.ctrl, key.shift)
+	end
+
+	-- Don't emit a key if no name was found
+  	if not key.name then
+	    key = nil
+  	end
+
+	local char
+  	if #s == 1 then
+    	char = s
+  	end
+
+  	if key or char then
+    	self:emit("keypress", char, key)
+  	end
+
+
+    --console.log(key.name, key.meta, string.byte(s), key.ctrl, key.shift)
+end
 
 function ReadStream:pause()
 	if self.paused then return end

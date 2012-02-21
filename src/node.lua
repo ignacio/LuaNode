@@ -87,7 +87,11 @@ setmetatable(process, {
 			return stdin
 		elseif key == "title" then
 			return process.get_process_title()
+		elseif key == "stdout" then
+			print("STDOUT")
+			local fd = Stdio.openStdout()
 		end
+
 		return events[key]
 	end,
 	
@@ -349,6 +353,8 @@ local propagate_result = 0
 if not process.argv[0] then
 	io.write("LuaNode " .. process.version .. "\n")
 	-- run repl
+	local Repl = require "luanode.Repl"
+	Repl.start(">")
 	process:loop()
 else
 	local file, err = io.open(process.argv[0])

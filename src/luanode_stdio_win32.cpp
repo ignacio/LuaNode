@@ -1,4 +1,28 @@
 #include "stdafx.h"
+
+/* Contains code taken from libuv.
+
+ * Copyright Joyent, Inc. and other Node contributors. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 #include "luanode.h"
 #include "luanode_stdio.h"
 
@@ -18,6 +42,17 @@
 // Good info:
 // http://www.benryves.com/tutorials/winconsole/all
 
+#define UNICODE_REPLACEMENT_CHARACTER (0xfffd)
+
+#define ANSI_NORMAL           0x00
+#define ANSI_ESCAPE_SEEN      0x02
+#define ANSI_CSI              0x04
+#define ANSI_ST_CONTROL       0x08
+#define ANSI_IGNORE           0x10
+#define ANSI_IN_ARG           0x20
+#define ANSI_IN_STRING        0x40
+#define ANSI_BACKSLASH_SEEN   0x80
+
 
 /* TTY watcher data */
 static bool tty_watcher_initialized = false;
@@ -27,86 +62,408 @@ static int tty_error_callback = LUA_NOREF;
 static int tty_keypress_callback = LUA_NOREF;
 static int tty_resize_callback = LUA_NOREF;
 
+typedef struct tty_context_t {
+	/* Fields used for translating win */
+	/* keystrokes into vt100 characters */
+	char last_key[8];
+	unsigned char last_key_offset;
+	unsigned char last_key_len;
+	INPUT_RECORD last_input_record;
+	WCHAR last_utf16_high_surrogate;
+	/* utf8-to-utf16 conversion state */
+	unsigned char utf8_bytes_left;
+	unsigned int utf8_codepoint;
+	/* eol conversion state */
+	unsigned char previous_eol;
+	/* ansi parser state */
+	unsigned char ansi_parser_state;
+	unsigned char ansi_csi_argc;
+	unsigned short ansi_csi_argv[4];
+	COORD saved_position;
+	WORD saved_attributes;
+} tty_context_t;
 
-static void ReadConsoleHandler (std::vector<INPUT_RECORD> records, DWORD numRecords) {
+
+static const char* get_vt100_fn_key(DWORD code, char shift, char ctrl,
+									size_t* len) {
+#define VK_CASE(vk, normal_str, shift_str, ctrl_str, shift_ctrl_str)          \
+	case (vk):                                                                \
+	if (shift && ctrl) {                                                    \
+	*len = sizeof shift_ctrl_str;                                         \
+	return "\033" shift_ctrl_str;                                         \
+	} else if (shift) {                                                     \
+	*len = sizeof shift_str ;                                             \
+	return "\033" shift_str;                                              \
+	} else if (ctrl) {                                                      \
+	*len = sizeof ctrl_str;                                               \
+	return "\033" ctrl_str;                                               \
+} else {                                                                \
+	*len = sizeof normal_str;                                             \
+	return "\033" normal_str;                                             \
+}
+
+										switch (code) {
+											/* These mappings are the same as Cygwin's. Unmodified and alt-modified */
+											/* keypad keys comply with linux console, modifiers comply with xterm */
+											/* modifier usage. F1..f12 and shift-f1..f10 comply with linux console, */
+											/* f6..f12 with and without modifiers comply with rxvt. */
+											VK_CASE(VK_INSERT,  "[2~",  "[2;2~", "[2;5~", "[2;6~")
+												VK_CASE(VK_END,     "[4~",  "[4;2~", "[4;5~", "[4;6~")
+												VK_CASE(VK_DOWN,    "[B",   "[1;2B", "[1;5B", "[1;6B")
+												VK_CASE(VK_NEXT,    "[6~",  "[6;2~", "[6;5~", "[6;6~")
+												VK_CASE(VK_LEFT,    "[D",   "[1;2D", "[1;5D", "[1;6D")
+												VK_CASE(VK_CLEAR,   "[G",   "[1;2G", "[1;5G", "[1;6G")
+												VK_CASE(VK_RIGHT,   "[C",   "[1;2C", "[1;5C", "[1;6C")
+												VK_CASE(VK_UP,      "[A",   "[1;2A", "[1;5A", "[1;6A")
+												VK_CASE(VK_HOME,    "[1~",  "[1;2~", "[1;5~", "[1;6~")
+												VK_CASE(VK_PRIOR,   "[5~",  "[5;2~", "[5;5~", "[5;6~")
+												VK_CASE(VK_DELETE,  "[3~",  "[3;2~", "[3;5~", "[3;6~")
+												VK_CASE(VK_NUMPAD0, "[2~",  "[2;2~", "[2;5~", "[2;6~")
+												VK_CASE(VK_NUMPAD1, "[4~",  "[4;2~", "[4;5~", "[4;6~")
+												VK_CASE(VK_NUMPAD2, "[B",   "[1;2B", "[1;5B", "[1;6B")
+												VK_CASE(VK_NUMPAD3, "[6~",  "[6;2~", "[6;5~", "[6;6~")
+												VK_CASE(VK_NUMPAD4, "[D",   "[1;2D", "[1;5D", "[1;6D")
+												VK_CASE(VK_NUMPAD5, "[G",   "[1;2G", "[1;5G", "[1;6G")
+												VK_CASE(VK_NUMPAD6, "[C",   "[1;2C", "[1;5C", "[1;6C")
+												VK_CASE(VK_NUMPAD7, "[A",   "[1;2A", "[1;5A", "[1;6A")
+												VK_CASE(VK_NUMPAD8, "[1~",  "[1;2~", "[1;5~", "[1;6~")
+												VK_CASE(VK_NUMPAD9, "[5~",  "[5;2~", "[5;5~", "[5;6~")
+												VK_CASE(VK_DECIMAL, "[3~",  "[3;2~", "[3;5~", "[3;6~")
+												VK_CASE(VK_F1,      "[[A",  "[23~",  "[11^",  "[23^" )
+												VK_CASE(VK_F2,      "[[B",  "[24~",  "[12^",  "[24^" )
+												VK_CASE(VK_F3,      "[[C",  "[25~",  "[13^",  "[25^" )
+												VK_CASE(VK_F4,      "[[D",  "[26~",  "[14^",  "[26^" )
+												VK_CASE(VK_F5,      "[[E",  "[28~",  "[15^",  "[28^" )
+												VK_CASE(VK_F6,      "[17~", "[29~",  "[17^",  "[29^" )
+												VK_CASE(VK_F7,      "[18~", "[31~",  "[18^",  "[31^" )
+												VK_CASE(VK_F8,      "[19~", "[32~",  "[19^",  "[32^" )
+												VK_CASE(VK_F9,      "[20~", "[33~",  "[20^",  "[33^" )
+												VK_CASE(VK_F10,     "[21~", "[34~",  "[21^",  "[34^" )
+												VK_CASE(VK_F11,     "[23~", "[23$",  "[23^",  "[23@" )
+												VK_CASE(VK_F12,     "[24~", "[24$",  "[24^",  "[24@" )
+
+	default:
+		*len = 0;
+		return NULL;
+										}
+#undef VK_CASE
+}
+
+static void ReadConsoleHandler (tty_context_t& tty_context, std::vector<INPUT_RECORD> records, DWORD numRecords) {
 	// Process the events
-	for(unsigned int i = 0; i < numRecords; i++) {
-		INPUT_RECORD& record = records[i];
-		switch(record.EventType) {
-			case KEY_EVENT: {
-				if(!tty_keypress_callback) {
-					continue;
-				}
-				KEY_EVENT_RECORD& keyRecord = record.Event.KeyEvent; 
-				if(!keyRecord.bKeyDown) {
-					// Ignore keyup
-					continue;
-				}
+	unsigned int i = 0;
+	DWORD records_left = numRecords;
+	off_t buf_used = 0;
+	luaL_Buffer buffer;
 
-				CLuaVM& vm = LuaNode::GetLuaVM();
-				lua_rawgeti(vm, LUA_REGISTRYINDEX, tty_keypress_callback);
+	CLuaVM& vm = LuaNode::GetLuaVM();
 
-				lua_pushinteger(vm, keyRecord.uChar.AsciiChar);
-				
-				lua_newtable(vm);
-				int table = lua_gettop(vm);
+	while( (records_left > 0 || tty_context.last_key_len > 0)  ) {
+	//for(unsigned int i = 0; i < numRecords; i++) {
+		if(tty_context.last_key_len == 0) {
+			INPUT_RECORD& record = records[i];
+			records_left--;
+			i++;
+			tty_context.last_input_record = record;
+			switch(record.EventType) {
+				case KEY_EVENT: {
+					if(!tty_keypress_callback) {
+						continue;
+					}
+					KEY_EVENT_RECORD& keyRecord = record.Event.KeyEvent; 
+					/*if(!keyRecord.bKeyDown) {
+						// Ignore keyup
+						continue;
+					}*/
+					/* Ignore keyup events, unless the left alt key was held and a valid */
+					/* unicode character was emitted. */
+					if (!keyRecord.bKeyDown && !(((keyRecord.dwControlKeyState & LEFT_ALT_PRESSED) ||
+						keyRecord.wVirtualKeyCode == VK_MENU) && keyRecord.uChar.UnicodeChar != 0))
+					{
+						continue;
+					}
 
-				lua_pushinteger(vm, keyRecord.wVirtualKeyCode);
-				lua_setfield(vm, table, "virtualKeyCode");
+					/* Ignore keypresses to numpad number keys if the left alt is held */
+					/* because the user is composing a character, or windows simulating */
+					/* this. */
+					if ((keyRecord.dwControlKeyState & LEFT_ALT_PRESSED) &&
+						!(keyRecord.dwControlKeyState & ENHANCED_KEY) &&
+						(keyRecord.wVirtualKeyCode == VK_INSERT ||
+						keyRecord.wVirtualKeyCode == VK_END ||
+						keyRecord.wVirtualKeyCode == VK_DOWN ||
+						keyRecord.wVirtualKeyCode == VK_NEXT ||
+						keyRecord.wVirtualKeyCode == VK_LEFT ||
+						keyRecord.wVirtualKeyCode == VK_CLEAR ||
+						keyRecord.wVirtualKeyCode == VK_RIGHT ||
+						keyRecord.wVirtualKeyCode == VK_HOME ||
+						keyRecord.wVirtualKeyCode == VK_UP ||
+						keyRecord.wVirtualKeyCode == VK_PRIOR ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD0 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD1 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD2 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD3 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD4 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD5 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD6 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD7 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD8 ||
+						keyRecord.wVirtualKeyCode == VK_NUMPAD9)) {
+							continue;
+					}
 
-				lua_pushinteger(vm, keyRecord.wVirtualScanCode);
-				lua_setfield(vm, table, "virtualScanCode");
+					if(keyRecord.uChar.UnicodeChar != 0) {
+						int prefix_len, char_len;
+						/* Character key pressed */
+						if(keyRecord.uChar.UnicodeChar >= 0xD800 && keyRecord.uChar.UnicodeChar < 0xDC00) {
+							/* UTF-16 high surrogate */
+							tty_context.last_utf16_high_surrogate = keyRecord.uChar.UnicodeChar;
+							continue;
+						}
+					
+						/* Prefix with \u033 if alt was held, but alt was not used as part */
+						/* a compose sequence. */
+						if ((keyRecord.dwControlKeyState & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED))
+							&& !(keyRecord.dwControlKeyState & (LEFT_CTRL_PRESSED |
+							RIGHT_CTRL_PRESSED)) && keyRecord.bKeyDown)
+						{
+							tty_context.last_key[0] = '\033';
+							prefix_len = 1;
+						}
+						else {
+							prefix_len = 0;
+						}
 
-				lua_pushstring(vm, "nombre tecla");
-				lua_setfield(vm, table, "name");
+						if (keyRecord.uChar.UnicodeChar >= 0xDC00 && keyRecord.uChar.UnicodeChar < 0xE000) {
+							/* UTF-16 surrogate pair */
+							WCHAR utf16_buffer[2] = { tty_context.last_utf16_high_surrogate, keyRecord.uChar.UnicodeChar};
+							char_len = WideCharToMultiByte(CP_UTF8,
+								0,
+								utf16_buffer,
+								2,
+								&tty_context.last_key[prefix_len],
+								sizeof tty_context.last_key,
+								NULL,
+								NULL);
+						} else {
+							/* Single UTF-16 character */
+							char_len = WideCharToMultiByte(CP_UTF8,
+								0,
+								&keyRecord.uChar.UnicodeChar,
+								1,
+								&tty_context.last_key[prefix_len],
+								sizeof tty_context.last_key,
+								NULL,
+								NULL);
+						}
+						/* Whatever happened, the last character wasn't a high surrogate. */
+						tty_context.last_utf16_high_surrogate = 0;
 
-				lua_pushboolean(vm, (keyRecord.dwControlKeyState & SHIFT_PRESSED));
-				lua_setfield(vm, table, "shift");
+						/* If the utf16 character(s) couldn't be converted something must */
+						/* be wrong. */
+						if (!char_len) {
+							////Puv__set_sys_error(loop, GetLastError());
+							////Phandle->flags &= ~UV_HANDLE_READING;
+							////Phandle->read_cb((uv_stream_t*) handle, -1, buf);
+							////Pgoto out;
+						}
 
-				lua_pushboolean(vm, (keyRecord.dwControlKeyState & LEFT_CTRL_PRESSED) || (keyRecord.dwControlKeyState & RIGHT_CTRL_PRESSED));
-				lua_setfield(vm, table, "ctrl");
+						tty_context.last_key_len = (unsigned char) (prefix_len + char_len);
+						tty_context.last_key_offset = 0;
+						continue;
+					}
+					else {
+						/* Function key pressed */
+						const char* vt100;
+						size_t prefix_len, vt100_len;
 
-				lua_pushboolean(vm, (keyRecord.dwControlKeyState & LEFT_ALT_PRESSED) || (keyRecord.dwControlKeyState & RIGHT_ALT_PRESSED));
-				lua_setfield(vm, table, "meta");
+						vt100 = get_vt100_fn_key(keyRecord.wVirtualKeyCode,
+							!!(keyRecord.dwControlKeyState & SHIFT_PRESSED),
+							!!(keyRecord.dwControlKeyState & (
+							LEFT_CTRL_PRESSED |
+							RIGHT_CTRL_PRESSED)),
+							&vt100_len);
 
-				vm.call(2, LUA_MULTRET);
-				lua_settop(vm, 0);
-			break; }
-			
-			case WINDOW_BUFFER_SIZE_EVENT: {
-				if(!tty_resize_callback) {
-					continue;
-				}
-				CLuaVM& vm = LuaNode::GetLuaVM();
-				lua_rawgeti(vm, LUA_REGISTRYINDEX, tty_resize_callback);
-				COORD size = record.Event.WindowBufferSizeEvent.dwSize;
-				lua_pushinteger(vm, size.X);
-				lua_pushinteger(vm, size.Y);
-				vm.call(2, LUA_MULTRET);
-				lua_settop(vm, 0);
+						/* If we were unable to map to a vt100 sequence, just ignore. */
+						if (!vt100) {
+							continue;
+						}
 
-			break; }
+						/* Prefix with \x033 when the alt key was held. */
+						if (keyRecord.dwControlKeyState & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) {
+							tty_context.last_key[0] = '\033';
+							prefix_len = 1;
+						}
+						else {
+							prefix_len = 0;
+						}
 
-			/*case MENU_EVENT:
-				printf("MENU_EVENT\n");
-			break;
-
-			case MOUSE_EVENT:
-				printf("MOUSE_EVENT\n");
-			break;
+						/* Copy the vt100 sequence to the handle buffer. */
+						assert(prefix_len + vt100_len < sizeof handle->last_key);
+						memcpy(&tty_context.last_key[prefix_len], vt100, vt100_len);
 	
-			case FOCUS_EVENT:
-				printf("FOCUS_EVENT\n");
-			break;*/
+						tty_context.last_key_len = (unsigned char) (prefix_len + vt100_len);
+						tty_context.last_key_offset = 0;
+						continue;
+					}
+				/*{
+					CLuaVM& vm = LuaNode::GetLuaVM();
+					lua_rawgeti(vm, LUA_REGISTRYINDEX, tty_keypress_callback);
+
+					lua_pushinteger(vm, keyRecord.uChar.AsciiChar);
+					
+					lua_newtable(vm);
+					int table = lua_gettop(vm);
+
+					lua_pushinteger(vm, keyRecord.wVirtualKeyCode);
+					lua_setfield(vm, table, "virtualKeyCode");
+
+					lua_pushinteger(vm, keyRecord.wVirtualScanCode);
+					lua_setfield(vm, table, "virtualScanCode");
+
+					lua_pushstring(vm, "nombre tecla");
+					lua_setfield(vm, table, "name");
+
+					lua_pushboolean(vm, (keyRecord.dwControlKeyState & SHIFT_PRESSED));
+					lua_setfield(vm, table, "shift");
+
+					lua_pushboolean(vm, (keyRecord.dwControlKeyState & LEFT_CTRL_PRESSED) || (keyRecord.dwControlKeyState & RIGHT_CTRL_PRESSED));
+					lua_setfield(vm, table, "ctrl");
+
+					lua_pushboolean(vm, (keyRecord.dwControlKeyState & LEFT_ALT_PRESSED) || (keyRecord.dwControlKeyState & RIGHT_ALT_PRESSED));
+					lua_setfield(vm, table, "meta");
+
+					vm.call(2, LUA_MULTRET);
+					lua_settop(vm, 0);
+				}*/
+				break; }
+				
+				case WINDOW_BUFFER_SIZE_EVENT: {
+					if(!tty_resize_callback) {
+						continue;
+					}
+					CLuaVM& vm = LuaNode::GetLuaVM();
+					lua_rawgeti(vm, LUA_REGISTRYINDEX, tty_resize_callback);
+					COORD size = record.Event.WindowBufferSizeEvent.dwSize;
+					lua_pushinteger(vm, size.X);
+					lua_pushinteger(vm, size.Y);
+					vm.call(2, LUA_MULTRET);
+					lua_settop(vm, 0);
+
+				break; }
+
+				/*case MENU_EVENT:
+					printf("MENU_EVENT\n");
+				break;
+
+				case MOUSE_EVENT:
+					printf("MOUSE_EVENT\n");
+				break;
+		
+				case FOCUS_EVENT:
+					printf("FOCUS_EVENT\n");
+				break;*/
+			}
 		}
+		else {
+			/* Copy any bytes left from the last keypress to the user buffer. */
+			if (tty_context.last_key_offset < tty_context.last_key_len) {
+				/* Allocate a buffer if needed */
+				if(buf_used == 0) {
+					luaL_buffinit(vm, &buffer);
+				}
+				/*if (buf_used == 0) {
+					buf = handle->alloc_cb((uv_handle_t*) handle, 1024);
+				}*/
+
+				//buf.base[buf_used++] = tty_context.last_key[tty_context.last_key_offset++];
+				buf_used++;
+				luaL_addchar(&buffer, tty_context.last_key[tty_context.last_key_offset++]);
+
+				/* If the buffer is full, emit it */
+				/*if (buf_used == buf.len) {
+					handle->read_cb((uv_stream_t*) handle, buf_used, buf);
+					buf = uv_null_buf_;
+					buf_used = 0;
+				}*/
+	
+				continue;
+			}
+
+			/* Apply dwRepeat from the last input record. */
+			if (--tty_context.last_input_record.Event.KeyEvent.wRepeatCount > 0) {
+				tty_context.last_key_offset = 0;
+				continue;
+			}
+
+			tty_context.last_key_len = 0;
+			continue;
+		}
+		//}
+	}
+
+	if(buf_used > 0) {
+		luaL_pushresult(&buffer);
+		lua_rawgeti(vm, LUA_REGISTRYINDEX, tty_keypress_callback);
+		lua_insert(vm, -2);
+
+		/*lua_pushinteger(vm, keyRecord.uChar.AsciiChar);
+
+		lua_newtable(vm);
+		int table = lua_gettop(vm);
+
+		lua_pushinteger(vm, keyRecord.wVirtualKeyCode);
+		lua_setfield(vm, table, "virtualKeyCode");
+
+		lua_pushinteger(vm, keyRecord.wVirtualScanCode);
+		lua_setfield(vm, table, "virtualScanCode");
+
+		lua_pushstring(vm, "nombre tecla");
+		lua_setfield(vm, table, "name");
+
+		lua_pushboolean(vm, (keyRecord.dwControlKeyState & SHIFT_PRESSED));
+		lua_setfield(vm, table, "shift");
+
+		lua_pushboolean(vm, (keyRecord.dwControlKeyState & LEFT_CTRL_PRESSED) || (keyRecord.dwControlKeyState & RIGHT_CTRL_PRESSED));
+		lua_setfield(vm, table, "ctrl");
+
+		lua_pushboolean(vm, (keyRecord.dwControlKeyState & LEFT_ALT_PRESSED) || (keyRecord.dwControlKeyState & RIGHT_ALT_PRESSED));
+		lua_setfield(vm, table, "meta");*/
+
+		vm.call(1, LUA_MULTRET);
+		lua_settop(vm, 0);
 	}
 }
 
 class InputServer {
 public:
-InputServer() {};
+	InputServer() {
+	//char last_key[8];
+
+	/* Init keycode-to-vt100 mapper state. */
+	m_tty_context.last_key_offset = 0;
+	m_tty_context.last_key_len = 0;
+	//INPUT_RECORD last_input_record;
+	m_tty_context.last_utf16_high_surrogate = 0;
+	memset(&m_tty_context.last_input_record, 0, sizeof m_tty_context.last_input_record);
+	
+	/* Init utf8-to-utf16 conversion state. */
+	m_tty_context.utf8_bytes_left = 0;
+	m_tty_context.utf8_codepoint = 0;
+
+	/* Initialize eol conversion state */
+	m_tty_context.previous_eol = 0;
+
+	/* Init ANSI parser state. */
+	m_tty_context.ansi_parser_state = ANSI_NORMAL;
+	//unsigned char ansi_csi_argc;
+	//unsigned short ansi_csi_argv[4];
+	//COORD saved_position;
+	//WORD saved_attributes;
+};
 
 volatile bool m_run;	// hack!
+
+tty_context_t m_tty_context;
 
 void Run() {
 	while(m_run) {
@@ -119,7 +476,7 @@ void Run() {
 			}
 
 			if(dwRead > 0) {
-				LuaNode::GetIoService().post( boost::bind(ReadConsoleHandler, inRecords, dwRead) );
+				LuaNode::GetIoService().post( boost::bind(ReadConsoleHandler, m_tty_context, inRecords, dwRead) );
 			}
 		}
 		else {
