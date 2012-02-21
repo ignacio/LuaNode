@@ -84,7 +84,7 @@ function IncomingMessage:__init(socket)
 
 	-- TODO: Remove one of these eventually.
 	newMessage.socket = socket
-	newMessage.connection = socket
+	newMessage.connection = socket 	-- This is the preferred name
 	
 	newMessage.paused = false
 	newMessage._eventQueue = {}
