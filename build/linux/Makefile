@@ -167,7 +167,7 @@ $(Target)/preloader.o: $(BASE_SRC_DIR)/lib/preloader.cpp
 	$(COMPILER) $(CFLAGS) $(BASE_SRC_DIR)/lib/preloader.cpp -o $(Target)/preloader.o
 
 $(Target)/http_parser.o: $(BASE_SRC_DIR)/deps/http-parser/http_parser.c
-	$(COMPILER) $(CFLAGS) $(BASE_SRC_DIR)/deps/http-parser/http_parser.c -o $(Target)/http_parser.o
+	$(COMPILER) $(CFLAGS) -Wno-error $(BASE_SRC_DIR)/deps/http-parser/http_parser.c -o $(Target)/http_parser.o
 
 #$(PACKAGES)/Lua5.1/src/liblua.a:
 #	cd $(PACKAGES)/Lua5.1/src/
