@@ -16,10 +16,7 @@ void LuaNode::Http::RegisterFunctions(lua_State* L) {
 	lua_pop(L, 1);
 
 	Parser::s_settings.on_message_begin    = Parser::on_message_begin;
-	Parser::s_settings.on_path             = Parser::on_path;
-	Parser::s_settings.on_query_string     = Parser::on_query_string;
 	Parser::s_settings.on_url              = Parser::on_url;
-	Parser::s_settings.on_fragment         = Parser::on_fragment;
 	Parser::s_settings.on_header_field     = Parser::on_header_field;
 	Parser::s_settings.on_header_value     = Parser::on_header_value;
 	Parser::s_settings.on_headers_complete = Parser::on_headers_complete;
@@ -36,9 +33,11 @@ static inline const char* method_to_str(unsigned short m) {
 		case HTTP_HEAD:       return "HEAD";
 		case HTTP_POST:       return "POST";
 		case HTTP_PUT:        return "PUT";
+		// pathological
 		case HTTP_CONNECT:    return "CONNECT";
 		case HTTP_OPTIONS:    return "OPTIONS";
 		case HTTP_TRACE:      return "TRACE";
+		// webdav
 		case HTTP_COPY:       return "COPY";
 		case HTTP_LOCK:       return "LOCK";
 		case HTTP_MKCOL:      return "MKCOL";
@@ -46,15 +45,19 @@ static inline const char* method_to_str(unsigned short m) {
 		case HTTP_PROPFIND:   return "PROPFIND";
 		case HTTP_PROPPATCH:  return "PROPPATCH";
 		case HTTP_UNLOCK:     return "UNLOCK";
+		// subversion
 		case HTTP_REPORT:     return "REPORT";
 		case HTTP_MKACTIVITY: return "MKACTIVITY";
 		case HTTP_CHECKOUT:   return "CHECKOUT";
 		case HTTP_MERGE:      return "MERGE";
-		/*case HTTP_MSEARCH:    return "M-SEARCH";
+		// upnp
+		case HTTP_MSEARCH:    return "M-SEARCH";
 		case HTTP_NOTIFY:     return "NOTIFY";
 		case HTTP_SUBSCRIBE:  return "SUBSCRIBE";
-		case HTTP_UNSUBSCRIBE:return "UNSUSCRIBE";*/
-
+		case HTTP_UNSUBSCRIBE:return "UNSUSCRIBE";
+		case HTTP_PATCH:      return "PATCH";
+		case HTTP_PURGE:      return "PURGE";
+		// RFC-5789
 		default:              return "UNKNOWN";
 	}
 }
@@ -224,67 +227,6 @@ int Parser::name(http_parser* p) {			\
 
 //////////////////////////////////////////////////////////////////////////
 /// 
-/*static*/ int Parser::on_path(http_parser* p, const char* at, size_t length) {
-	if(length == 0) {
-		// shortcut
-		return 0; 
-	}
-	Parser* parser = static_cast<Parser*>(p->data);
-	lua_State* L = LuaNode::GetLuaVM();
-	parser->GetSelf(L);
-	int self = lua_gettop(L);
-
-	lua_getfield(L, self, "onPath");
-	if(lua_type(L, -1) == LUA_TFUNCTION) {
-		lua_pushvalue(L, self);
-		lua_pushlstring(L, at, length);
-		lua_pushinteger(L, 0);	// always 0
-		lua_pushinteger(L, length);
-		LuaNode::GetLuaVM().call(4, LUA_MULTRET);
-
-		if(lua_type(L, -1) == LUA_TNIL) {
-			parser->m_got_exception = true;
-			lua_settop(L, 0);
-			return -1;
-		}
-	}
-	else {
-		/* do nothing? */
-	}
-	lua_settop(L, 0);
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
-/*static*/ int Parser::on_query_string(http_parser* p, const char* at, size_t length) {
-	Parser* parser = static_cast<Parser*>(p->data);
-	lua_State* L = LuaNode::GetLuaVM();
-	parser->GetSelf(L);
-	int self = lua_gettop(L);
-
-	lua_getfield(L, self, "onQueryString");
-	if(lua_type(L, -1) == LUA_TFUNCTION) {
-		lua_pushvalue(L, self);
-		lua_pushlstring(L, at, length);
-		lua_pushinteger(L, 0);	// always 0
-		lua_pushinteger(L, length);
-		LuaNode::GetLuaVM().call(4, LUA_MULTRET);
-		if(lua_type(L, -1) == LUA_TNIL) {
-			parser->m_got_exception = true;
-			lua_settop(L, 0);
-			return -1;
-		}
-	}
-	else {
-		/* do nothing? */
-	}
-	lua_settop(L, 0);
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
 /*static*/ int Parser::on_url(http_parser* p, const char* at, size_t length) {
 	if(length == 0) {
 		// shortcut
@@ -303,34 +245,6 @@ int Parser::name(http_parser* p) {			\
 		lua_pushinteger(L, length);
 		LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 
-		if(lua_type(L, -1) == LUA_TNIL) {
-			parser->m_got_exception = true;
-			lua_settop(L, 0);
-			return -1;
-		}
-	}
-	else {
-		/* do nothing? */
-	}
-	lua_settop(L, 0);
-	return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////
-/// 
-/*static*/ int Parser::on_fragment(http_parser* p, const char* at, size_t length) {
-	Parser* parser = static_cast<Parser*>(p->data);
-	lua_State* L = LuaNode::GetLuaVM();
-	parser->GetSelf(L);
-	int self = lua_gettop(L);
-
-	lua_getfield(L, self, "onFragment");
-	if(lua_type(L, -1) == LUA_TFUNCTION) {
-		lua_pushvalue(L, self);
-		lua_pushlstring(L, at, length);
-		lua_pushinteger(L, 0);	// always 0
-		lua_pushinteger(L, length);
-		LuaNode::GetLuaVM().call(4, LUA_MULTRET);
 		if(lua_type(L, -1) == LUA_TNIL) {
 			parser->m_got_exception = true;
 			lua_settop(L, 0);
