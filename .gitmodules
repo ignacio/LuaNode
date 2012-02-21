@@ -1,9 +1,6 @@
 [submodule "deps/StackTracePlus"]
 	path = deps/StackTracePlus
 	url = git://github.com/ignacio/StackTracePlus.git
-[submodule "deps/http-parser"]
-	path = deps/http-parser
-	url = git://github.com/ignacio/http-parser.git
 [submodule "deps/LuaCppBridge51"]
 	path = deps/LuaCppBridge51
 	url = git://github.com/ignacio/LuaCppBridge51.git
