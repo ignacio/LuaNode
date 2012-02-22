@@ -2,6 +2,8 @@ local Class = require "luanode.class"
 local writeTTY = Stdio.writeTTY
 local closeTTY = Stdio.closeTTY
 local luanode_stream = require "luanode.stream"
+
+local utils = require "luanode.utils"
 	
 -- TODO: sacar el seeall
 module(..., package.seeall)
@@ -24,6 +26,7 @@ function ReadStream:__init(fd)
 	end
 	
 	local function onKeypress(char)
+		--console.error(luanode.utils.DumpDataInHex(char))
 		newStream:_emitKey(char)
 		--[[
 		newStream:emit("keypress", char)
@@ -80,7 +83,8 @@ function ReadStream:_emitKey (s)
         meta = false,
         shift = false
 	}
-    local parts
+    --console.log("Emitkey")
+    --console.log(luanode.utils.DumpDataInHex(s))
 
     if s == "\r" or s == "\n" then
     	-- enter
@@ -94,6 +98,7 @@ function ReadStream:_emitKey (s)
 		-- backspace or ctrl+h
 		key.name = "backspace"
 		key.meta = s:sub(1,1) == "\027"
+		key.ctrl = s:sub(1,1) == "\127"
 	
 	elseif s == "\027" or s == "\027\027" then
 		-- escape key
@@ -122,6 +127,31 @@ function ReadStream:_emitKey (s)
 		-- TODO: other combinations and function keys
 	--else
 		--console.error("unhandled key", key.name, key.meta, key.ctrl, key.shift)
+	else
+		local part, part_a, part_b, part_c, part_d = s:match("\027(%[)(%a)")
+		if part_a then
+			--console.log("parts", parts)
+		--elseif s:match("\027%[%a") then
+			local code = (part_a or "") .. (part_b or "") .. (part_c or "") .. (part_d or "")
+
+			--local modifier = 
+			--process.stdout:write(s)
+			--console.log(s)
+			if code == "D" then
+				key.name = "left"
+			elseif code == "C" then
+				key.name = "right"
+			elseif code == "A" then
+				key.name = "up"
+			elseif code == "B" then
+				key.name = "down"
+
+			else
+				console.log("emitkey: '%s'\ncode: %s", luanode.utils.DumpDataInHex(s), code)
+			end
+		else
+			--console.log(">> emitkey: '%s'", luanode.utils.DumpDataInHex(s))
+		end
 	end
 
 	-- Don't emit a key if no name was found
