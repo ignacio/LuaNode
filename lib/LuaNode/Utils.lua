@@ -160,7 +160,8 @@ function inspect(value, showHidden, depth, colors)
 		elseif tp == "userdata" then
 			putln( stylize(tostring(t), "userdata") )
 		elseif tp == 'table' then
-			if type(t.inspect) == "function" and t.inspect ~= _M.inspect then
+			local inspect = rawget(t, "inspect")
+			if inspect == "function" and inspect ~= _M.inspect then
 				putln(t.inspect(recurseTimes))
 				return
 			end
