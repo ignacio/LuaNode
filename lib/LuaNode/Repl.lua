@@ -31,16 +31,18 @@ function REPLServer:__init (prompt)
 	-- esto se va a readline
 	repl.cursor = 0
 	repl.line = ""
-	self.history = {}
-    self.historyIndex = -1
+	repl.history = {}
+    repl.historyIndex = -1
+
+    repl.input = process.stdin
+    repl.output = process.stdout
 
 	return repl
 end
 
 function REPLServer:displayPrompt (msg)
 	--_oldprint("display_prompt " .. prompt)
-	--process.stdout:write(prompt .. ' ', noop)
-	console.log(self.prompt .. " " .. msg)
+	process.stdout:write(prompt .. " " .. msg)
 end
 
 function REPLServer:evaluateLine (line)
@@ -61,42 +63,60 @@ function REPLServer:_insertString (c)
   	else
     	self.line = self.line .. c
     	self.cursor = self.cursor + #c
-    	io.stdout:write(c)--self.output:write(c)
+    	process.stdout:write(c)--self.output:write(c)
   	end
 end
 
 -- TODO: mover a readline
 function REPLServer:_refreshLine ()
-	--[[
+	---[[
 	if self._closed then return end
 
 	-- Cursor to left edge.
 	self.output:cursorTo(0)
 
 	-- Write the prompt and the current buffer content.
-	self.output:write(self._prompt)
+	self.output:write(self.prompt)
 	self.output:write(self.line)
 
 	-- Erase to right.
 	self.output:clearLine(1)
 
 	-- Move cursor to original position.
-	self.output:cursorTo(self._promptLength + self.cursor)
+	self.output:cursorTo(#self.prompt + self.cursor)
 	--]]
+end
+
+function REPLServer:_deleteLineLeft ()
+  	self.line = self.line:sub(self.cursor)
+  	self.cursor = 0
+  	self:_refreshLine()
+end
+
+
+function REPLServer:_deleteLineRight ()
+  	self.line = self.line:sub(1, self.cursor)
+  	self:_refreshLine()
 end
 
 function REPLServer:_deleteLeft ()
   	if self.cursor > 0 and #self.line > 0 then
-    	self.line = self.line:sub(1, self.cursor - 1) .. self.line:sub(self.cursor)
+    	self.line = self.line:sub(1, self.cursor - 1) .. self.line:sub(self.cursor + 1)
+    	--console.log( self.line )
 
     	self.cursor = self.cursor - 1
     	self:_refreshLine()
   	end
 end
 
+function REPLServer:_deleteRight ()
+   	self.line = self.line:sub(1, self.cursor) .. self.line:sub(self.cursor + 2)
+   	self:_refreshLine()
+end
+
 function REPLServer:_line ()
 	local line = self:_addHistory()
-  	io.stdout:write("\r\n")--self.output:write('\r\n')
+  	process.stdout:write("\r\n")--self.output:write('\r\n')
   	self:_onLine(line)
 end
 
@@ -128,6 +148,32 @@ function REPLServer:_addHistory ()
 	return self.history[1]
 end
 
+function REPLServer:_historyPrev ()
+	if self.historyIndex + 1 < #self.history then
+    	self.historyIndex = self.historyIndex + 1
+    	--console.log(self.historyIndex, luanode.utils.inspect(self.history))
+    	self.line = self.history[self.historyIndex + 1]
+    	self.cursor = #self.line -- set cursor to end of line.
+
+    	self:_refreshLine()
+  	end
+end
+
+function REPLServer:_historyNext ()
+  	if self.historyIndex > 0 then
+	    self.historyIndex = self.historyIndex - 1
+	    self.line = self.history[self.historyIndex + 1]
+	    self.cursor = #self.line -- set cursor to end of line.
+	    self:_refreshLine()
+
+  	elseif self.historyIndex == 0 then
+    	self.historyIndex = -1
+    	self.cursor = 0
+    	self.line = ""
+    	self:_refreshLine()
+  	end
+end
+
 ---
 -- Handle a write from the tty
 function REPLServer:_ttyWrite (s, key)
@@ -137,14 +183,71 @@ function REPLServer:_ttyWrite (s, key)
 	if key.ctrl and key.shift then
 		if key.name == "backspace" then
 			console.log("delete line left")
+			self:_deleteLineLeft()
 		elseif key.name == "delete" then
 			console.log("delete line right")
+			self:_deleteLineRight()
 		end
 	
 	elseif key.ctrl then
 		-- Control key pressed
+		--console.log("Control key pressed", key.name)
+		if key.name == "h" then	-- delete left
+			self:_deleteLeft()
+		elseif key.name == "d" then -- delete right or EOF
+			if self.cursor == 0 and #self.line == 0 then
+          		self:_attemptClose()
+        	elseif self.cursor < #self.line then
+          		self:_deleteRight()
+        	end
+
+        elseif key.name == "u" then	-- delete the whole line
+        	self.cursor = 0
+        	self.line = ""
+        	self:_refreshLine()
+        elseif key.name == "k" then	-- delete from current to end of line
+        	self:_deleteLineRight()
+        elseif key.name == "a" then	-- go to the start of the line
+        	self.cursor = 0
+        	self:_refreshLine()
+        elseif key.name == "e" then -- go to the end of the line
+        	self.cursor = #self.line
+        	self:_refreshLine()
+        elseif key.name == "b" then -- back one character
+        	if self.cursor > 0 then
+        		self.cursor = self.cursor - 1
+        		self:_refreshLine()
+        	end
+        elseif key.name == "f" then -- forward one character
+        	if self.cursor ~= #self.line then
+        		self.cursor = self.cursor + 1
+        		self:_refreshLine()
+        	end
+        elseif key.name == "n" then -- next history item
+        	self:_historyNext()
+        elseif key.name == "p" then -- previous history item
+        	self:_historyPrev()
+        
+        elseif key.name == "z" then
+        	process.kill(process.pid, 'SIGTSTP')	-- not implemented yet
+
+        elseif key.name == "w" or key.name == "backspace" then	-- delete backwards to a word boundary
+        	self:_deleteWordLeft()
+
+        elseif key.name == "delete" then -- delete forward to a word boundary
+        	self:_deleteWordRight()
+
+        elseif key.name == "left" then
+        	self:_wordLeft()
+
+        elseif key.name == "right" then
+        	self:_wordRight()
+		end
+
 	elseif key.meta then
-		-- Meta key pressed
+		-- Meta key pressed	(el viejo y querido alt)
+		console.log("Meta key pressed", key.name)
+		
 	else
 		-- No modifier keys used
 		if key.name == "enter" then
@@ -220,6 +323,7 @@ function start (prompt)
 			else
 				print(results[1])
 			end
+			repl:_refreshLine()
 		else
 			if err:match("'<eof>'$") then
 				-- expecting more input
@@ -229,8 +333,11 @@ function start (prompt)
 			else
 				print(err)
 			end
+			repl:_refreshLine()
 		end
 	end)
+
+	repl:_refreshLine()
 
 	return repl
 end
