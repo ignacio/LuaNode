@@ -87,9 +87,15 @@ setmetatable(process, {
 			return stdin
 		elseif key == "title" then
 			return process.get_process_title()
+		
 		elseif key == "stdout" then
-			print("STDOUT")
-			local fd = Stdio.openStdout()
+			local stdout
+			if Stdio.isatty(Stdio.stdoutFD) then
+				local tty = require "luanode.tty"
+				stdout = tty.WriteStream(Stdio.stdoutFD)
+			end
+			rawset(t, key, stdout)
+			return stdout
 		end
 
 		return events[key]
@@ -200,7 +206,7 @@ console = require "luanode.console"
 
 function console.log (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	io.write(msg); io.write("\r\n")
+	process.stdout:write(msg .. "\r\n")
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
@@ -209,7 +215,7 @@ console.debug = console.log
 
 function console.info (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	io.write(msg); io.write("\r\n")
+	process.stdout:write(msg .. "\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
@@ -217,9 +223,9 @@ end
 function console.warn (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
 	console.color("yellow")
-	io.write(msg)
+	process.stdout:write(msg)
 	console.reset_color()
-	io.write("\r\n")
+	process.stdout:write("\r\n")
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
 end
@@ -353,7 +359,7 @@ local propagate_result = 0
 if not process.argv[0] then
 	io.write("LuaNode " .. process.version .. "\n")
 	-- run repl
-	local Repl = require "luanode.Repl"
+	local Repl = require "luanode.repl"
 	Repl.start(">")
 	process:loop()
 else
