@@ -72,7 +72,7 @@ function inspect(value, showHidden, depth, colors)
 	if type(depth) == "string" then depth = 1000 end	-- hack
 	
 	if not colors then
-		colors = (process.platform ~= "windows")
+		colors = true	-- temporarily force color usage
 	end
 	
 	local stylize = function(str, styleType)
