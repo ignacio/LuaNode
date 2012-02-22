@@ -909,9 +909,7 @@ local function connectionListener (server, socket)
 			
 			local req = parser.incoming
 			
-			-- This is start * byteParsed + 1 due to the error of getting \n in
-			-- the upgradeHead from the closing lines of the headers
-			local upgradeHead = d:sub(bytesParsed + 2)
+			local upgradeHead = d:sub(bytesParsed + 1)
 			
 			if not server:emit("upgrade", req, req.socket, upgradeHead) then
 				-- got upgrade header, but haven't catched it.
@@ -1055,7 +1053,7 @@ function Client:__init()
 			newClient.onend = nil
 			
 			local req = self.parser.incoming
-			local upgradeHead = d:sub(bytesParsed + 2)
+			local upgradeHead = d:sub(bytesParsed + 1)
 			
 			if not newClient:emit("upgrade", req, newClient, upgradeHead) then
 				-- got upgrade header, but haven't catched it.
