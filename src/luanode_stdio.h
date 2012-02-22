@@ -14,10 +14,6 @@ namespace Stdio {
 
 	void Flush ();
 
-/*class Binding : public LuaCppBridge::HybridObjectWithProperties<Binding> {
-
-};*/
-
 }
 
 }
