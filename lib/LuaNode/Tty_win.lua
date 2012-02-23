@@ -1,4 +1,5 @@
 local Class = require "luanode.class"
+local Stdio = Stdio
 local writeTTY = Stdio.writeTTY
 local closeTTY = Stdio.closeTTY
 local luanode_stream = require "luanode.stream"
