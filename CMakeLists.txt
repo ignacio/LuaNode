@@ -24,21 +24,23 @@ SET(LUAS
     lib/LuaNode/Class
     lib/LuaNode/console
     lib/LuaNode/Crypto
+    lib/LuaNode/Datagram
     lib/LuaNode/Dns
     lib/LuaNode/event_emitter
     lib/LuaNode/free_list
     lib/LuaNode/Fs
     lib/LuaNode/Http
     lib/LuaNode/Net
-    lib/LuaNode/Datagram
     lib/LuaNode/Path
     lib/LuaNode/Querystring
+    lib/LuaNode/Readline
+    lib/LuaNode/Repl
+    lib/LuaNode/Script
     lib/LuaNode/Stream
     lib/LuaNode/Timers
+    lib/LuaNode/Tty
     lib/LuaNode/Url
     lib/LuaNode/Utils
-    lib/LuaNode/Script
-    lib/LuaNode/Tty
     ${LUA_OS}
     src/node
     deps/StackTracePlus/src/StackTracePlus
@@ -58,9 +60,10 @@ ENDFOREACH(filename)
 SET(SOURCES
     deps/http-parser/http_parser.c
     src/blogger.cpp
+    src/lua_vm.cpp
     src/luanode.cpp
     src/luanode_child_process.cpp
-	src/luanode_constants.cpp
+    src/luanode_constants.cpp
     src/luanode_crypto.cpp
     src/luanode_dns.cpp
     src/luanode_http_parser.cpp
@@ -71,7 +74,6 @@ SET(SOURCES
     src/luanode_timer.cpp
     src/luanode_os.cpp
     ${OS}
-    src/lua_vm.cpp
     lib/preloader.cpp
 )
 
