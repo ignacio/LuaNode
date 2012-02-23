@@ -285,6 +285,19 @@ static int luaopen_LuaNode_Repl(lua_State* L) {
 	return 1;
 }
 
+static int luaopen_LuaNode_Readline(lua_State* L) {
+	int extension_status = 1;
+	int arg = lua_gettop(L);
+	#include "../build/temp/Readline.precomp"
+	if(extension_status) {
+		return lua_error(L);
+	}
+	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Readline");
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
 static int luaopen_StackTracePlus(lua_State* L) {
 	int extension_status = 1;
 	int arg = lua_gettop(L);
@@ -370,6 +383,9 @@ void PreloadModules(lua_State* L) {
 
 	lua_pushcfunction(L, luaopen_LuaNode_Repl);
 	lua_setfield(L, -2, "luanode.repl");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Readline);
+	lua_setfield(L, -2, "luanode.readline");
 
 	lua_pop(L, 1);
 }
