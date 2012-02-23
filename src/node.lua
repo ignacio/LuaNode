@@ -378,9 +378,10 @@ end
 local propagate_result = 0
 if not process.argv[0] then
 	io.write("LuaNode " .. process.version .. "\n")
+	
 	-- run repl
-	local Repl = require "luanode.repl"
-	Repl.start(">")
+	local repl = require "luanode.repl"
+	repl.start("> ")
 	process:loop()
 else
 	local file, err = io.open(process.argv[0])
