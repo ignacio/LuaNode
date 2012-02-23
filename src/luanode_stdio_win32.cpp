@@ -63,6 +63,8 @@ static void uv_tty_update_virtual_window(CONSOLE_SCREEN_BUFFER_INFO* info);
 #define UV_HANDLE_TTY_SAVED_POSITION            0x00400000
 #define UV_HANDLE_TTY_SAVED_ATTRIBUTES          0x00800000
 
+#define UV_HANDLE_TTY_RAW                       0x00080000
+
 
 /* TTY watcher data */
 static bool tty_watcher_initialized = false;
@@ -77,6 +79,7 @@ static int uv_tty_virtual_height = -1;
 static int uv_tty_virtual_width = -1;
 
 typedef struct tty_context_t {
+	DWORD original_console_mode;
 	/* Fields used for translating win */
 	/* keystrokes into vt100 characters */
 	char last_key[8];
@@ -377,6 +380,40 @@ static void ReadConsoleHandler (tty_context_t& tty_context, std::vector<INPUT_RE
 	}
 }
 
+
+int uv_tty_set_mode(tty_context_t* tty, HANDLE handle, int mode) {
+	DWORD flags = 0;
+
+	if (!!mode == !!(tty->flags & UV_HANDLE_TTY_RAW)) {
+		return 0;
+	}
+
+	if (tty->original_console_mode & ENABLE_QUICK_EDIT_MODE) {
+		flags = ENABLE_QUICK_EDIT_MODE | ENABLE_EXTENDED_FLAGS;
+	}
+
+	if (mode) {
+		/* Raw input */
+		flags |= ENABLE_WINDOW_INPUT;
+	}
+	else {
+		/* Line-buffered mode. */
+		flags |= ENABLE_ECHO_INPUT | ENABLE_INSERT_MODE | ENABLE_LINE_INPUT |ENABLE_EXTENDED_FLAGS | ENABLE_PROCESSED_INPUT;
+	}
+
+	if (!SetConsoleMode(handle, flags)) {
+		LogError("uv_tty_set_mode failed with code %d", GetLastError());
+		return -1;
+	}
+
+	/* Update flag. */
+	tty->flags &= ~UV_HANDLE_TTY_RAW;
+	tty->flags |= mode ? UV_HANDLE_TTY_RAW : 0;
+
+	return 0;
+}
+
+
 /**
 InputServer: Handles reading from console.
 */
@@ -392,6 +429,15 @@ public:
 //////////////////////////////////////////////////////////////////////////
 /// 
 InputServer::InputServer() {
+
+	if (!GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &m_tty_context.original_console_mode)) {
+		//uv__set_sys_error(loop, GetLastError());
+		//return -1;
+		//fprintf(stderr, "%d\n", GetLastError());
+		//abort();
+		return;
+		// TODO: Loguear el error
+	}
 
 	/* Init keycode-to-vt100 mapper state. */
 	m_tty_context.last_key_offset = 0;
@@ -436,7 +482,7 @@ void InputServer::Run() {
 }
 
 // ugh! remove this globals...
-InputServer tty_input;
+boost::shared_ptr<InputServer> tty_input;
 static boost::shared_ptr<boost::thread> tty_reader_thread;
 static boost::shared_ptr<boost::asio::io_service::work> input_asio_work; 
 
@@ -463,7 +509,7 @@ static int WriteError (lua_State* L) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// 
+/// Returna the file descriptor mapped to stdin
 static int OpenStdin (lua_State* L) {
 	//setRawMode(0); // init into nonraw mode
 	lua_pushinteger(L, _fileno(stdin));
@@ -1376,6 +1422,7 @@ int OutputServer::ProcessMessage(const char* message, size_t length) {
 		}
 		else {
 			/* Inconsistent state */
+			LogFatal("OutputServer::ProcessMessage - Inconsistent state when processing output");
 			abort();
 		}
 
@@ -1468,25 +1515,25 @@ static int CloseTTY (lua_State* L) {
 	return 1;
 }
 
+static void LuaNode::Stdio::DisableRawMode(int fd) {
+	if(tty_input) {
+		uv_tty_set_mode(&tty_input->m_tty_context, GetStdHandle(STD_INPUT_HANDLE), FALSE);
+	}
+}
 
-// process.binding('stdio').setRawMode(true);
-/*static Handle<Value> SetRawMode (const Arguments& args) {
-	HandleScope scope;
-
-	if (args[0]->IsFalse()) {
-		Stdio::DisableRawMode(STDIN_FILENO);
-	} else {
-		if (0 != EnableRawMode(STDIN_FILENO)) {
-			return ThrowException(ErrnoException(errno, "EnableRawMode"));
+static int SetRawMode(lua_State* L) {
+	if(lua_toboolean(L, 1) == false) {
+		uv_tty_set_mode(&tty_input->m_tty_context, GetStdHandle(STD_INPUT_HANDLE), FALSE);
+	}
+	else {
+		if(0 != uv_tty_set_mode(&tty_input->m_tty_context, GetStdHandle(STD_INPUT_HANDLE), TRUE)) {
+		//if (0 != EnableRawMode(STDIN_FILENO)) {
+			return luaL_error(L, "EnableRawMode");	//return ThrowException(ErrnoException(errno, "EnableRawMode"));
 		}
 	}
-
-	return rawmode ? True() : False();
-}-*
-
-/*static void LuaNode::Stdio::DisableRawMode(int fd) {
-	setRawMode
-}*/
+	//lua_pushboolean(L, rawmode);
+	return 0;
+}
 
 // process.binding('stdio').getWindowSize(fd);
 // returns [row, col]
@@ -1622,11 +1669,14 @@ static int ClearLine (lua_State* L) {
 	return 0;
 }
 
-
-static int InitTTYWatcher (lua_State* L) {
+//////////////////////////////////////////////////////////////////////////
+/// 
+static int InitTTYWatcher (lua_State* L)
+{
 	if(tty_watcher_initialized) {
 		return luaL_error(L, "TTY watcher already initialized");
 	}
+
 	int fd = luaL_checkinteger(L, 1);
 	tty_handle = (HANDLE)_get_osfhandle(fd);
 
@@ -1644,6 +1694,8 @@ static int InitTTYWatcher (lua_State* L) {
 		tty_resize_callback = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
 
+	tty_input = boost::make_shared<InputServer>();
+
 	tty_watcher_initialized = true;
 	tty_wait_handle = NULL;
 
@@ -1657,8 +1709,8 @@ static int StartTTYWatcher (lua_State* L) {
 	}
 
 	if(tty_reader_thread == NULL) {
-		tty_input.m_run = true;
-		tty_reader_thread = boost::make_shared<boost::thread>(&InputServer::Run, &tty_input);
+		tty_input->m_run = true;
+		tty_reader_thread = boost::make_shared<boost::thread>(&InputServer::Run, tty_input);
 		if(input_asio_work == NULL) {
 			input_asio_work = boost::make_shared<boost::asio::io_service::work>(boost::ref(LuaNode::GetIoService()));
 		}
@@ -1668,15 +1720,18 @@ static int StartTTYWatcher (lua_State* L) {
 
 static int StopTTYWatcher (/*lua_State* L*/) {
 	// hacky way of stopping the thread
-	tty_input.m_run = false;
-	DWORD dwWritten;
-	INPUT_RECORD record;
-	record.EventType = FOCUS_EVENT;
-	record.Event.FocusEvent.bSetFocus = false;	// sera inocuo mandar esto?
-	::WriteConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &record, 1, &dwWritten);
-	tty_reader_thread.reset();
-	input_asio_work.reset();
-	// don't join it, just let it go away
+	if(tty_watcher_initialized) {
+		tty_input->m_run = false;
+		DWORD dwWritten;
+		INPUT_RECORD record;
+		record.EventType = FOCUS_EVENT;
+		record.Event.FocusEvent.bSetFocus = false;	// sera inocuo mandar esto?
+		::WriteConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &record, 1, &dwWritten);
+
+		// don't join it, just let it go away
+		tty_reader_thread.reset();
+		input_asio_work.reset();
+	}
 	return 0;
 }
 
@@ -1702,6 +1757,7 @@ static int DestroyTTYWatcher (lua_State* L) {
 		luaL_unref(L, LUA_REGISTRYINDEX, tty_resize_callback);
 	}
 
+	tty_input.reset();
 	tty_watcher_initialized = false;
 
 	return 0;
@@ -1734,7 +1790,7 @@ void LuaNode::Stdio::RegisterFunctions (lua_State* L) {
 		{ "destroyTTYWatcher", DestroyTTYWatcher },
 		{ "startTTYWatcher", StartTTYWatcher },
 		{ "stopTTYWatcher", StopTTYWatcher_ },
-		//{ "setRawMode", SetRawMode },
+		{ "setRawMode", SetRawMode },
 		{ 0, 0 }
 	};
 	luaL_register(L, "Stdio", methods);
@@ -1755,4 +1811,5 @@ void LuaNode::Stdio::RegisterFunctions (lua_State* L) {
 /// 
 void LuaNode::Stdio::OnExit (/*lua_State* L*/) {
 	StopTTYWatcher(/*L*/);
+	DisableRawMode(0);
 }
