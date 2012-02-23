@@ -230,37 +230,35 @@ local function parseFunctionKeyCode (s)
 		return "", 0
 	end
 
-	local prefix = ""
 	local letter, num, char, modifier
 	
-	local byte = string.byte(rest, 1)
+	local prefix = rest:sub(1,1)
+
 	-- ESC N letter
-	if byte == string.byte("N") then
-		prefix = "N"
+	if prefix == "N" then
 		letter = rest:match("^N(%a)")
 		--if letter then print("ESC N letter", letter) end
 
-	elseif byte == string.byte("O") then
+	elseif prefix == "O" then
 		-- ESC O letter
-		prefix = "O"
-		letter = rest:match("O(%a)")
+		letter = rest:match("^O(%a)")
 		if letter then
 			--print("ESC O letter", letter)
 		else
 			-- ESC O modifier letter
-			modifier, letter = rest:match("O(%d+)(%a)")
+			modifier, letter = rest:match("^O(%d+)(%a)")
 			if modifier then
 				--print("ESC O modifier letter", modifier, letter)
 			else
 				-- ESC O 1 ; modifier letter
-				modifier, letter = rest:match("O1;(%d+)(%a)")
+				modifier, letter = rest:match("^O1;(%d+)(%a)")
 				if modifier then
 					--print("ESC O 1 ; modifier letter", modifier, letter)
 				end
 			end
 		end
 
-	elseif byte == string.byte("[") then
+	elseif prefix == "[" then
 		if rest:match("^%[%[") then
 			prefix = "[["
 			-- ESC [ [ num ; modifier char
@@ -268,26 +266,30 @@ local function parseFunctionKeyCode (s)
 			if not num then
   				--ESC [ [ 1 ; modifier letter
 				modifier, letter = rest:match("^%[%[1;(%d+)(%a)")
+				if not modifier then
+					-- ESC [ letter
+					letter = rest:match("^%[%[(%a)")
+				end
 			end
 		else
-			prefix = "["
+			--prefix = "["
 			-- ESC [ letter
 			letter = rest:match("^%[(%a)")
 			if letter then
 				--print("letter", letter)
 			else
 				-- ESC [ num char
-				num, char = rest:match("%[(%d+)([~$^])")
+				num, char = rest:match("^%[(%d+)([~$^])")
 				if num then
 					--print("prefix, num, char", prefix, num, char)
 				else
 					-- ESC [ 1 ; modifier letter
-					modifier, letter = rest:match("%[1;(%d+)(%a)")
+					modifier, letter = rest:match("^%[1;(%d+)(%a)")
 					if modifier then
 						--print("ESC [ 1 ; modifier letter", modifier, letter)
 					else
 						-- ESC [ modifier letter
-						modifier, letter = rest:match("%[(%d+)(%a)")
+						modifier, letter = rest:match("^%[(%d+)(%a)")
 						if modifier then
 							--print("ESC [ modifier letter", modifier, letter)
 						else
