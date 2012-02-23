@@ -118,22 +118,24 @@ LUAS = 	$(Target)/LuaNode/child_process.precomp \
 		$(Target)/LuaNode/Class.precomp \
 		$(Target)/LuaNode/console.precomp \
 		$(Target)/LuaNode/Crypto.precomp \
+		$(Target)/LuaNode/Datagram.precomp \
 		$(Target)/LuaNode/Dns.precomp \
 		$(Target)/LuaNode/event_emitter.precomp \
 		$(Target)/LuaNode/free_list.precomp \
 		$(Target)/LuaNode/Fs.precomp \
 		$(Target)/LuaNode/Http.precomp \
-		$(Target)/LuaNode/Datagram.precomp \
 		$(Target)/LuaNode/Net.precomp \
 		$(Target)/LuaNode/Path.precomp \
 		$(Target)/LuaNode/Querystring.precomp \
+		$(Target)/LuaNode/Readline.precomp \
+		$(Target)/LuaNode/Repl.precomp \
+		$(Target)/LuaNode/Script.precomp \
 		$(Target)/LuaNode/Stream.precomp \
 		$(Target)/LuaNode/Timers.precomp \
-		$(Target)/LuaNode/Url.precomp \
-		$(Target)/LuaNode/Utils.precomp \
-		$(Target)/LuaNode/Script.precomp \
 		$(Target)/LuaNode/Tty.precomp \
 		$(Target)/LuaNode/Tty_posix.precomp \
+		$(Target)/LuaNode/Url.precomp \
+		$(Target)/LuaNode/Utils.precomp \
 		$(Target)/src/node.precomp \
 		$(Target)/StackTracePlus/StackTracePlus.precomp
 
