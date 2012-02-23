@@ -194,7 +194,7 @@ end
 
 function ReadStream:resume()
 	if not self.readable then
-		error('Cannot resume() closed tty.ReadStream.')
+		error("Cannot resume() closed tty.ReadStream.")
 	end
 	if not self.paused then return end
 
@@ -223,7 +223,7 @@ ReadStream.destroySoon = ReadStream.destroy
 -- WriteStream class
 WriteStream = Class.InheritsFrom(luanode_stream.Stream)
 
-function WriteStream:__init(fd)
+function WriteStream:__init (fd)
 	local newStream = Class.construct(WriteStream)
 	
 	newStream.fd = fd
@@ -276,7 +276,17 @@ function WriteStream:moveCursor (dx, dy)
 		error("Stream is not writable")
 	end
 	
-	Stdio.moveCursor(self.fd, dx, dy)
+	if dx < 0 then
+	    self:write("\027[" .. -dx .. "D")
+  	elseif dx > 0 then
+	    self:write("\027[" .. dx .. "C")
+  	end
+
+  	if dy < 0 then
+	    self:write("\027[" .. -dy .. "A")
+  	elseif dy > 0 then
+    	self:write("\027[" .. dy .. "B")
+  	end
 end
 
 function WriteStream:cursorTo (x, y)
@@ -284,13 +294,33 @@ function WriteStream:cursorTo (x, y)
 		error("Stream is not writable")
 	end
 	
-	Stdio.cursorTo(self.fd, x, y)
+	if type(x) ~= "number" and type(y) ~= "number" then
+	    return
+	end
+
+  	if type(x) ~= "number" then
+    	error("Can't set cursor row without also setting it's column")
+    end
+
+  	if type(y) ~= "number" then
+    	self:write("\027[" .. (x + 1) .. "G")
+  	else
+    	self:write("\027[" .. (y + 1) .. ";" .. (x + 1) .. "H")
+  	end
 end
 
 function WriteStream:clearLine (direction)
 	if not self.writable then
 		error("Stream is not writable")
 	end
-	
-	Stdio.clearLine(self.fd, direction or 0)
+	if direction < 0 then
+    	-- to the beginning
+    	self:write("\027[1K")
+  	elseif direction > 0 then
+    	-- to the end
+    	self:write("\027[0K")
+  	else
+    	-- entire line
+    	self:write("\027[2K")
+  	end
 end

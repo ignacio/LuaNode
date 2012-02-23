@@ -1552,123 +1552,6 @@ static int GetWindowSize (lua_State* L) {
 	return 2;
 }
 
-
-/* moveCursor(fd, dx, dy) */
-/* cursorTo(fd, x, y) */
-template<bool relative>
-static int SetCursor (lua_State* L) {
-	int fd = luaL_checkinteger(L, 1);
-
-	HANDLE handle = (HANDLE)_get_osfhandle(fd);
-
-	CONSOLE_SCREEN_BUFFER_INFO info;
-	if (!GetConsoleScreenBufferInfo(handle, &info)) {
-		return luaL_error(L, "Error in GetConsoleScreenBufferInfo - %d", GetLastError());
-	}
-
-	COORD pos = info.dwCursorPosition;
-	if(relative) {
-		if(lua_isnumber(L, 2)) {
-			pos.X += static_cast<short>(lua_tointeger(L, 2));
-		}
-		if(lua_isnumber(L, 3)) {
-			pos.Y += static_cast<short>(lua_tointeger(L, 3));
-		}
-	}
-	else {
-		if(lua_isnumber(L, 2)) {
-			pos.X = static_cast<short>(lua_tointeger(L, 2));
-		}
-		if(lua_isnumber(L, 3)) {
-			pos.Y = static_cast<short>(lua_tointeger(L, 3));
-		}
-	}
-
-	COORD size = info.dwSize;
-	if(pos.X >= size.X) {
-		pos.X = size.X - 1;
-	}
-	if(pos.X < 0) {
-		pos.X = 0;
-	}
-	if(pos.Y >= size.Y) {
-		pos.Y = size.Y - 1;
-	}
-	if(pos.Y < 0) {
-		pos.Y = 0;
-	}
-
-	if(!::SetConsoleCursorPosition(handle, pos)) {
-		return luaL_error(L, "Error in SetConsoleCursorPosition - %d", GetLastError());
-	}
-	return 0;
-}
-
-
-/*
- * ClearLine(fd, direction)
- * direction:
- *   -1: from cursor leftward
- *    0: entire line
- *    1: from cursor to right
- */
-static int ClearLine (lua_State* L) {
-	int fd = luaL_checkinteger(L, 1);
-	HANDLE handle = (HANDLE)_get_osfhandle(fd);
-
-	int dir = (int)luaL_optnumber(L, 2, 0);
-
-	CONSOLE_SCREEN_BUFFER_INFO info;
-	if(!::GetConsoleScreenBufferInfo(handle, &info)) {
-	    return luaL_error(L, "Error in GetConsoleScreenBufferInfo - %d", GetLastError());
-	}
-
-	short x1 = dir <= 0 ? 0 : info.dwCursorPosition.X;
-	short x2 = dir >= 0 ? info.dwSize.X - 1: info.dwCursorPosition.X;
-	short count = x2 - x1 + 1;
-
-	if (x1 != info.dwCursorPosition.X) {
-		COORD pos;
-		pos.Y = info.dwCursorPosition.Y;
-		pos.X = x1;
-		if(!::SetConsoleCursorPosition(handle, pos)) {
-			return luaL_error(L, "Error in SetConsoleCursorPosition - %d", GetLastError());
-		}
-	}
-
-	DWORD oldMode;
-	if(!::GetConsoleMode(handle, &oldMode)) {
-		return luaL_error(L, "Error in GetConsoleMode - %d", GetLastError());
-	}
-
-	// Disable wrapping at eol because otherwise windows scrolls the console
-	// when clearing the last line of the console
-	DWORD mode = oldMode & ~ENABLE_WRAP_AT_EOL_OUTPUT;
-	if(!::SetConsoleMode(handle, mode)) {
-		return luaL_error(L, "Error in SetConsoleMode - %d", GetLastError());
-	}
-
-	std::vector<WCHAR> buf(count);
-
-	for (short i = 0; i < count; i++) {
-	    buf[i] = L' ';
-	}
-
-	DWORD written;
-	if(!::WriteConsoleW(handle, &buf[0], count, &written, NULL)) {
-		return luaL_error(L, "Error in WriteConsole - %d", GetLastError());
-	}
-
-	if(!::SetConsoleCursorPosition(handle, info.dwCursorPosition)) {
-		return luaL_error(L, "Error in SetConsoleCursorPosition - %d", GetLastError());
-	}
-
-	if(!::SetConsoleMode(handle, oldMode)) {
-		return luaL_error(L, "Error in SetConsoleMode - %d", GetLastError());
-	}
-	return 0;
-}
-
 //////////////////////////////////////////////////////////////////////////
 /// 
 static int InitTTYWatcher (lua_State* L)
@@ -1782,9 +1665,6 @@ void LuaNode::Stdio::RegisterFunctions (lua_State* L) {
 		{ "closeTTY", CloseTTY },
 		{ "isStdoutBlocking", IsStdoutBlocking },
 		{ "isStdinBlocking", IsStdinBlocking },
-		{ "moveCursor", SetCursor<true> },
-		{ "cursorTo", SetCursor<false> },
-		{ "clearLine", ClearLine },
 		{ "getWindowSize", GetWindowSize },
 		{ "initTTYWatcher", InitTTYWatcher },
 		{ "destroyTTYWatcher", DestroyTTYWatcher },
