@@ -155,11 +155,13 @@ local function BuildMessage(fmt, ...)
 		msg = table.concat(msg, "\t")
 	else
 		if fmt:find("%%") then
+			-- escape unrecognized formatters
+			fmt = fmt:gsub("%%([^cdiouxXeEfgGqs])", "%%%%%1")
 			msg = string.format(fmt, LogArgumentsFormatter(...))
 		else
-			msg = { fmt }
-			ArgumentsToStrings(msg, ...)
-			msg = table.concat(msg, "\t")
+			local t = { fmt }
+			ArgumentsToStrings(t, ...)
+			msg = table.concat(t, "\t")
 		end
 	end
 	return msg
