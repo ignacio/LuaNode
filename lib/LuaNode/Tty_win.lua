@@ -387,6 +387,7 @@ function ReadStream:_emitKey (s)
 				end
 			else
 				--console.log(">> emitkey: '%s'", luanode.utils.DumpDataInHex(s))
+				-- Typing or pasting otf-8 chars in the console does not work yet
 				if #s > 1 and string.byte(s, 1) ~= "\027" then
 					for i=1, #s do
 						self:_emitKey(s:sub(i,i))
