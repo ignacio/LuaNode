@@ -127,6 +127,11 @@ function ReadStream:_emitKey (s)
 		-- TODO: other combinations and function keys
 	--else
 		--console.error("unhandled key", key.name, key.meta, key.ctrl, key.shift)
+	--elseif #s > 1 and string.byte(s, 1) ~= "\027" then
+		--for i=1, #s do
+			--self:_emitKey(s:sub(i,i))
+		--end
+		--return
 	else
 		local part, part_a, part_b, part_c, part_d = s:match("\027(%[)(%a)")
 		if part_a then
@@ -150,7 +155,15 @@ function ReadStream:_emitKey (s)
 				console.log("emitkey: '%s'\ncode: %s", luanode.utils.DumpDataInHex(s), code)
 			end
 		else
+			-- TODO: esto es cuando pastean algo en la consola (recibo muchos caracteres a la vez)
+			-- pero aun no esta andando bien
 			--console.log(">> emitkey: '%s'", luanode.utils.DumpDataInHex(s))
+			--if #s > 1 and string.byte(s, 1) ~= "\027" then
+			--	for i=1, #s do
+			--		self:_emitKey(s:sub(i,i))
+			--	end
+			--	return
+			--end
 		end
 	end
 
