@@ -5,11 +5,15 @@ local tty = require "luanode.tty"
 
 module(..., package.seeall)
 
-Interface = Class.InheritsFrom(EventEmitter)
-
 local kHistorySize = 30
 local kBufSize = 10 * 1024
 
+---
+--
+Interface = Class.InheritsFrom(EventEmitter)
+
+---
+--
 function Interface:__init (input, output, completer)
 	local interface = Class.construct(Interface)
 
@@ -23,11 +27,11 @@ function Interface:__init (input, output, completer)
 
 	-- TODO
 	--// Check arity, 2 - for async, 1 for sync
-  	--this.completer = completer.length === 2 ? completer : function(v, callback) {
-	    --callback(null, completer(v));
-  	--};
+	--this.completer = completer.length === 2 ? completer : function(v, callback) {
+		--callback(null, completer(v));
+	--};
 
-  	interface:setPrompt("> ")
+	interface:setPrompt("> ")
 	
 	interface.enabled = output.isTTY
 
@@ -41,33 +45,32 @@ function Interface:__init (input, output, completer)
 		end)
 	else
 		-- input usually refers to stdin
-    	input:on("keypress", function(self, s, key)
-      		interface:_ttyWrite(s, key)
-    	end)
+		input:on("keypress", function(self, s, key)
+			interface:_ttyWrite(s, key)
+		end)
 
-    	-- Current line
-    	interface.line = ""
+		-- Current line
+		interface.line = ""
 
-    	-- Check process.env.TERM ?
-    	tty.setRawMode(true)
-    	interface.enabled = true
+		-- Check process.env.TERM ?
+		tty.setRawMode(true)
+		interface.enabled = true
 
-    	-- Cursor position on the line
-    	interface.cursor = 0
+		-- Cursor position on the line
+		interface.cursor = 0
 
-    	interface.history = {}
-    	interface.historyIndex = -1
+		interface.history = {}
+		interface.historyIndex = -1
 
-    	local winSize = {80}--Poutput:getWindowSize()
-    	columns = winSize[1]
+		local winSize = {80}--Poutput:getWindowSize()
+		columns = winSize[1]
 
-    	if #process:listeners("SIGWINCH") == 0 then
-      		process:on("SIGWINCH", function()
-        		local winSize = output:getWindowSize()
-	        	columns = winSize[1]
-      		end)
-    	end
-
+		if #process:listeners("SIGWINCH") == 0 then
+			process:on("SIGWINCH", function()
+				local winSize = output:getWindowSize()
+				columns = winSize[1]
+			end)
+		end
 	end
 
 	return interface
@@ -120,13 +123,13 @@ end
 --
 function Interface:_onLine (line)
 	if self._questionCallback then
-    	local cb = self._questionCallback
-    	self._questionCallback = nil
-    	self:setPrompt(self._oldPrompt)
-    	cb(self, line)
-  	else
-	    self:emit("line", line)
-  	end
+		local cb = self._questionCallback
+		self._questionCallback = nil
+		self:setPrompt(self._oldPrompt)
+		cb(self, line)
+	else
+		self:emit("line", line)
+	end
 end
 
 ---
@@ -198,39 +201,39 @@ end
 --
 function Interface:write (d, key)
 	if self._closed then return end
-  	if self.enabled then
-  		self:_ttyWrite(d, key)
-  	else
-  		self:_normalWrite(d, key)
-  	end
+	if self.enabled then
+		self:_ttyWrite(d, key)
+	else
+		self:_normalWrite(d, key)
+	end
 end
 
 ---
 --
 function Interface:_normalWrite (b)
 	-- Very simple implementation right now. Should try to break on new lines.
-  	if b then
-    	self:_onLine(tostring(b))
-    end
+	if b then
+		self:_onLine(tostring(b))
+	end
 end
 
 ---
 --
 function Interface:_insertString (c)
-  	--BUG: Problem when adding tabs with following content.
-  	--     Perhaps the bug is in _refreshLine(). Not sure.
-  	--     A hack would be to insert spaces instead of literal '\t'.
-  	if self.cursor < #self.line then
-    	local beg_text = self.line:sub(1, self.cursor)
-    	local end_text = self.line:sub(self.cursor + 1)
-    	self.line = beg_text .. c .. end_text
-    	self.cursor = self.cursor + #c
-    	self:_refreshLine()
-  	else
-    	self.line = self.line .. c
-    	self.cursor = self.cursor + #c
-    	self.output:write(c)
-  	end
+	--BUG: Problem when adding tabs with following content.
+	--     Perhaps the bug is in _refreshLine(). Not sure.
+	--     A hack would be to insert spaces instead of literal '\t'.
+	if self.cursor < #self.line then
+		local beg_text = self.line:sub(1, self.cursor)
+		local end_text = self.line:sub(self.cursor + 1)
+		self.line = beg_text .. c .. end_text
+		self.cursor = self.cursor + #c
+		self:_refreshLine()
+	else
+		self.line = self.line .. c
+		self.cursor = self.cursor + #c
+		self.output:write(c)
+	end
 end
 
 --[[
@@ -324,150 +327,154 @@ function commonPrefix(strings) {
   }
   return min;
 }
-
-Interface.prototype._wordLeft = function() {
-  if (this.cursor > 0) {
-    var leading = this.line.slice(0, this.cursor);
-    var match = leading.match(/([^\w\s]+|\w+|)\s*$/);
-    this.cursor -= match[0].length;
-    this._refreshLine();
-  }
-};
-
-Interface.prototype._wordRight = function() {
-  if (this.cursor < this.line.length) {
-    var trailing = this.line.slice(this.cursor);
-    var match = trailing.match(/^(\s+|\W+|\w+)\s*/);
-    this.cursor += match[0].length;
-    this._refreshLine();
-  }
-};
-
-
-
 ]]
 
 ---
 --
-function Interface:_deleteLeft ()
-  	if self.cursor > 0 and #self.line > 0 then
-    	self.line = self.line:sub(1, self.cursor - 1) .. self.line:sub(self.cursor + 1)
-    	--console.log( self.line )
+function Interface:_wordLeft ()
+	if self.cursor > 0 then
+		local leading = self.line:sub(1, self.cursor)
+		local match = leading:match("%s+(%w+%s*)$")
+		if not match then
+			self.cursor = 0
+		else
+			self.cursor = self.cursor - #match
+		end
+		self:_refreshLine()
+	end
+end
 
-    	self.cursor = self.cursor - 1
-    	self:_refreshLine()
-  	end
+---
+-- 
+function Interface:_wordRight ()
+	if self.cursor < #self.line then
+		local trailing = self.line:sub(self.cursor)
+		local match = trailing:match("^%s*(%w+%s*)")
+		self.cursor = self.cursor + #match
+		self:_refreshLine()
+	end
+end
+
+---
+--
+function Interface:_deleteLeft ()
+	if self.cursor > 0 and #self.line > 0 then
+		self.line = self.line:sub(1, self.cursor - 1) .. self.line:sub(self.cursor + 1)
+		--console.log( self.line )
+		self.cursor = self.cursor - 1
+		self:_refreshLine()
+	end
 end
 
 ---
 --
 function Interface:_deleteRight ()
-   	self.line = self.line:sub(1, self.cursor) .. self.line:sub(self.cursor + 2)
-   	self:_refreshLine()
+	self.line = self.line:sub(1, self.cursor) .. self.line:sub(self.cursor + 2)
+	self:_refreshLine()
 end
 
---[[
-Interface.prototype._deleteWordLeft = function() {
-  if (this.cursor > 0) {
-    var leading = this.line.slice(0, this.cursor);
-    var match = leading.match(/([^\w\s]+|\w+|)\s*$/);
-    leading = leading.slice(0, leading.length - match[0].length);
-    this.line = leading + this.line.slice(this.cursor, this.line.length);
-    this.cursor = leading.length;
-    this._refreshLine();
-  }
-};
+---
+--
+function Interface:_deleteWordLeft ()
+	if self.cursor > 0 then
+		local leading = self.line:sub(1, self.cursor)
+		local match = leading:match("%s+(%w+%s*)$")
+		if not match then
+			self.line = ""
+			self.cursor = 0
+		else
+			leading = leading:sub(1, #leading - #match)
+			self.line = leading .. self.line:sub(self.cursor + 1)
+			self.cursor = #leading
+		end
+		self:_refreshLine()
+	end
+end
 
-
-Interface.prototype._deleteWordRight = function() {
-  if (this.cursor < this.line.length) {
-    var trailing = this.line.slice(this.cursor);
-    var match = trailing.match(/^(\s+|\W+|\w+)\s*/);
-    this.line = this.line.slice(0, this.cursor) +
-                trailing.slice(match[0].length);
-    this._refreshLine();
-  }
-};
-]]
+---
+--
+function Interface:_deleteWordRight ()
+	if self.cursor < #self.line then
+		local trailing = self.line:sub(self.cursor + 1)
+		local match = trailing:match("^%s*(%w+%s*)")
+		self.line = self.line:sub(1, self.cursor) .. trailing:sub(#match + 1)
+		self:_refreshLine()
+	end
+end
 
 ---
 --
 function Interface:_deleteLineLeft ()
-  	self.line = self.line:sub(self.cursor)
-  	self.cursor = 0
-  	self:_refreshLine()
+	self.line = self.line:sub(self.cursor)
+	self.cursor = 0
+	self:_refreshLine()
 end
 
 ---
 --
 function Interface:_deleteLineRight ()
-  	self.line = self.line:sub(1, self.cursor)
-  	self:_refreshLine()
+	self.line = self.line:sub(1, self.cursor)
+	self:_refreshLine()
 end
 
 ---
 --
 function Interface:_line ()
 	local line = self:_addHistory()
-  	self.output:write('\r\n')
-  	self:_onLine(line)
+	self.output:write("\r\n")
+	self:_onLine(line)
 end
 
 ---
 --
 function Interface:_historyNext ()
-  	if self.historyIndex > 0 then
-	    self.historyIndex = self.historyIndex - 1
-	    self.line = self.history[self.historyIndex + 1]
-	    self.cursor = #self.line -- set cursor to end of line.
-	    self:_refreshLine()
+	if self.historyIndex > 0 then
+		self.historyIndex = self.historyIndex - 1
+		self.line = self.history[self.historyIndex + 1]
+		self.cursor = #self.line -- set cursor to end of line.
+		self:_refreshLine()
 
-  	elseif self.historyIndex == 0 then
-    	self.historyIndex = -1
-    	self.cursor = 0
-    	self.line = ""
-    	self:_refreshLine()
-  	end
+	elseif self.historyIndex == 0 then
+		self.historyIndex = -1
+		self.cursor = 0
+		self.line = ""
+		self:_refreshLine()
+	end
 end
 
 ---
 --
 function Interface:_historyPrev ()
 	if self.historyIndex + 1 < #self.history then
-    	self.historyIndex = self.historyIndex + 1
-    	--console.log(self.historyIndex, luanode.utils.inspect(self.history))
-    	self.line = self.history[self.historyIndex + 1]
-    	self.cursor = #self.line -- set cursor to end of line.
+		self.historyIndex = self.historyIndex + 1
+		--console.log(self.historyIndex, luanode.utils.inspect(self.history))
+		self.line = self.history[self.historyIndex + 1]
+		self.cursor = #self.line -- set cursor to end of line.
 
-    	self:_refreshLine()
-  	end
+		self:_refreshLine()
+	end
 end
 
 ---
 --
 function Interface:_attemptClose ()
-  	if #self:listeners("attemptClose") > 0 then
-    	-- User is to call interface.close() manually.
-    	self:emit("attemptClose")
-  	else
-    	self:close()
-  	end
+	if #self:listeners("attemptClose") > 0 then
+		-- User is to call interface.close() manually.
+		self:emit("attemptClose")
+	else
+		self:close()
+	end
 end
 
 ---
---
----
 -- Handle a write from the tty
 function Interface:_ttyWrite (s, key)
-	local next_word, next_non_word, previous_word, previous_non_word
 	key = key or {}
 
 	if key.ctrl and key.shift then
 		if key.name == "backspace" then
-			console.log("delete line left")
 			self:_deleteLineLeft()
 		elseif key.name == "delete" then
-			console.log("delete line right")
 			self:_deleteLineRight()
 		end
 	
@@ -475,67 +482,80 @@ function Interface:_ttyWrite (s, key)
 		-- Control key pressed
 		--console.log("Control key pressed", key.name)
 		if key.name == "c" then
-        	if #self:listeners("SIGINT") > 0 then
-          		self:emit("SIGINT")
-        	else
-          		-- default behavior, end the readline
-          		self:_attemptClose()
-        	end
-        elseif key.name == "h" then	-- delete left
+			if #self:listeners("SIGINT") > 0 then
+				self:emit("SIGINT")
+			else
+				-- default behavior, end the readline
+				self:_attemptClose()
+			end
+		elseif key.name == "h" then	-- delete left
 			self:_deleteLeft()
 		elseif key.name == "d" then -- delete right or EOF
 			if self.cursor == 0 and #self.line == 0 then
-          		self:_attemptClose()
-        	elseif self.cursor < #self.line then
-          		self:_deleteRight()
-        	end
+				self:_attemptClose()
+			elseif self.cursor < #self.line then
+				self:_deleteRight()
+			end
 
-        elseif key.name == "u" then	-- delete the whole line
-        	self.cursor = 0
-        	self.line = ""
-        	self:_refreshLine()
-        elseif key.name == "k" then	-- delete from current to end of line
-        	self:_deleteLineRight()
-        elseif key.name == "a" then	-- go to the start of the line
-        	self.cursor = 0
-        	self:_refreshLine()
-        elseif key.name == "e" then -- go to the end of the line
-        	self.cursor = #self.line
-        	self:_refreshLine()
-        elseif key.name == "b" then -- back one character
-        	if self.cursor > 0 then
-        		self.cursor = self.cursor - 1
-        		self:_refreshLine()
-        	end
-        elseif key.name == "f" then -- forward one character
-        	if self.cursor ~= #self.line then
-        		self.cursor = self.cursor + 1
-        		self:_refreshLine()
-        	end
-        elseif key.name == "n" then -- next history item
-        	self:_historyNext()
-        elseif key.name == "p" then -- previous history item
-        	self:_historyPrev()
-        
-        elseif key.name == "z" then
-        	process.kill(process.pid, 'SIGTSTP')	-- not implemented yet
+		elseif key.name == "u" then	-- delete the whole line
+			self.cursor = 0
+			self.line = ""
+			self:_refreshLine()
+		elseif key.name == "k" then	-- delete from current to end of line
+			self:_deleteLineRight()
+		elseif key.name == "a" then	-- go to the start of the line
+			self.cursor = 0
+			self:_refreshLine()
+		elseif key.name == "e" then -- go to the end of the line
+			self.cursor = #self.line
+			self:_refreshLine()
+		elseif key.name == "b" then -- back one character
+			if self.cursor > 0 then
+				self.cursor = self.cursor - 1
+				self:_refreshLine()
+			end
+		elseif key.name == "f" then -- forward one character
+			if self.cursor ~= #self.line then
+				self.cursor = self.cursor + 1
+				self:_refreshLine()
+			end
+		elseif key.name == "n" then -- next history item
+			self:_historyNext()
+		elseif key.name == "p" then -- previous history item
+			self:_historyPrev()
+		
+		elseif key.name == "z" then
+			process.kill(process.pid, "SIGTSTP")	-- not implemented yet
 
-        elseif key.name == "w" or key.name == "backspace" then	-- delete backwards to a word boundary
-        	self:_deleteWordLeft()
+		elseif key.name == "w" or key.name == "backspace" then	-- delete backwards to a word boundary
+			self:_deleteWordLeft()
 
-        elseif key.name == "delete" then -- delete forward to a word boundary
-        	self:_deleteWordRight()
+		elseif key.name == "delete" then -- delete forward to a word boundary
+			self:_deleteWordRight()
 
-        elseif key.name == "left" then
-        	self:_wordLeft()
+		elseif key.name == "left" then
+			self:_wordLeft()
 
-        elseif key.name == "right" then
-        	self:_wordRight()
+		elseif key.name == "right" then
+			self:_wordRight()
 		end
 
 	elseif key.meta then
 		-- Meta key pressed	(el viejo y querido alt)
-		console.log("Meta key pressed", key.name)
+
+		if key.name == "b" then
+			-- backward word
+			self:_wordLeft()
+		elseif key.name == "f" then
+			-- forward word
+			self:_wordRight()
+		elseif key.name == "d" or key.name == "delete" then
+			-- delete forward word
+			self:_deleteWordRight()
+		elseif key.name == "backspace" then
+			-- delete backwards to a word boundary
+			self:_deleteWordLeft()
+		end
 		
 	else
 		-- No modifier keys used
@@ -546,7 +566,7 @@ function Interface:_ttyWrite (s, key)
 		elseif key.name == "delete" then
 			self:_deleteRight()
 		elseif key.name == "tab" then
-			--self:_tabComplete()
+			--self:_tabComplete()  -- TODO: implementar
 			self.output:write("\t")
 		elseif key.name == "left" then
 			if self.cursor > 0 then
@@ -570,11 +590,15 @@ function Interface:_ttyWrite (s, key)
 			self:_historyNext()
 		else
 			--TODO: separar en lineas
-			self:_insertString(s)
+			if s then
+				self:_insertString(s)
+			end
 		end
 	end
 end
 
+---
+--
 function createInterface (input, output, completer)
-  	return Interface(input, output, completer)
+	return Interface(input, output, completer)
 end

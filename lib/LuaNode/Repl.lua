@@ -1,30 +1,34 @@
 local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
 local utils = require "luanode.utils"
-
 local rl = require "luanode.readline"
-
 local console = console
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
--- Repl Class
-REPLServer = Class.InheritsFrom(EventEmitter)
-
-
+---
+--
 local function gatherResults (success, ...)
 	local n = select("#", ...)
 	return success, { n = n, ...}
 end
 
-local function printResults(results)
-  	for i = 1, results.n do
-	    results[i] = utils.inspect(results[i])
-  	end
-  	console.log("%s", table.concat(results, '\t'))
+---
+--
+local function printResults (results)
+	for i = 1, results.n do
+		results[i] = utils.inspect(results[i])
+	end
+	console.log("%s", table.concat(results, '\t'))
 end
 
+---
+-- Repl Class
+REPLServer = Class.InheritsFrom(EventEmitter)
+
+---
+--
 function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 	local repl = Class.construct(REPLServer)
 
@@ -32,45 +36,45 @@ function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 
 	repl.prompt = prompt or "> "
 
-    if stream then
-    	-- We're given a duplex socket
-    	if stream.stdin or stream.stdout then
-      		repl.outputStream = stream.stdout
-      		repl.inputStream = stream.stdin
-    	else
-      		repl.outputStream = stream
-      		repl.inputStream = stream
-    	end
-  	else
-    	repl.outputStream = process.stdout
-    	repl.inputStream = process.stdin
-    	process.stdin:resume()
-  	end
+	if stream then
+		-- We're given a duplex socket
+		if stream.stdin or stream.stdout then
+			repl.outputStream = stream.stdout
+			repl.inputStream = stream.stdin
+		else
+			repl.outputStream = stream
+			repl.inputStream = stream
+		end
+	else
+		repl.outputStream = process.stdout
+		repl.inputStream = process.stdin
+		process.stdin:resume()
+	end
 
-    local function complete(text, callback)
-    	repl:complete(text, callback)
-  	end
+	local function complete (text, callback)
+		repl:complete(text, callback)
+	end
 
-  	local rli = rl.createInterface(repl.inputStream, repl.outputStream, complete)
-  	repl.rli = rli
+	local rli = rl.createInterface(repl.inputStream, repl.outputStream, complete)
+	repl.rli = rli
 
-  	self.commands = {}
-  	--defineDefaultCommands(repl)
-  	--[[
-  	if (rli.enabled && !exports.disableColors && exports.writer === util.inspect) {
-    	// Turn on ANSI coloring.
-    	exports.writer = function(obj, showHidden, depth) {
-      		return util.inspect(obj, showHidden, depth, true);
-    	};
-  	}
-  	]]
-  	rli:setPrompt(repl.prompt)
+	self.commands = {}
+	--defineDefaultCommands(repl)
+	--[[
+	if (rli.enabled && !exports.disableColors && exports.writer === util.inspect) {
+		// Turn on ANSI coloring.
+		exports.writer = function(obj, showHidden, depth) {
+			return util.inspect(obj, showHidden, depth, true);
+		};
+	}
+	]]
+	rli:setPrompt(repl.prompt)
 
-  	rli:on("close", function()
-	    repl.inputStream:destroy()
-  	end)
+	rli:on("close", function ()
+		repl.inputStream:destroy()
+	end)
 
-  	rli:on("line", function(self, line)
+	rli:on("line", function (self, line)
 		local chunk  = repl.bufferedCommand .. line
 		--console.warn("ejecutando '%s' prev='%s'", chunk, repl.bufferedCommand)
 		local f, err = loadstring("return " .. chunk, "REPL")
@@ -110,21 +114,24 @@ function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 		repl:displayPrompt()
 	end)
 
-
-  	repl:displayPrompt()
+	repl:displayPrompt()
 
 	return repl
 end
 
+---
+--
 function REPLServer:displayPrompt ()
 	if #self.bufferedCommand > 0 then
-  		self.rli:setPrompt("... ")
+		self.rli:setPrompt("... ")
 	else
 		self.rli:setPrompt(self.prompt)
 	end
-  	self.rli:prompt()
+	self.rli:prompt()
 end
 
+---
+--
 function start (prompt, source)
 	local repl = REPLServer(prompt, source)
 	return repl
