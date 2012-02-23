@@ -70,14 +70,19 @@ local events = require "luanode.event_emitter"
 setmetatable(process, {
 	__index = function(t, key)
 		if key == "stdin" then
+			local tty = require "luanode.tty"
 			local fd = Stdio.openStdin()
 			local stdin
-			if Stdio.isatty(fd) then
-				local tty = require "luanode.tty"
+
+			if tty.isatty(fd) then
 				stdin = tty.ReadStream(fd)
+
 			elseif Stdio.isStdinBlocking() then
-				local fs = require "luanode.fs"
-				stdin = fs.ReadStream(nil, {fd = fd})
+				console.error("processing input from a file is not supported yet")
+				os.exit(-1)
+				--local fs = require "luanode.fs"
+				--stdin = fs.ReadStream(nil, {fd = fd})
+
 			else
 				local net = require "luanode.net"
 				stdin = net.Stream(fd)
@@ -85,14 +90,27 @@ setmetatable(process, {
 			end
 			rawset(t, key, stdin)
 			return stdin
+
 		elseif key == "title" then
 			return process.get_process_title()
 		
 		elseif key == "stdout" then
+			local tty = require "luanode.tty"
 			local stdout
-			if Stdio.isatty(Stdio.stdoutFD) then
+			if tty.isatty(Stdio.stdoutFD) then
 				local tty = require "luanode.tty"
 				stdout = tty.WriteStream(Stdio.stdoutFD)
+
+			elseif Stdio.isStdoutBlocking() then
+				-- use io.stderr to bypass process.stdout
+				io.stderr:write("sending output to a file is not supported yet\n")
+				os.exit(-1)
+				--local fs = require "luanode.fs"
+				--stdout = fs.WriteStream(nil, {fd = Stdio.stdoutFD})
+			else
+				local net = require "luanode.net"
+				stdout = net.Stream(fd)
+				stdout.readable = false
 			end
 			rawset(t, key, stdout)
 			return stdout
