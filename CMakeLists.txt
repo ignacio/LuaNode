@@ -65,14 +65,14 @@ SET(SOURCES
     src/luanode_child_process.cpp
     src/luanode_constants.cpp
     src/luanode_crypto.cpp
+    src/luanode_datagram_udp.cpp
     src/luanode_dns.cpp
     src/luanode_http_parser.cpp
     src/luanode_module_api.cpp
     src/luanode_net.cpp
-    src/luanode_datagram_udp.cpp
     src/luanode_net_acceptor.cpp
-    src/luanode_timer.cpp
     src/luanode_os.cpp
+    src/luanode_timer.cpp
     ${OS}
     lib/preloader.cpp
 )
