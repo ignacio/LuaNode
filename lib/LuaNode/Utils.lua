@@ -120,7 +120,7 @@ function inspect(value, showHidden, depth, colors)
 	end
 
 	local function quote (s)
-		return ('%q'):format(tostring(s))
+		return ('"%s"'):format(tostring(s))
 	end
 
 	local function index (numkey,key)
