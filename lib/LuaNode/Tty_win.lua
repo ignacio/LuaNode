@@ -387,6 +387,10 @@ function ReadStream:_emitKey (s)
 				end
 			else
 				--console.log(">> emitkey: '%s'", luanode.utils.DumpDataInHex(s))
+				--for chr in string.gmatch(s, "([%z\1-\127\194-\244][\128-\191]*)") do
+					-- got utf8 char
+					--self:_emitKey(chr)
+				--end
 				-- Typing or pasting otf-8 chars in the console does not work yet
 				if #s > 1 and string.byte(s, 1) ~= "\027" then
 					for i=1, #s do
