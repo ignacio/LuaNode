@@ -123,7 +123,7 @@ end
 --
 function REPLServer:displayPrompt ()
 	if #self.bufferedCommand > 0 then
-		self.rli:setPrompt("... ")
+		self.rli:setPrompt(">> ")
 	else
 		self.rli:setPrompt(self.prompt)
 	end
