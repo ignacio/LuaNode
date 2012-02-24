@@ -1,10 +1,11 @@
 #include "preloader.h"
 
 static int luaopen_LuaNode_Class(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Class.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Class.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.class")) {
 		return lua_error(L);
 	}
 	lua_insert(L,1);
@@ -13,10 +14,11 @@ static int luaopen_LuaNode_Class(lua_State* L) {
 }
 
 static int luaopen_LuaNode_ChildProcess(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/child_process.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/child_process.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.child_process")) {
 		return lua_error(L);
 	}
 	lua_insert(L,1);
@@ -25,36 +27,37 @@ static int luaopen_LuaNode_ChildProcess(lua_State* L) {
 }
 
 static int luaopen_LuaNode_Crypto(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Crypto.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Crypto.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.crypto")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B2,sizeof(B2),"LuaNode.Crypto");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Dns(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Dns.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Dns.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.dns")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B3,sizeof(B3),"LuaNode.Dns");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_EventEmitter(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/event_emitter.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/event_emitter.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.event_emitter")) {
 		return lua_error(L);
 	}
 	lua_insert(L,1);
@@ -63,182 +66,182 @@ static int luaopen_LuaNode_EventEmitter(lua_State* L) {
 }
 
 static int luaopen_LuaNode_FreeList(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/free_list.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/free_list.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.freelist")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B5,sizeof(B5),"LuaNode.FreeList");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Fs(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Fs.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Fs.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.fs")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B6,sizeof(B6),"LuaNode.Fs");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Http(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Http.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Http.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.http")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B7,sizeof(B7),"LuaNode.Http");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Net(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Net.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Net.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.net")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B8,sizeof(B8),"LuaNode.Net");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Datagram(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Datagram.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Datagram.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.datagram")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B8,sizeof(B8),"LuaNode.Datagram");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Path(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Path.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Path.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.path")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B9,sizeof(B9),"LuaNode.Path");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_QueryString(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Querystring.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Querystring.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.querystring")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B10,sizeof(B10),"LuaNode.QueryString");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Stream(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Stream.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Stream.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.stream")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B11,sizeof(B11),"LuaNode.Stream");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Url(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Url.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Url.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.url")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B12,sizeof(B12),"LuaNode.Url");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Timers(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Timers.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Timers.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.timers")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Net.Timeout");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Console(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/console.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/console.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.console")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Console");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Utils(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Utils.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Utils.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.utils")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Utils");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Script(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Script.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Script.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.script")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Script");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Tty(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Tty.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Tty.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.tty")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Tty");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
@@ -246,26 +249,26 @@ static int luaopen_LuaNode_Tty(lua_State* L) {
 
 #if defined(_WIN32)
 static int luaopen_LuaNode_Tty_win(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Tty_win.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Tty_win.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.tty_win")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Tty_win");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 #else
 static int luaopen_LuaNode_Tty_posix(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/Tty_posix.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/Tty_posix.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.tty_posix")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Tty_posix");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
@@ -273,39 +276,39 @@ static int luaopen_LuaNode_Tty_posix(lua_State* L) {
 #endif
 
 static int luaopen_LuaNode_Repl(lua_State* L) {
-	int extension_status = 1;
+	static const unsigned char code[] = {
+		#include "../build/temp/Repl.precomp"
+	};
 	int arg = lua_gettop(L);
-	#include "../build/temp/Repl.precomp"
-	if(extension_status) {
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.repl")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Repl");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_LuaNode_Readline(lua_State* L) {
-	int extension_status = 1;
+	static const unsigned char code[] = {
+		#include "../build/temp/Readline.precomp"
+	};
 	int arg = lua_gettop(L);
-	#include "../build/temp/Readline.precomp"
-	if(extension_status) {
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.readline")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"LuaNode.Readline");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
 }
 
 static int luaopen_StackTracePlus(lua_State* L) {
-	int extension_status = 1;
 	int arg = lua_gettop(L);
-	#include "../build/temp/StackTracePlus.precomp"
-	if(extension_status) {
+	static const unsigned char code[] = {
+		#include "../build/temp/StackTracePlus.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"StackTracePlus")) {
 		return lua_error(L);
 	}
-	//luaL_loadbuffer(L,(const char*)B13,sizeof(B13),"StackTracePlus");
 	lua_insert(L,1);
 	lua_call(L,arg,1);
 	return 1;
