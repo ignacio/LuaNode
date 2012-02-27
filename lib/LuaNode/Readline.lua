@@ -93,6 +93,7 @@ end
 ---
 --
 function Interface:prompt ()
+	if self.paused then self:resume() end
 	if self.enabled then
 		self.cursor = 0
 		self:_refreshLine()
@@ -104,16 +105,13 @@ end
 ---
 --
 function Interface:question (query, callback)
-	if calback then
-		self:resume()
+	if type(calback) == "function" then
 		if self._questionCallback then
-			self.output:write("\n")
 			self:prompt()
 		else
 			self._oldPrompt = self._prompt
 			self:setPrompt(query)
 			self._questionCallback = callback
-			self.output:write("\n")
 			self:prompt()
 		end
 	end
@@ -154,8 +152,6 @@ end
 ---
 --
 function Interface:_refreshLine ()
-	if self._closed then return end
-
 	-- Cursor to left edge.
 	self.output:cursorTo(0)
 
@@ -171,36 +167,31 @@ end
 
 ---
 --
-function Interface:close (d)
-	if self._closing then return end
-	self._closing = true
-	if self.enabled then
-		tty.setRawMode(false)
-	end
-	self:emit("close")
-	self._closed = true
-end
-
----
---
 function Interface:pause ()
+	if self.paused then return end
 	if self.enabled then
 		tty.setRawMode(false)
 	end
+	self.input:pause()
+	self.paused = true
+	self:emit("pause")
 end
 
 ---
 --
 function Interface:resume ()
+	self.input:resume()
 	if self.enabled then
 		tty.setRawMode(true)
 	end
+	self.paused = false
+	self:emit("resume")
 end
 
 ---
 --
 function Interface:write (d, key)
-	if self._closed then return end
+	if self.paused then self:resume() end
 	if self.enabled then
 		self:_ttyWrite(d, key)
 	else
@@ -456,17 +447,6 @@ function Interface:_historyPrev ()
 end
 
 ---
---
-function Interface:_attemptClose ()
-	if #self:listeners("attemptClose") > 0 then
-		-- User is to call interface.close() manually.
-		self:emit("attemptClose")
-	else
-		self:close()
-	end
-end
-
----
 -- Handle a write from the tty
 function Interface:_ttyWrite (s, key)
 	key = key or {}
@@ -485,14 +465,14 @@ function Interface:_ttyWrite (s, key)
 			if #self:listeners("SIGINT") > 0 then
 				self:emit("SIGINT")
 			else
-				-- default behavior, end the readline
-				self:_attemptClose()
+				-- Pause the stream
+				self:pause()
 			end
 		elseif key.name == "h" then	-- delete left
 			self:_deleteLeft()
 		elseif key.name == "d" then -- delete right or EOF
 			if self.cursor == 0 and #self.line == 0 then
-				self:_attemptClose()
+				self:pause()
 			elseif self.cursor < #self.line then
 				self:_deleteRight()
 			end
@@ -525,6 +505,19 @@ function Interface:_ttyWrite (s, key)
 			self:_historyPrev()
 		
 		elseif key.name == "z" then
+			if #self:listeners("SIGSTP") > 0 then
+				self:emit("SIGSTP")
+			else
+				process:once("SIGCONT", function()
+					-- Don't raise events if stream has already been abandoned
+					if not self.paused then
+						-- Stream must be paused and resumed after SIGCONT to catch
+						-- SIGINT, SIGSTP and EOF.
+						self:pause()
+						self:emit("SIGCONT")
+					end
+				end)
+			end
 			process.kill(process.pid, "SIGTSTP")	-- not implemented yet
 
 		elseif key.name == "w" or key.name == "backspace" then	-- delete backwards to a word boundary

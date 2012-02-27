@@ -70,10 +70,6 @@ function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 	]]
 	rli:setPrompt(repl.prompt)
 
-	rli:on("close", function ()
-		repl.inputStream:destroy()
-	end)
-
 	rli:on("line", function (self, line)
 		local chunk  = repl.bufferedCommand .. line
 		--console.warn("ejecutando '%s' prev='%s'", chunk, repl.bufferedCommand)
