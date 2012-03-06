@@ -350,8 +350,9 @@ end
 --
 function Interface:_deleteLeft ()
 	if self.cursor > 0 and #self.line > 0 then
+		--console.log("antes: '%s'", self.line)
 		self.line = self.line:sub(1, self.cursor - 1) .. self.line:sub(self.cursor + 1)
-		--console.log( self.line )
+		--console.log("luego: '%s'", self.line)
 		self.cursor = self.cursor - 1
 		self:_refreshLine()
 	end
@@ -560,7 +561,7 @@ function Interface:_ttyWrite (s, key)
 			self:_deleteRight()
 		elseif key.name == "tab" then
 			--self:_tabComplete()  -- TODO: implementar
-			self.output:write("\t")
+			self:_insertString("\t")
 		elseif key.name == "left" then
 			if self.cursor > 0 then
 				self.cursor = self.cursor - 1
