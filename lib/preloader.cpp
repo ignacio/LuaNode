@@ -3,7 +3,7 @@
 static int luaopen_LuaNode_Class(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Class.precomp"
+		#include "class.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.class")) {
 		return lua_error(L);
@@ -16,7 +16,7 @@ static int luaopen_LuaNode_Class(lua_State* L) {
 static int luaopen_LuaNode_ChildProcess(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/child_process.precomp"
+		#include "child_process.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.child_process")) {
 		return lua_error(L);
@@ -29,7 +29,7 @@ static int luaopen_LuaNode_ChildProcess(lua_State* L) {
 static int luaopen_LuaNode_Crypto(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Crypto.precomp"
+		#include "crypto.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.crypto")) {
 		return lua_error(L);
@@ -42,7 +42,7 @@ static int luaopen_LuaNode_Crypto(lua_State* L) {
 static int luaopen_LuaNode_Dns(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Dns.precomp"
+		#include "dns.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.dns")) {
 		return lua_error(L);
@@ -55,7 +55,7 @@ static int luaopen_LuaNode_Dns(lua_State* L) {
 static int luaopen_LuaNode_EventEmitter(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/event_emitter.precomp"
+		#include "event_emitter.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.event_emitter")) {
 		return lua_error(L);
@@ -68,7 +68,7 @@ static int luaopen_LuaNode_EventEmitter(lua_State* L) {
 static int luaopen_LuaNode_FreeList(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/free_list.precomp"
+		#include "free_list.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.freelist")) {
 		return lua_error(L);
@@ -81,7 +81,7 @@ static int luaopen_LuaNode_FreeList(lua_State* L) {
 static int luaopen_LuaNode_Fs(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Fs.precomp"
+		#include "fs.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.fs")) {
 		return lua_error(L);
@@ -94,7 +94,7 @@ static int luaopen_LuaNode_Fs(lua_State* L) {
 static int luaopen_LuaNode_Http(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Http.precomp"
+		#include "http.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.http")) {
 		return lua_error(L);
@@ -107,7 +107,7 @@ static int luaopen_LuaNode_Http(lua_State* L) {
 static int luaopen_LuaNode_Net(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Net.precomp"
+		#include "net.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.net")) {
 		return lua_error(L);
@@ -120,7 +120,7 @@ static int luaopen_LuaNode_Net(lua_State* L) {
 static int luaopen_LuaNode_Datagram(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Datagram.precomp"
+		#include "datagram.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.datagram")) {
 		return lua_error(L);
@@ -133,7 +133,7 @@ static int luaopen_LuaNode_Datagram(lua_State* L) {
 static int luaopen_LuaNode_Path(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Path.precomp"
+		#include "path.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.path")) {
 		return lua_error(L);
@@ -146,7 +146,7 @@ static int luaopen_LuaNode_Path(lua_State* L) {
 static int luaopen_LuaNode_QueryString(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Querystring.precomp"
+		#include "querystring.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.querystring")) {
 		return lua_error(L);
@@ -159,7 +159,7 @@ static int luaopen_LuaNode_QueryString(lua_State* L) {
 static int luaopen_LuaNode_Stream(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Stream.precomp"
+		#include "stream.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.stream")) {
 		return lua_error(L);
@@ -172,7 +172,7 @@ static int luaopen_LuaNode_Stream(lua_State* L) {
 static int luaopen_LuaNode_Url(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Url.precomp"
+		#include "url.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.url")) {
 		return lua_error(L);
@@ -185,7 +185,7 @@ static int luaopen_LuaNode_Url(lua_State* L) {
 static int luaopen_LuaNode_Timers(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Timers.precomp"
+		#include "timers.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.timers")) {
 		return lua_error(L);
@@ -198,7 +198,7 @@ static int luaopen_LuaNode_Timers(lua_State* L) {
 static int luaopen_LuaNode_Console(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/console.precomp"
+		#include "console.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.console")) {
 		return lua_error(L);
@@ -211,7 +211,7 @@ static int luaopen_LuaNode_Console(lua_State* L) {
 static int luaopen_LuaNode_Utils(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Utils.precomp"
+		#include "utils.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.utils")) {
 		return lua_error(L);
@@ -224,7 +224,7 @@ static int luaopen_LuaNode_Utils(lua_State* L) {
 static int luaopen_LuaNode_Script(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Script.precomp"
+		#include "script.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.script")) {
 		return lua_error(L);
@@ -237,7 +237,7 @@ static int luaopen_LuaNode_Script(lua_State* L) {
 static int luaopen_LuaNode_Tty(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Tty.precomp"
+		#include "tty.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.tty")) {
 		return lua_error(L);
@@ -251,7 +251,7 @@ static int luaopen_LuaNode_Tty(lua_State* L) {
 static int luaopen_LuaNode_Tty_win(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Tty_win.precomp"
+		#include "tty_win.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.tty_win")) {
 		return lua_error(L);
@@ -264,7 +264,7 @@ static int luaopen_LuaNode_Tty_win(lua_State* L) {
 static int luaopen_LuaNode_Tty_posix(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/Tty_posix.precomp"
+		#include "tty_posix.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.tty_posix")) {
 		return lua_error(L);
@@ -277,7 +277,7 @@ static int luaopen_LuaNode_Tty_posix(lua_State* L) {
 
 static int luaopen_LuaNode_Repl(lua_State* L) {
 	static const unsigned char code[] = {
-		#include "../build/temp/Repl.precomp"
+		#include "repl.precomp"
 	};
 	int arg = lua_gettop(L);
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.repl")) {
@@ -290,7 +290,7 @@ static int luaopen_LuaNode_Repl(lua_State* L) {
 
 static int luaopen_LuaNode_Readline(lua_State* L) {
 	static const unsigned char code[] = {
-		#include "../build/temp/Readline.precomp"
+		#include "readline.precomp"
 	};
 	int arg = lua_gettop(L);
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.readline")) {
@@ -304,7 +304,7 @@ static int luaopen_LuaNode_Readline(lua_State* L) {
 static int luaopen_StackTracePlus(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
-		#include "../build/temp/StackTracePlus.precomp"
+		#include "StackTracePlus.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"StackTracePlus")) {
 		return lua_error(L);

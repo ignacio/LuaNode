@@ -747,7 +747,7 @@ static int Load(int argc, char *argv[]) {
 	if(!debug_mode) {
 		PreloadModules(L);
 		static const unsigned char code[] = {
-			#include "../build/temp/node.precomp"
+			#include "node.precomp"
 		};
 		if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode")) {
 			return lua_error(L);

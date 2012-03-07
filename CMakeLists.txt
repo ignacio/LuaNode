@@ -15,33 +15,33 @@ ELSE()
 ENDIF()
 
 IF(WIN32)
-    SET(LUA_OS lib/LuaNode/Tty_win)
+    SET(LUA_OS lib/luanode/tty_win)
 ELSE()
-    SET(LUA_OS lib/LuaNode/Tty_posix)
+    SET(LUA_OS lib/luanode/tty_posix)
 ENDIF()
 
 SET(LUAS
-    lib/LuaNode/child_process
-    lib/LuaNode/Class
-    lib/LuaNode/console
-    lib/LuaNode/Crypto
-    lib/LuaNode/Datagram
-    lib/LuaNode/Dns
-    lib/LuaNode/event_emitter
-    lib/LuaNode/free_list
-    lib/LuaNode/Fs
-    lib/LuaNode/Http
-    lib/LuaNode/Net
-    lib/LuaNode/Path
-    lib/LuaNode/Querystring
-    lib/LuaNode/Readline
-    lib/LuaNode/Repl
-    lib/LuaNode/Script
-    lib/LuaNode/Stream
-    lib/LuaNode/Timers
-    lib/LuaNode/Tty
-    lib/LuaNode/Url
-    lib/LuaNode/Utils
+    lib/luanode/child_process
+    lib/luanode/class
+    lib/luanode/console
+    lib/luanode/crypto
+    lib/luanode/datagram
+    lib/luanode/dns
+    lib/luanode/event_emitter
+    lib/luanode/free_list
+    lib/luanode/fs
+    lib/luanode/http
+    lib/luanode/net
+    lib/luanode/path
+    lib/luanode/querystring
+    lib/luanode/readline
+    lib/luanode/repl
+    lib/luanode/script
+    lib/luanode/stream
+    lib/luanode/timers
+    lib/luanode/tty
+    lib/luanode/url
+    lib/luanode/utils
     ${LUA_OS}
     src/node
     deps/StackTracePlus/src/StackTracePlus
@@ -78,6 +78,6 @@ SET(SOURCES
     lib/preloader.cpp
 )
 
-INCLUDE_DIRECTORIES(src ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(src ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DIR} ${DST})
 ADD_EXECUTABLE(luanode ${SOURCES})
 TARGET_LINK_LIBRARIES(luanode ${LUA_LIBRARIES} ${OPENSSL_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
