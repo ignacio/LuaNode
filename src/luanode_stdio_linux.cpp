@@ -27,6 +27,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/asio/write.hpp>
 
 #include <signal.h>
 
@@ -99,11 +100,13 @@ public:
 	// Normal constructor
 	PosixStream(lua_State* L) :
 		m_L( LuaNode::GetLuaVM() ),
-		m_socketId(0)
+		m_socketId(-1)
 	{
-		printf("Construyendo PosixStream (%d)\n", (int)luaL_checkinteger(L, 1));
-		int fd = ::dup(STDIN_FILENO);
-		//EnableRawMode(fd);
+		//int fd = ::dup((int)luaL_checkinteger(L, 1));
+		int fd = (int)luaL_checkinteger(L, 1);
+		//fprintf("Construyendo PosixStream (%d)\n", fd);
+		//int fd = ::dup(STDIN_FILENO);
+		EnableRawMode(fd);
 
 		m_socket = boost::make_shared<boost::asio::posix::stream_descriptor>(boost::ref(LuaNode::GetIoService()), fd);
 	}
@@ -131,16 +134,28 @@ public:
 	}
 
 	int Write(lua_State* L) {
-		printf("PosixStream::Write\n");
+		lua_pushvalue(L, 1);
+		int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+
+		//fprintf(stderr, "PosixStream::Write-----\n");
+		size_t length;
+		const char* data = luaL_checklstring(L, 2, &length);
+		
+		//fprintf(stderr, "length = %d\n", l);
+		boost::asio::async_write(*m_socket,
+		//m_socket->async_write_some(
+			boost::asio::buffer(data, length),
+			boost::bind(&PosixStream::HandleWrite, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
+			);
 		return 0;
 	}
 	int Read(lua_State* L) {
-		printf("PosixStream::Read\n");
+		/*printf("PosixStream::Read\n");*/
 		// store a reference in the registry
 		lua_pushvalue(L, 1);
 		int reference = luaL_ref(L, LUA_REGISTRYINDEX);
 		if(lua_isnoneornil(L, 2)) {
-			LogDebug("Socket::Read (%p) (id:%u) - ReadSome", this, m_socketId);
+			/*fprintf(stderr, "Socket::Read (%p) (id:%u) - ReadSome\n", this, m_socketId);*/
 
 			m_pending_reads++;
 			m_socket->async_read_some(
@@ -165,7 +180,21 @@ public:
 	//boost::asio::ip::tcp::socket& GetSocketRef() { return *m_socket; };
 
 private:
-	void HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred);
+	void HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred) {
+		//fprintf(stderr, "PosixStream::HandleWrite\n");
+		lua_State* L = LuaNode::GetLuaVM();
+		lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+		luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
+		if(!error) {
+			//fprintf(stderr, "PosixStream::HandleWrite - OK\n");
+		}
+		else {
+			fprintf(stderr, "PosixStream::HandleReadSome with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());		
+		}
+
+		lua_settop(L, 0);
+	};
 	void HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleReadSome(int reference, const boost::system::error_code& error, size_t bytes_transferred)
 	{
@@ -173,6 +202,7 @@ private:
 		lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 		luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
+		/*fprintf(stderr, "PosixStream::HandleReadSome\n");*/
 		m_pending_reads--;
 		if(!error) {
 			LogDebug("PosixStream::HandleReadSome (%p) (id:%u) - Bytes Transferred (%lu)\n", this, m_socketId, (unsigned long)bytes_transferred);
@@ -283,7 +313,7 @@ static int IsATTY (lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static int OpenStdin (lua_State* L) {
-	printf("OpenStdin\n");
+	/*printf("OpenStdin\n");*/
 	if (isatty(STDIN_FILENO)) {
 		// XXX selecting on tty fds wont work in windows.
 		// Must ALWAYS make a coupling on shitty platforms.
