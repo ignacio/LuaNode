@@ -132,7 +132,7 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/querystring.precomp \
 		$(BUILD_TEMP_DIR)/readline.precomp \
 		$(BUILD_TEMP_DIR)/repl.precomp \
-		$(BUILD_TEMP_DIR)/script.precomp \		
+		$(BUILD_TEMP_DIR)/script.precomp \
 		$(BUILD_TEMP_DIR)/stream.precomp \
 		$(BUILD_TEMP_DIR)/timers.precomp \
 		$(BUILD_TEMP_DIR)/tty.precomp \

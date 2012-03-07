@@ -731,8 +731,6 @@ static int Load(int argc, char *argv[]) {
 
 	//DefineConstants(L);
 	
-	int extension_status = 1;
-
 	// Load modules that need to be loaded before LuaNode ones
 	PreloadAdditionalModules(L);
 
