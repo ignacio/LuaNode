@@ -747,7 +747,7 @@ static int Load(int argc, char *argv[]) {
 	if(!debug_mode) {
 		PreloadModules(L);
 
-		#include "../build/temp/node.precomp"
+		#include "node.precomp"
 		if(extension_status) {
 			return lua_error(L);
 		}
