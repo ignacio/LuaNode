@@ -7,8 +7,8 @@
 		<CustomBuildRule
 			Name="Build Lua File"
 			DisplayName="Build Lua File"
-			CommandLine="..\..\tools\lua5.1.exe ..\..\tools\bin2c.lua $(InputPath) extension_status &gt; &quot;../../build/temp/$(InputName).precomp&quot;"
-			Outputs="../../build/temp/$(InputName).precomp"
+			CommandLine="..\..\tools\lua5.1.exe ..\..\tools\bin2c.lua $(InputPath) extension_status &gt; &quot;../../build/temp/$(ConfigurationName)/$(InputName).precomp&quot;"
+			Outputs="../../build/temp/$(ConfigurationName)/$(InputName).precomp"
 			FileExtensions="*.lua"
 			>
 			<Properties>
