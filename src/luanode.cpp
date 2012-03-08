@@ -821,8 +821,8 @@ static void ParseArgs(int *argc, char **argv) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static void AtExit() {
-	LuaNode::Stdio::OnExit();
 	LuaNode::Stdio::Flush();
+	LuaNode::Stdio::OnExit();
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);

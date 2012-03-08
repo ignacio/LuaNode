@@ -5,6 +5,8 @@ local luanode_stream = require "luanode.stream"
 -- TODO: sacar el seeall
 module(..., package.seeall)
 
+local stdinHandle
+
 ---
 -- Mappings from ansi codes to key names (and modifiers)
 local keymap = {
@@ -103,6 +105,13 @@ local keymap = {
 	["[Z"] = {"tab", true},
 }
 
+---
+--
+function setRawMode (flags)
+	assert(stdinHandle, "stdin must be initialized before calling setRawMode")
+	stdinHandle:setRawMode(flags)
+end
+
 -- ReadStream class
 ReadStream = Class.InheritsFrom(Socket)
 --ReadStream = Class.InheritsFrom(luanode_stream.Stream)
@@ -110,7 +119,7 @@ ReadStream = Class.InheritsFrom(Socket)
 function ReadStream:__init(fd)
 	--local newStream = Class.construct(ReadStream)--, fd)
 	local newStream = Class.construct(ReadStream, fd)
-	
+
 	newStream.fd = fd
 	newStream.readable = true
 	newStream.paused = true
@@ -142,7 +151,9 @@ function ReadStream:__init(fd)
 	
 	-- veamos si podemos salirnos con la nuestra. Pongo en raw_socket algo que "parece" un socket, pero en realidad 
 	-- es un boost::asio::posix_stream
-	newStream._raw_socket = process.PosixStream(fd)
+	newStream._raw_socket = process.TtyStream(fd, true)
+	stdinHandle = newStream._raw_socket
+
 	newStream._raw_socket.read_callback = function(raw_socket, data, reason)
 		--print("read_callback: %s", data)
 		if not data or #data == 0 then
@@ -507,7 +518,7 @@ function WriteStream:__init (fd)
 	local newStream = Class.construct(WriteStream)
 
 	newStream.fd = fd
-	newStream._raw_socket = process.PosixStream(fd)
+	newStream._raw_socket = process.TtyStream(fd, false)
 	newStream.writable = true
 
 	return newStream
