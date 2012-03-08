@@ -16,11 +16,12 @@ end
 
 ---
 --
-local function printResults (results)
+local function printResults (repl, results)
 	for i = 1, results.n do
 		results[i] = utils.inspect(results[i])
 	end
-	console.log("%s", table.concat(results, '\t'))
+	repl.outputStream:write(table.concat(results, "\t"))
+	repl.outputStream:write("\n")
 end
 
 ---
@@ -88,7 +89,7 @@ function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 			if success then
 				--console.warn("success")
 				if results.n > 0 then
-					printResults(results)
+					printResults(repl, results)
 				end
 			else
 				repl.outputStream:write( console.getColor("lightred") .. results[1] .. console.getResetColor() .. "\n" )
