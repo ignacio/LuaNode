@@ -356,7 +356,8 @@ function ReadStream:_emitKey (s)
 		name = nil,
 		ctrl = false,
 		meta = false,
-		shift = false
+		shift = false,
+		sequence = s
 	}
 	--console.log("EmitKey", luanode.utils.DumpDataInHex(s))
 
@@ -420,7 +421,9 @@ function ReadStream:_emitKey (s)
 					key.shift = bit.band(modifier, 1) ~= 0
 					key.ctrl = bit.band(modifier, 4) ~= 0
 					key.meta = bit.band(modifier, 10) ~= 0
+					key.name = "undefined"
 				end
+				key.code = code
 			else
 				--console.log(">> emitkey: '%s'", luanode.utils.DumpDataInHex(s))
 				--for chr in string.gmatch(s, "([%z\1-\127\194-\244][\128-\191]*)") do
