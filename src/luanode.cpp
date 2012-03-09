@@ -39,6 +39,8 @@
 	#include "luanode_file_linux.h"
 #elif defined(__APPLE__)
 	#include "luanode_file_linux.h"	// temporary hack
+#elif defined(__FreeBSD__)
+	#include "luanode_file_linux.h"	// temporary hack
 #else
 	#error "Unsupported platform"
 #endif
@@ -47,6 +49,16 @@
 
 #include "../lib/preloader.h"
 
+
+#ifndef SIGPOLL
+#if defined (__FreeBSD__)
+#define SIGPOLL SIGIO
+#endif
+#endif
+
+#if defined(__FreeBSD__)
+extern char **environ;
+#endif
 
 /*#ifdef _WIN32
 #include <io.h>
@@ -663,7 +675,7 @@ static int Load(int argc, char *argv[]) {
 
 #if defined(_WIN32)
 	lua_pushinteger(L, _getpid());
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__FreeBSD__)
 	lua_pushinteger(L, getpid());
 #else
 	#error "unsupported platform"
