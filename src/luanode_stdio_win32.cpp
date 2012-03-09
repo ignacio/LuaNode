@@ -1516,12 +1516,6 @@ static int CloseTTY (lua_State* L) {
 	return 1;
 }
 
-static void LuaNode::Stdio::DisableRawMode(int fd) {
-	if(tty_input) {
-		uv_tty_set_mode(&tty_input->m_tty_context, GetStdHandle(STD_INPUT_HANDLE), FALSE);
-	}
-}
-
 static int SetRawMode(lua_State* L) {
 	if(lua_toboolean(L, 1) == false) {
 		uv_tty_set_mode(&tty_input->m_tty_context, GetStdHandle(STD_INPUT_HANDLE), FALSE);
@@ -1692,5 +1686,7 @@ void LuaNode::Stdio::RegisterFunctions (lua_State* L) {
 /// 
 void LuaNode::Stdio::OnExit (/*lua_State* L*/) {
 	StopTTYWatcher(/*L*/);
-	DisableRawMode(0);
+	if(tty_input) {
+		uv_tty_set_mode(&tty_input->m_tty_context, GetStdHandle(STD_INPUT_HANDLE), FALSE);
+	}
 }

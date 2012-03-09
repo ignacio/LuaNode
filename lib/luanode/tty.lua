@@ -20,7 +20,11 @@ _M.isatty = function (fd)
 end
 
 _M.setRawMode = function (flag)
-	Stdio.setRawMode(flag)
+	if process.platform == "windows" then
+		Stdio.setRawMode(flag)
+	else
+		tty.setRawMode(flag)
+	end
 end
 
 _M.getWindowSize = function ()
