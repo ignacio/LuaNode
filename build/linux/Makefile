@@ -76,7 +76,7 @@ ifeq ($(Target), Debug)
 			-lssl \
 			-lpthread \
 			-lcrypto \
-			-lblogger2
+			-lblogger2_d
 else
 	OUTPUT = $(OUTPUT_BASE)
 	CFLAGS = -Wall -c -O2 -D_NDEBUG -D_SOURCE_PATH=$(BASE_SRC_DIR) -Wno-strict-aliasing -Werror
