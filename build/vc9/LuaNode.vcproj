@@ -47,8 +47,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;../../build/temp/$(ConfigurationName)&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="&quot;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\&quot;;&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0&quot;;&quot;$(INCONCERT_DEVEL)\packages\lua5.1\include&quot;;&quot;$(INCONCERT_DEVEL)\sources&quot;;&quot;../../build/temp/$(ConfigurationName)&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501;ENABLE_LIBBLOGGER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -67,9 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lua5.1_d.lib Support_vc9_d.lib libblogger2_d.lib"
-				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName).exe"
+				AdditionalDependencies="lua5.1.lib libblogger2_d.lib ssleay32.lib libeay32.lib"
+				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName)_d.exe"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -359,6 +360,14 @@
 				RelativePath="..\..\src\luanode_stdio_linux.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -426,6 +435,14 @@
 			<File
 				RelativePath="..\..\lib\preloader.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					>
