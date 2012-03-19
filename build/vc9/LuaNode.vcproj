@@ -229,7 +229,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="lua5.1.lib libblogger2.lib ssleay32.lib libeay32.lib"
-				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName).exe"
+				OutputFile="$(INCONCERT_DEVEL)\bin\$(ProjectName)_d.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\Lua5.1\lib&quot;;&quot;$(INCONCERT_DEVEL)\lib&quot;;&quot;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib&quot;"
 				GenerateDebugInformation="true"
