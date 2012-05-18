@@ -195,38 +195,39 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
+	lua_getfield(L, 1, "callback");
+	assert(lua_type(L, -1) == LUA_TFUNCTION); //An acceptor must have a callback"
+
 	if(!error) {
 		boost::asio::ip::address address = socket->remote_endpoint().address();
-		lua_getfield(L, 1, "callback");
-		if(lua_type(L, 2) == LUA_TFUNCTION) {
-			lua_newtable(L);
-			int peer = lua_gettop(L);
+		
+		lua_pushnil(L);
+		lua_newtable(L);
+		int peer = lua_gettop(L);
 
-			lua_pushstring(L, "socket");
-			Socket* luasocket = new Socket(L, socket);
-			Socket::push(L, luasocket, true);	// now Socket is the owner
-			lua_rawset(L, peer);
+		lua_pushstring(L, "socket");
+		Socket* luasocket = new Socket(L, socket);
+		Socket::push(L, luasocket, true);	// now Socket is the owner
+		lua_rawset(L, peer);
 
-			const std::string& sAddress = address.to_string();
-			lua_pushstring(L, "address");
-			lua_pushlstring(L, sAddress.c_str(), sAddress.length());
-			lua_rawset(L, peer);
+		const std::string& sAddress = address.to_string();
+		lua_pushstring(L, "address");
+		lua_pushlstring(L, sAddress.c_str(), sAddress.length());
+		lua_rawset(L, peer);
 
-			lua_pushstring(L, "port");
-			lua_pushnumber(L, socket->remote_endpoint().port());
-			lua_rawset(L, peer);
+		lua_pushstring(L, "port");
+		lua_pushnumber(L, socket->remote_endpoint().port());
+		lua_rawset(L, peer);
 
-			LuaNode::GetLuaVM().call(1, LUA_MULTRET);
-		}
-		else {
-			// do nothing?
-		}
+		LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 	}
 	else {
 		if(error != boost::asio::error::operation_aborted) {
 			LogError("Acceptor::HandleAccept (%p) (id:%u) (new socket %p) - %s", this, m_acceptorId, socket.get(), error.message().c_str());
 		}
+
+		int ret = BoostErrorToCallback(L, error);
+		LuaNode::GetLuaVM().call(ret, LUA_MULTRET);
 	}
 	lua_settop(L, 0);
 }
-

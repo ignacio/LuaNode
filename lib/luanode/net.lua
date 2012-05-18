@@ -344,7 +344,7 @@ local function initSocket(self)
 end
 
 function Socket:__init(fd, kind)
-	-- http.Client llama acá sin socket. Conecta luego.
+	-- http.Client llama acÃ¡ sin socket. Conecta luego.
 	local newSocket = Class.construct(Socket)
 	
 	newSocket.fd = nil
@@ -357,7 +357,7 @@ function Socket:__init(fd, kind)
 	newSocket._writeQueue = {}
 	newSocket._writeQueueEncoding = {}
 	newSocket._writeQueueFD = {}
-		
+	
 	newSocket.readable = false
 	-- en lugar de usar _writeWatcher, recibo los eventos de write en _raw_socket.write_callback
 	newSocket.writable = false
@@ -375,8 +375,6 @@ function Socket:__init(fd, kind)
 	--]]
 	
 	if getmetatable(fd) == process.Socket then
-		-- TODO: chequear que no este causando algo que no se lo pueda llevar el gc
-		--fd.owner = newSocket
 		fd._owner = newSocket
 		newSocket._raw_socket = fd
 		--newSocket:open(fd, kind)	-- esto se hace mas adelante
@@ -627,7 +625,7 @@ end
 -- 
 function Socket:setEncoding(encoding)
 	--error("not implemented")
-	-- como que acá en Lua no aplica mucho esto
+	-- como que acÃ¡ en Lua no aplica mucho esto
 end
 
 -- Declare the connect callback outside of doConnect, in order to create only one copy of it
@@ -686,13 +684,13 @@ end
 -- socket.connect(80, 'nodejs.org') - TCP connect to port 80 on nodejs.org
 -- socket.connect('/tmp/socket')    - UNIX connect to socket specified by path
 
--- ojo! Http crea el stream y entra derecho por acá, no llama a net.createConnection
+-- ojo! Http crea el stream y entra derecho por acÃ¡, no llama a net.createConnection
 function Socket:connect(port, host, callback)
 	if self.fd then error("Socket already opened") end
 	
 	--if not self._raw_socket.read_callback then error("No read_callback") end
 	
-	Timers.Active(self)	-- ver cómo
+	Timers.Active(self)	-- ver cÃ³mo
 	self._connecting = true	--set false in doConnect
 	self.writable = true
 	
@@ -730,11 +728,16 @@ function Socket:connect(port, host, callback)
 					self:emit('error', err)
 				else
 					self.kind = (address.family == 6 and "tcp6") or (address.family == 4 and "tcp4") or error("unknown address family" .. tostring(address.family))
-					self._raw_socket = process.Socket(self.kind)
-					self._raw_socket._owner = self
-					initSocket(self)
-					if not self._raw_socket.read_callback then error("No read_callback") end
-					doConnect(self, port, address.address)
+					local socket, err_msg, err_code = process.Socket(self.kind)
+					if not socket then
+						self:emit('error', err_msg, err_code)
+					else
+						self._raw_socket = socket
+						self._raw_socket._owner = self
+						initSocket(self)
+						if not self._raw_socket.read_callback then error("No read_callback") end
+						doConnect(self, port, address.address)
+					end
 				end
 			end)
 		--]]
@@ -811,6 +814,7 @@ end
 --
 --
 function Socket:destroy (err_msg, err_code)
+
 	-- pool is shared between sockets, so don't need to free it here.
 	-- TODO would like to set _writeQueue to null to avoid extra object alloc,
 	-- but lots of code assumes this._writeQueue is always an array.
@@ -839,7 +843,7 @@ function Socket:destroy (err_msg, err_code)
 		--self.secureStream:close()
 	--end
 
-	-- TODO: por qué es el socket el que tiene que updatear esto que es del server ?
+	-- TODO: por quÃ© es el socket el que tiene que updatear esto que es del server ?
 	if self.server and not self.destroyed then
 		self.server.connections = self.server.connections - 1
 		
@@ -963,6 +967,9 @@ end
 -- Server Class
 Server = Class.InheritsFrom(EventEmitter)
 
+-- Last time weÇ˜e issued a EMFILE warning
+local lastEMFILEWarning = 0
+
 function Server:__init(listener)
 	local newServer = Class.construct(Server)
 	
@@ -975,44 +982,72 @@ function Server:__init(listener)
 	newServer.connections = 0
 	
 	newServer.acceptor = process.Acceptor()
-	newServer.acceptor.host = newServer	-- TODO: checkear! ojo que acá estoy creando un ciclo... Net no se destruye hasta que no se destruya este server
-	newServer.acceptor.callback = function(peer)
-		if newServer.maxConnections and newServer.connections >= newServer.maxConnections then
-			peer.socket:close()
+	newServer.acceptor.host = newServer
+	newServer.acceptor.callback = function(err, peer)
+
+		if not err then
+			if newServer.maxConnections and newServer.connections >= newServer.maxConnections then
+				peer.socket:close()
+				if newServer.acceptor then
+					newServer.acceptor:accept()
+				end
+				return
+			end
+		
+			newServer.connections = newServer.connections + 1
+			local s = Socket(peer.socket, newServer.type)
+			s:open(peer.socket, newServer.type) --newServer:open(fd, kind)
+			s._remoteAddress = peer.address
+			s._remotePort = peer.port
+			s.server = newServer
+			newServer.clients[s] = s
+			
+			newServer:emit("connection", s)	-- termina invocando a "listener"
+		
+			-- The 'connect' event  probably should be removed for server-side
+			-- sockets. It's redundant.
+			--try {
+				s:emit("connect")
+			--} catch (e) {
+				--s.destroy(e)
+				--return
+			--}
+			if not s.destroyed then
+				if s.secure then
+					s._raw_socket:doHandShake()
+				else
+					s:resume()
+				end
+			end
+			-- accept another connection (unless the server was explicitly closed)
 			if newServer.acceptor then
 				newServer.acceptor:accept()
 			end
-			return
-		end
 		
-		newServer.connections = newServer.connections + 1
-		local s = Socket(peer.socket, newServer.type)
-		s:open(peer.socket, newServer.type) --newServer:open(fd, kind)
-		s._remoteAddress = peer.address
-		s._remotePort = peer.port
-		s.server = newServer
-		newServer.clients[s] = s
-		
-		newServer:emit("connection", s)	-- termina invocando a "listener"
-		
-		-- The 'connect' event  probably should be removed for server-side
-		-- sockets. It's redundant.
-		--try {
-			s:emit("connect")
-		--} catch (e) {
-			--s.destroy(e)
-			--return
-		--}
-		if not s.destroyed then
-			if s.secure then
-				s._raw_socket:doHandShake()
+		else
+			-- an error occurred. If it is EMFILE try to deal with it
+			-- If it is ENCANCELED, ignore it
+			local err_code = peer
+			if err_code == process.constants.ECANCELED then
+				return
+
+			elseif err_code == process.constants.EMFILE then
+				local now = os.time()
+				if now - lastEMFILEWarning > 5 then
+					console.error([[(LuaNode) Hit max file limit. Increase "ulimit -n"]])
+					lastEMFILEWarning = now
+				end
+				setTimeout(function()
+					-- try to accept another connection (unless the server was explicitly closed)
+					if newServer.acceptor then
+						newServer.acceptor:accept()
+					end
+				end, 1000)
+				
 			else
-				s:resume()
+				newServer:emit("error", err, err_code)
 			end
-		end
-		-- accept another connection (unles the server was explicitly closed)
-		if newServer.acceptor then
-			newServer.acceptor:accept()
+			return
 		end
 	end
 	

@@ -30,6 +30,7 @@ public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Socket);
 
 	static int tostring_T(lua_State* L);
+	static int new_T (lua_State* L);
 
 	int SetOption(lua_State* L);
 
@@ -58,6 +59,7 @@ private:
 
 	void HandleCloseCallback(int reference);
 	void CallCloseCallback(lua_State* L);
+
 
 private:
 	lua_State* m_L;

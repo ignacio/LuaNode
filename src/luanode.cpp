@@ -126,6 +126,16 @@ static CLogger* logger = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
+/// ->error message, error code
+/// To be used when preparing callback arguments: cb(err, stuff)
+/*static*/ int BoostErrorToCallback (lua_State* L, const boost::system::error_code& ec)
+{
+	lua_pushstring(L, ec.message().c_str());
+	lua_pushinteger(L, ec.value());
+	return 2;
+}
+
+//////////////////////////////////////////////////////////////////////////
 /// http://linux.die.net/man/7/signal
 static const char* SignalNumberToString(int sig_no) {
 	switch(sig_no) {

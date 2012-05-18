@@ -141,6 +141,7 @@ Socket::Socket(lua_State* L) :
 
 	const char* kind = luaL_checkstring(L, 1);
 	LogDebug("Socket::Socket(%s)", kind);
+
 	if(strcmp(kind, "tcp4") == 0) {
 		m_socket = boost::make_shared<boost::asio::ip::tcp::socket>( boost::ref(GetIoService()), boost::asio::ip::tcp::v4() );
 	}
@@ -181,6 +182,26 @@ Socket::~Socket(void)
 			LogError("Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
+}
+
+// Reimplement new_T so we have better control of socket creation
+/*static*/ int Socket::new_T (lua_State* L) {
+	try {
+		lua_remove(L, 1);	// use classname:new(), instead of classname.new()
+		Socket* obj = new Socket(L);	// call constructor for T objects
+		push(L, obj, true); // gc_T will delete this object
+		return 1;
+	}
+	catch(boost::system::system_error& e) {
+		lua_pushnil(L);
+		lua_pushstring(L, e.what());
+		lua_pushinteger(L, e.code().value());
+		return 3;
+	}
+	catch(std::exception& e) {
+		lua_pushstring(L, e.what());
+	}
+	return lua_error(L);
 }
 
 //////////////////////////////////////////////////////////////////////////
