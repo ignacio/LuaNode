@@ -700,6 +700,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lib\LuaNode\Readline.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\Repl.lua"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\LuaNode\Script.lua"
 				>
 			</File>

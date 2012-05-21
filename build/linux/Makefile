@@ -11,9 +11,9 @@ LIB_DIR ?= /usr/local/lib
 
 PREFIX ?= /usr/local
 
-BOOST_VERSION ?=1_44
-BOOST_DIR     ?=$(INCLUDE_DIR)/boost-$(BOOST_VERSION)
-BOOST_LIBS    ?=$(LIB_DIR)
+BOOST_VERSION ?= 1_44
+BOOST_DIR     ?= $(INCLUDE_DIR)/boost-$(BOOST_VERSION)
+BOOST_LIBS    ?= $(LIB_DIR)
 
 # Lua includes directory
 #LUA_INC = -I$(PACKAGES)/lua5.1/include
@@ -116,22 +116,24 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/class.precomp \
 		$(BUILD_TEMP_DIR)/console.precomp \
 		$(BUILD_TEMP_DIR)/crypto.precomp \
+		$(BUILD_TEMP_DIR)/datagram.precomp \
 		$(BUILD_TEMP_DIR)/dns.precomp \
 		$(BUILD_TEMP_DIR)/event_emitter.precomp \
 		$(BUILD_TEMP_DIR)/free_list.precomp \
 		$(BUILD_TEMP_DIR)/fs.precomp \
 		$(BUILD_TEMP_DIR)/http.precomp \
-		$(BUILD_TEMP_DIR)/datagram.precomp \
 		$(BUILD_TEMP_DIR)/net.precomp \
 		$(BUILD_TEMP_DIR)/path.precomp \
 		$(BUILD_TEMP_DIR)/querystring.precomp \
+		$(BUILD_TEMP_DIR)/readline.precomp \
+		$(BUILD_TEMP_DIR)/repl.precomp \
+		$(BUILD_TEMP_DIR)/script.precomp \
 		$(BUILD_TEMP_DIR)/stream.precomp \
 		$(BUILD_TEMP_DIR)/timers.precomp \
-		$(BUILD_TEMP_DIR)/url.precomp \
-		$(BUILD_TEMP_DIR)/utils.precomp \
-		$(BUILD_TEMP_DIR)/script.precomp \
 		$(BUILD_TEMP_DIR)/tty.precomp \
 		$(BUILD_TEMP_DIR)/tty_posix.precomp \
+		$(BUILD_TEMP_DIR)/url.precomp \
+		$(BUILD_TEMP_DIR)/utils.precomp \
 		$(BUILD_TEMP_DIR)/node.precomp \
 		$(BUILD_TEMP_DIR)/StackTracePlus/StackTracePlus.precomp
 

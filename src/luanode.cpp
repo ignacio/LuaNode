@@ -78,7 +78,7 @@ extern char **environ;
 namespace LuaNode {
 
 static const char* LUANODE_PROGNAME = "LuaNode";
-static const char* LUANODE_VERSION = "0.0.1pre";
+static const char* LUANODE_VERSION = "0.0.1";
 static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
 static int option_end_index = 0;
@@ -753,8 +753,6 @@ static int Load(int argc, char *argv[]) {
 
 	//DefineConstants(L);
 	
-	int extension_status = 1;
-
 	// Load modules that need to be loaded before LuaNode ones
 	PreloadAdditionalModules(L);
 
@@ -768,9 +766,10 @@ static int Load(int argc, char *argv[]) {
 
 	if(!debug_mode) {
 		PreloadModules(L);
-
-		#include "node.precomp"
-		if(extension_status) {
+		static const unsigned char code[] = {
+			#include "node.precomp"
+		};
+		if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode")) {
 			return lua_error(L);
 		}
 	}
@@ -844,8 +843,8 @@ static void ParseArgs(int *argc, char **argv) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static void AtExit() {
-	LuaNode::Stdio::OnExit();
 	LuaNode::Stdio::Flush();
+	LuaNode::Stdio::OnExit();
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
