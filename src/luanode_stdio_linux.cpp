@@ -261,7 +261,7 @@ public:
 	{
 		int fd = (int)luaL_checkinteger(L, 1);
 		m_fd = fd;	//m_fd = ::dup(fd);
-		//fprintf(stderr, "Construyendo TtyStream (%p) (%d -> %d)\n", this, fd, m_fd);
+		fprintf(stderr, "Construyendo TtyStream (%p) (%d -> %d)\n", this, fd, m_fd);
 		bool readable = lua_toboolean(L, 2);
 
 		if(readable) {
@@ -274,6 +274,9 @@ public:
 			if (r == -1) {
 				luaL_error(L, "fcntl error!");
 			}
+		}
+		else {
+			m_fd = ::dup(fd);
 		}
 		m_mode = 0;
 		m_socket = boost::make_shared<boost::asio::posix::stream_descriptor>(boost::ref(LuaNode::GetIoService()), m_fd);
