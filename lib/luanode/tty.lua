@@ -1,6 +1,8 @@
-local pairs, require, process, Stdio = pairs, require, process, Stdio
+local Class = require "luanode.class"
+local EventEmitter = require "luanode.event_emitter"
 
-module((...))
+-- TODO: sacar el seeall
+module(..., package.seeall)
 
 local tty
 if process.platform == "windows" then
@@ -15,24 +17,9 @@ for k,v in pairs(tty) do
 	end
 end
 
-_M.isatty = function (fd)
-	return Stdio.isatty(fd)
-end
-
-_M.setRawMode = function (flag)
-	if process.platform == "windows" then
-		Stdio.setRawMode(flag)
-	else
-		tty.setRawMode(flag)
-	end
-end
-
-_M.getWindowSize = function ()
-	return Stdio.getWindowSize()
-end
-
-_M.setWindowSize = function ()
-	--Stdio.setWindowSize()
-end
+_M.isatty = Stdio.isatty
+_M.setRawMode = Stdio.setRawMode
+_M.getWindowSize = Stdio.getWindowSize
+_M.setWindowSize = Stdio.setWindowSize
 
 return _M

@@ -70,19 +70,14 @@ local events = require "luanode.event_emitter"
 setmetatable(process, {
 	__index = function(t, key)
 		if key == "stdin" then
-			local tty = require "luanode.tty"
 			local fd = Stdio.openStdin()
 			local stdin
-
-			if tty.isatty(fd) then
+			if Stdio.isatty(fd) then
+				local tty = require "luanode.tty"
 				stdin = tty.ReadStream(fd)
-
 			elseif Stdio.isStdinBlocking() then
-				console.error("processing input from a file is not supported yet")
-				os.exit(-1)
-				--local fs = require "luanode.fs"
-				--stdin = fs.ReadStream(nil, {fd = fd})
-
+				local fs = require "luanode.fs"
+				stdin = fs.ReadStream(nil, {fd = fd})
 			else
 				local net = require "luanode.net"
 				stdin = net.Stream(fd)
@@ -90,32 +85,9 @@ setmetatable(process, {
 			end
 			rawset(t, key, stdin)
 			return stdin
-
 		elseif key == "title" then
 			return process.get_process_title()
-		
-		elseif key == "stdout" then
-			local tty = require "luanode.tty"
-			local stdout
-			if tty.isatty(Stdio.stdoutFD) then
-				local tty = require "luanode.tty"
-				stdout = tty.WriteStream(Stdio.stdoutFD)
-
-			elseif Stdio.isStdoutBlocking() then
-				-- use io.stderr to bypass process.stdout
-				io.stderr:write("sending output to a file is not supported yet\n")
-				os.exit(-1)
-				--local fs = require "luanode.fs"
-				--stdout = fs.WriteStream(nil, {fd = Stdio.stdoutFD})
-			else
-				local net = require "luanode.net"
-				stdout = net.Stream(fd)
-				stdout.readable = false
-			end
-			rawset(t, key, stdout)
-			return stdout
 		end
-
 		return events[key]
 	end,
 	
@@ -173,13 +145,11 @@ local function BuildMessage(fmt, ...)
 		msg = table.concat(msg, "\t")
 	else
 		if fmt:find("%%") then
-			-- escape unrecognized formatters
-			fmt = fmt:gsub("%%([^cdiouxXeEfgGqs])", "%%%%%1")
 			msg = string.format(fmt, LogArgumentsFormatter(...))
 		else
-			local t = { fmt }
-			ArgumentsToStrings(t, ...)
-			msg = table.concat(t, "\t")
+			msg = { fmt }
+			ArgumentsToStrings(msg, ...)
+			msg = table.concat(msg, "\t")
 		end
 	end
 	return msg
@@ -226,7 +196,7 @@ console = require "luanode.console"
 
 function console.log (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	process.stdout:write(msg .. "\r\n")
+	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
@@ -235,7 +205,7 @@ console.debug = console.log
 
 function console.info (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	process.stdout:write(msg .. "\r\n")
+	io.write(msg); io.write("\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
@@ -243,9 +213,9 @@ end
 function console.warn (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
 	console.color("yellow")
-	process.stdout:write(msg)
+	io.write(msg)
 	console.reset_color()
-	process.stdout:write("\r\n")
+	io.write("\r\n")
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
 end
@@ -378,10 +348,7 @@ end
 local propagate_result = 0
 if not process.argv[0] then
 	io.write("LuaNode " .. process.version .. "\n")
-	
 	-- run repl
-	local repl = require "luanode.repl"
-	repl.start("> ")
 	process:loop()
 else
 	local file, err = io.open(process.argv[0])

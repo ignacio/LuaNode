@@ -26,7 +26,7 @@ void Platform::SetProcessTitle(const char* title) {
 }
 
 int Platform::SetProcessTitle(lua_State* L) {
-	const char* title = luaL_checkstring(L, 1);
+	const char* title	= luaL_checkstring(L, 1);
 	SetProcessTitle(title);
 	return 0;
 }
