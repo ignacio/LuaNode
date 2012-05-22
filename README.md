@@ -126,14 +126,15 @@ The two most glaring difference between *Node.js* and **LuaNode** are:
 
 The unit tests provide lots of examples. They are available at the `test` folder.
 
-## Acknowledgments #
-I'd like to acknowledge the work of the following people:
+## Acknowledgements #
+I'd like to acknowledge the work of the following people or group:
 
  - Ryan Dahl, obviously, for his work on [Node.js][11] and [http-parser][14], which I use to parse http requests.
  - Renato Maia, for allowing me to take parts of [Loop][13].
  - Keith Howe, for [LuaCrypto][15]
  - Michal Kottman, for his additions to [LuaCrypto][16]. He also contributed a CMakeLists.txt to ease building.
  - Steve Donovan, for allowing me to take parts of [Penlight][17].
+ - Joyent, for [Node.js][11] and [libuv][18]. Parts of libuv were adapted (terminal handling, etc). 
 
  
 ## License #
@@ -157,3 +158,4 @@ I'd like to acknowledge the work of the following people:
 [15]: http://luacrypto.luaforge.net/
 [16]: https://github.com/mkottman/luacrypto/
 [17]: https://github.com/stevedonovan/Penlight
+[18]: https://github.com/joyent/libuv
