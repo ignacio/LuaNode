@@ -28,6 +28,7 @@
 #include "luanode_dns.h"
 #include "luanode_crypto.h"
 #include "luanode_child_process.h"
+#include "luanode_hrtime.h"
 #include "luanode_module_api.h"
 #include "luanode_os.h"
 #include "luanode_stdio.h"
@@ -691,6 +692,9 @@ static int Load(int argc, char *argv[]) {
 	#error "unsupported platform"
 #endif
 	lua_setfield(L, process, "pid");
+
+	lua_pushcfunction(L, LuaNode::HighresTime::Get);
+	lua_setfield(L, process, "hrtime");
 
 	LuaNode::DefineConstants(L);
 	lua_setfield(L, -2, "constants");

@@ -107,6 +107,7 @@ OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(BUILD_TEMP_DIR)/luanode_timer.o \
 		$(BUILD_TEMP_DIR)/luanode_os.o \
 		$(BUILD_TEMP_DIR)/luanode_stdio_linux.o \
+		$(BUILD_TEMP_DIR)/luanode_hrtime.o \
 		$(BUILD_TEMP_DIR)/lua_vm.o \
 		$(BUILD_TEMP_DIR)/platform_linux.o \
 		$(BUILD_TEMP_DIR)/preloader.o \

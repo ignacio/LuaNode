@@ -337,6 +337,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\luanode_hrtime.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\luanode_http_parser.cpp"
 				>
 			</File>
@@ -544,6 +548,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\luanode_file_win32.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\luanode_hrtime.h"
 				>
 			</File>
 			<File

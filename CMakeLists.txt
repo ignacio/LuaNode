@@ -74,6 +74,7 @@ SET(SOURCES
     src/luanode_net_acceptor.cpp
     src/luanode_timer.cpp
     src/luanode_os.cpp
+    src/luanode_hrtime.cpp
     ${OS}
     src/lua_vm.cpp
     lib/preloader.cpp
