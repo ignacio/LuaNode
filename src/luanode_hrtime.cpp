@@ -26,7 +26,7 @@
 #include "luanode_hrtime.h"
 
 #undef NANOSEC
-#define NANOSEC 1000000000
+#define NANOSEC ((boost::uint64_t) 1e9)
 
 static const char HRTIME_MT[] = "luanode_hrtime_mt";
 
