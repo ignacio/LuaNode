@@ -8,7 +8,7 @@ if DEBUG then
 		package.path = [[d:\trunk_git\sources\LuaNode\lib\?.lua;d:\trunk_git\sources\LuaNode\lib\?\init.lua;]] .. [[C:\LuaRocks\1.0\lua\?.lua;C:\LuaRocks\1.0\lua\?\init.lua;]] .. package.path
 		package.cpath = [[.\?.dll;C:\LuaRocks\1.0\?.dll;C:\LuaRocks\1.0\loadall.dll;]] .. package.cpath
 	else
-		package.path = [[/home/ignacio/devel/sources/LuaNode/lib/?.lua;/home/ignacio/devel/sources/LuaNode/lib/?/init.lua;]] .. package.path
+		package.path = ([[%s/lib/?.lua;%s/lib/?/init.lua;]]):format(process.__internal._SOURCE_PATH, process.__internal._SOURCE_PATH) .. package.path
 	end
 end
 
@@ -18,6 +18,8 @@ local stp = require "stacktraceplus"
 
 -- put the current working directory in the modules path
 package.path = path.normalize(([[%s\?\init.lua;%s\?.lua;]]):format( process.cwd(), process.cwd() )  .. package.path)
+
+process.__internal._SOURCE_PATH = path.normalize(process.__internal._SOURCE_PATH)
 
 do
 	local inverse_index = {}
@@ -63,31 +65,189 @@ process.nextTick = function(callback)
 	process._needTickCallback()
 end
 
+
 local Class = require "luanode.class"
 local events = require "luanode.event_emitter"
+local luanode_stream = require "luanode.stream"
+
+---
+-- Hack. Creates a stream that is writable and blocking.
+-- It wraps stdout or stderr.
+--
+local SyncWriteStream = Class.InheritsFrom(luanode_stream.Stream)
+
+function SyncWriteStream:__init (fd)
+	local stream = Class.construct(SyncWriteStream)
+	
+	stream.fd = fd
+	stream.writable = true
+	stream.readable = false
+
+	return stream
+end
+
+function SyncWriteStream:write (data, arg1, arg2)
+	local cb, encoding, callback
+
+	if type(arg1) == "nil" then
+		-- do nothing
+	elseif type(arg1) == "string" then
+		encoding = arg1
+		callback = arg2
+	elseif type(arg1) == "function" then
+		callback = arg1
+	else
+		error("Bad argument")
+	end
+
+	-- disgusting hack
+	if self.fd == 1 then
+		io.stdout:write(data)	--fs.writeSync(self.fd, data, 0, #data)
+	elseif self.fd == 2 then
+		io.stderr:write(data)	--fs.writeSync(self.fd, data, 0, #data)
+	else
+		error("SyncWriteStream:write - wrong fd " .. tostring(self.fd))
+	end
+
+	if callback then
+		process.nextTick(callback)
+	end
+
+	return true
+end
+
+function SyncWriteStream:finish (data, arg1, arg2)
+	if data then
+		self:write(data, arg1, arg2)
+	end
+	self:destroy()
+end
+
+function SyncWriteStream:destroy ()
+	fs.closeSync(self.fd)
+	self.fd = nil
+	self:emit("close")
+end
+
+SyncWriteStream.destroySoon = SyncWriteStream.destroy
+
+---
+--
+local function createWritableStdioStream (fd)
+	local fd_type = assert(process.guess_handle_type(fd))
+
+	local stream
+
+	if fd_type == "TTY" then
+		local tty = require "luanode.tty"
+		stream = tty.WriteStream(fd)
+		stream.__type = "tty"
+
+	elseif fd_type == "FILE" then
+		stream = SyncWriteStream(fd)
+		stream.__type = "fs"
+
+	elseif fd_type == "PIPE" then
+		if process.platform == "windows" then
+			-- TODO: does not work yet, we don't support pipes on Windows
+			local msg = "pipes are not supported yet for " .. ((fd == Stdio.stdoutFD) and "stdout" or "stderr") .. "\n"
+			io.stderr:write(msg)
+			os.exit(-1)
+		end
+		
+		local net = require "luanode.net"
+		stream = net.Socket(fd)
+		stream._raw_socket = process.PosixStream(fd, true)
+		stream._raw_socket.write_callback = function(raw_socket, ok)
+			-- flush the write queue when a write completes
+			if not ok then
+				--console.error("%s: %s", ok, socket)
+				return
+			end
+
+			if stream:flush() then
+				if stream._events and stream._events["drain"] then
+					stream:emit("drain")
+				end
+				if stream.ondrain then
+					stream:ondrain() -- Optimization
+				end
+			end
+		end
+		stream.readable = false
+		stream.writable = true
+		stream.__type = "pipe"
+	
+	else
+		error("Unknown stream type " .. tostring(fd))
+	end
+
+	return stream
+end
 
 -- Make 'process' become an event emitter, but hook some 'properties'
 setmetatable(process, {
 	__index = function(t, key)
 		if key == "stdin" then
-			local fd = Stdio.openStdin()
+			local fd_type = assert(process.guess_handle_type(Stdio.stdinFD))
 			local stdin
-			if Stdio.isatty(fd) then
+
+			if fd_type == "TTY" then
 				local tty = require "luanode.tty"
-				stdin = tty.ReadStream(fd)
-			elseif Stdio.isStdinBlocking() then
-				local fs = require "luanode.fs"
-				stdin = fs.ReadStream(nil, {fd = fd})
+				stdin = tty.ReadStream(Stdio.stdinFD)
+				stdin.__type = "tty"
+
+			elseif fd_type == "FILE" then
+				io.stderr:write("processing input from a file is not supported yet\n")
+				os.exit(-1)
+				return
+
+			elseif fd_type == "PIPE" then
+				-- TODO: does not work yet, we don't support pipes
+				io.stderr:write("processing input from a pipe is not supported yet\n")
+				os.exit(-1)
+				return
+				
+				--local net = require "luanode.net"
+				--stdin = net.Socket(Stdio.stdinFD)
+				--stdin.readable = false
+				--stdin.__type = "pipe"
+	
 			else
-				local net = require "luanode.net"
-				stdin = net.Stream(fd)
-				stdin.readable = true
+				error("Unknown stream type " .. tostring(Stdio.stdinFD))
 			end
 			rawset(t, key, stdin)
 			return stdin
+
 		elseif key == "title" then
 			return process.get_process_title()
+
+		elseif key == "stdout" then
+			local stdout = createWritableStdioStream(Stdio.stdoutFD)
+			rawset(t, key, stdout)
+			stdout.destroy = function(self, err)
+				err = err or "process.stdout cannot be closed."	-- new Error('process.stdout cannot be closed.');
+				self:emit("error", err)
+			end
+			stdout.destroySoon = stdout.destroy
+			if stdout.isTTY then
+				process:on('SIGWINCH', function()
+					stdout:_refreshSize()
+				end)
+			end
+			return stdout
+
+		elseif key == "stderr" then
+			local stderr = createWritableStdioStream(Stdio.stderrFD)
+			rawset(t, key, stderr)
+			stderr.destroy = function(self, err)
+				err = err or "process.stderr cannot be closed."	-- new Error('process.stderr cannot be closed.');
+				self:emit("error", err)
+			end
+			stderr.destroySoon = stderr.destroy
+			return stderr
 		end
+
 		return events[key]
 	end,
 	
@@ -99,11 +259,6 @@ setmetatable(process, {
 		end
 	end
 })
-
-process.openStdin = function()
-	process.stdin:resume()
-	return process.stdin
-end
 
 
 -- TODO: Meter la parte de Signal Handlers 
@@ -145,11 +300,13 @@ local function BuildMessage(fmt, ...)
 		msg = table.concat(msg, "\t")
 	else
 		if fmt:find("%%") then
+			-- escape unrecognized formatters
+			fmt = fmt:gsub("%%([^cdiouxXeEfgGqs])", "%%%%%1")
 			msg = string.format(fmt, LogArgumentsFormatter(...))
 		else
-			msg = { fmt }
-			ArgumentsToStrings(msg, ...)
-			msg = table.concat(msg, "\t")
+			local t = { fmt }
+			ArgumentsToStrings(t, ...)
+			msg = table.concat(t, "\t")
 		end
 	end
 	return msg
@@ -196,7 +353,7 @@ console = require "luanode.console"
 
 function console.log (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	io.write(msg); io.write("\r\n")
+	process.stdout:write(msg .. "\r\n")
 	if decoda_output then decoda_output("[DEBUG] " .. msg) end
 	return msg
 end
@@ -205,38 +362,38 @@ console.debug = console.log
 
 function console.info (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	io.write(msg); io.write("\r\n")
+	process.stdout:write(msg .. "\r\n")
 	if decoda_output then decoda_output("[INFO ] " .. msg) end
 	return msg
 end
 
 function console.warn (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	console.color("yellow")
-	io.write(msg)
+	console.color("yellow", process.stdout)
+	process.stdout:write(msg)
 	console.reset_color()
-	io.write("\r\n")
+	process.stdout:write("\r\n")
 	if decoda_output then decoda_output("[WARN ] " .. msg) end
 	return msg
 end
 
 console["error"] = function (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	console.color("lightred", "stderr")
-	io.stderr:write(msg)
-	console.reset_color("stderr")
-	io.stderr:write("\r\n")
+	console.color("lightred", process.stderr)
+	process.stderr:write(msg)
+	console.reset_color(process.stderr)
+	process.stderr:write("\r\n")
 	if decoda_output then decoda_output("[ERROR] " .. msg) end
 	return msg
 end
 
 function console.fatal (fmt, ...)
 	local msg = BuildMessage(fmt, ...)
-	console.color("lightred", "stderr")
-	console.bgcolor("white", "stderr")
-	io.stderr:write(msg)
-	console.reset_color("stderr")
-	io.stderr:write("\r\n")
+	console.color("lightred", process.stderr)
+	console.bgcolor("white", process.stderr)
+	process.stderr:write(msg)
+	console.reset_color(process.stderr)
+	process.stderr:write("\r\n")
 	if decoda_output then decoda_output("[FATAL] " .. msg) end
 	return msg
 end
@@ -348,7 +505,20 @@ end
 local propagate_result = 0
 if not process.argv[0] then
 	io.write("LuaNode " .. process.version .. "\n")
+	
 	-- run repl
+	local repl = require "luanode.repl"
+	local options = {
+	}
+	if process.env.LUANODE_NO_READLINE then
+		options.terminal = false
+	end
+	if process.env.LUANODE_DISABLE_COLORS then
+		options.useColors = false
+	end
+	repl.start(options):on("exit", function()
+		process:exit()
+	end)
 	process:loop()
 else
 	local file, err = io.open(process.argv[0])

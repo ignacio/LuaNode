@@ -61,25 +61,21 @@
 extern char **environ;
 #endif
 
-/*#ifdef _WIN32
-#include <io.h>
-#include <stdio.h>
-#define lua_stdin_is_tty()	_isatty(_fileno(stdin))
-#else
-#include <unistd.h>
-#define lua_stdin_is_tty()	isatty(0)
-#endif*/
-
 #ifdef __APPLE__
   #include <crt_externs.h>
   #define environ (*_NSGetEnviron())
 #endif
 
+#ifdef _MSC_VER
+static const char* _SOURCE_PATH = 
+#include "build_path.precomp"
+;
+#endif
 
 namespace LuaNode {
 
 static const char* LUANODE_PROGNAME = "LuaNode";
-static const char* LUANODE_VERSION = "0.0.1pre";
+static const char* LUANODE_VERSION = "0.0.1";
 static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
 static int option_end_index = 0;
@@ -264,7 +260,9 @@ static int Exit(lua_State* L) {
 	int code = luaL_optinteger(L, 1, EXIT_FAILURE);
 	
 	LuaNode::GetIoService().stop();
-	fprintf(stderr, "Exit with code %d\n", code);
+	if(code != 0) {
+		fprintf(stderr, "Exit with code %d\n", code);
+	}
 
 	// Will it be possible to have a clean ending?
 #ifdef _WIN32
@@ -625,17 +623,16 @@ static int Load(int argc, char *argv[]) {
 	lua_pushstring(L, LuaNode::Platform::GetPlatform());
 	lua_setfield(L, process, "platform");
 
-	// this shouldn't be here
-	lua_pushcfunction(L, LuaNode::Platform::SetConsoleForegroundColor);
-	lua_setfield(L, process, "set_console_fg_color");
-	lua_pushcfunction(L, LuaNode::Platform::SetConsoleBackgroundColor);
-	lua_setfield(L, process, "set_console_bg_color");
-
 	// this also shouldn't be here
 	lua_pushcfunction(L, LuaNode::Platform::SetProcessTitle);
 	lua_setfield(L, process, "set_process_title");
 	lua_pushcfunction(L, LuaNode::Platform::GetProcessTitle);
 	lua_setfield(L, process, "get_process_title");
+
+	lua_pushcfunction(L, LuaNode::Platform::GetHandleType);
+	lua_setfield(L, process, "guess_handle_type");
+
+	std::string source_path = _SOURCE_PATH;
 
 	// internal stuff
 	lua_newtable(L);
@@ -652,7 +649,12 @@ static int Load(int argc, char *argv[]) {
 	lua_setfield(L, internal, "LogError");
 	lua_pushcfunction(L, LogFatal);
 	lua_setfield(L, internal, "LogFatal");
+	
+	lua_pushstring(L, source_path.c_str());
+	lua_setfield(L, internal, "_SOURCE_PATH");
+
 	lua_setfield(L, process, "__internal");
+
 
 	// process.argv
 	lua_newtable(L);
@@ -757,8 +759,6 @@ static int Load(int argc, char *argv[]) {
 
 	//DefineConstants(L);
 	
-	int extension_status = 1;
-
 	// Load modules that need to be loaded before LuaNode ones
 	PreloadAdditionalModules(L);
 
@@ -772,20 +772,19 @@ static int Load(int argc, char *argv[]) {
 
 	if(!debug_mode) {
 		PreloadModules(L);
-
-		#include "node.precomp"
-		if(extension_status) {
+		static const unsigned char code[] = {
+			#include "node.precomp"
+		};
+		if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode")) {
 			return lua_error(L);
 		}
 	}
 	else {
 		lua_pushboolean(L, true);
 		lua_setfield(L, LUA_GLOBALSINDEX, "DEBUG"); // esto es temporal (y horrendo)
-#if defined _WIN32
-		LuaNode::luaVm->loadfile("d:/trunk_git/sources/luanode/src/node.lua");
-#else
-		LuaNode::luaVm->loadfile("/home/ignacio/devel/sources/LuaNode/src/node.lua");
-#endif
+
+		std::string path = source_path + "/src/node.lua";
+		LuaNode::luaVm->loadfile(path.c_str());
 	}
 
 	LuaNode::luaVm->call(0, 1);
@@ -848,8 +847,8 @@ static void ParseArgs(int *argc, char **argv) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 static void AtExit() {
-	LuaNode::Stdio::OnExit();
 	LuaNode::Stdio::Flush();
+	LuaNode::Stdio::OnExit();
 
 #if defined(_WIN32)  &&  !defined(__CYGWIN__) 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);

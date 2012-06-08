@@ -51,13 +51,13 @@ end
 --
 -- A table with color info on how we style the values
 local styleTable = {
-	special = console.getColor('magenta'),
-	number = console.getColor('cyan'),
-	boolean = console.getColor('yellow'),
-	["nil"] = console.getColor('bold'),
+	special = console.getColor("cyan"),
+	number = console.getColor("yellow"),
+	boolean = console.getColor("yellow"),
+	["nil"] = console.getColor("gray"),
 	["string"] = console.getColor('green'),
-	["function"] = console.getColor('blue'),
-	thread = console.getColor('blue'),
+	["function"] = console.getColor('cyan'),
+	thread = console.getColor('lightblue'),
 	userdata = console.getColor('red'),
 }
 
@@ -70,10 +70,6 @@ local styleTable = {
 function inspect(value, showHidden, depth, colors)
 	depth = depth or 2
 	if type(depth) == "string" then depth = 1000 end	-- hack
-	
-	if not colors then
-		colors = (process.platform ~= "windows")
-	end
 	
 	local stylize = function(str, styleType)
 		local style = styleTable[styleType]
@@ -120,7 +116,7 @@ function inspect(value, showHidden, depth, colors)
 	end
 
 	local function quote (s)
-		return ('%q'):format(tostring(s))
+		return ('"%s"'):format(tostring(s))
 	end
 
 	local function index (numkey,key)
@@ -201,7 +197,7 @@ function inspect(value, showHidden, depth, colors)
 							if numkey then
 								key = index(numkey, key)
 							end
-							put(indent .. key .. ' => ')
+							put(indent .. tostring(key) .. ' => ')
 							writeit(val, indent, newindent, recurseTimes - 1)
 						end
 					end

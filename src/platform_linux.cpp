@@ -11,12 +11,6 @@ static char s_process_title[16];
 
 using namespace LuaNode;
 
-static const char* console_output_options[] = {
-	"stdout",
-	"stderr",
-	NULL
-};
-
 void Platform::SetProcessTitle(const char* title) {
 	// see: http://manpages.courier-mta.org/htmlman2/prctl.2.html
 	strncpy(s_process_title, title, 16);
@@ -55,28 +49,6 @@ const char* Platform::GetPlatform() {
 	return "linux";
 }
 
-int Platform::SetConsoleForegroundColor(lua_State* L) {
-	const char* color = luaL_checkstring(L, 1);
-	if(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) {
-		printf("%s", color);
-	}
-	else {
-		fprintf(stderr, "%s", color);
-	}
-	return 0;
-}
-
-int Platform::SetConsoleBackgroundColor(lua_State* L) {
-	const char* color = luaL_checkstring(L, 1);
-	if(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) {
-		printf("%s", color);
-	}
-	else {
-		fprintf(stderr, "%s", color);
-	}
-	return 0;
-}
-
 bool Platform::Initialize() {
 	return true;
 }
@@ -92,5 +64,37 @@ int Platform::Cwd(lua_State* L) {
 
 	getbuf[sizeof(getbuf) - 1] = '\0';
 	lua_pushstring(L, getbuf);
+	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Given a file descriptor, try to guess its type (tty, file or pipe).
+/// Code taken from libuv.
+int Platform::GetHandleType (lua_State* L) {
+	struct stat s;
+	int file = luaL_checkinteger(L, 1);
+
+	if (file < 0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "Unknown handle");
+		return 2;
+	}
+
+	if (isatty(file)) {
+		lua_pushstring(L, "TTY");
+		return 1;
+	}
+
+	if (fstat(file, &s)) {
+		lua_pushnil(L);
+		lua_pushstring(L, "Unknown handle");
+		return 2;
+	}
+
+	if (!S_ISSOCK(s.st_mode) && !S_ISFIFO(s.st_mode)) {
+		lua_pushstring(L, "FILE");
+		return 1;
+	}
+	lua_pushstring(L, "PIPE");
 	return 1;
 }

@@ -3,24 +3,8 @@
 #include "luanode.h"
 #include "platform.h"
 
+#include <io.h>
 #include <direct.h>	//< contigo seguro que voy a tener problemas
-
-// I don't think I should cache this...
-static HANDLE m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-static HANDLE m_hConsoleError = GetStdHandle(STD_ERROR_HANDLE);
-
-static const char* console_output_options[] = {
-	"stdout",
-	"stderr",
-	NULL
-};
-
-static CONSOLE_SCREEN_BUFFER_INFO CConsoleGetInfo() {
-	CONSOLE_SCREEN_BUFFER_INFO csbi = {0};
-
-	GetConsoleScreenBufferInfo(m_hConsole, &csbi);
-	return csbi;
-}
 
 
 using namespace LuaNode;
@@ -61,30 +45,6 @@ const char* Platform::GetPlatform() {
 	return "windows";
 }
 
-int Platform::SetConsoleForegroundColor(lua_State* L) {
-	WORD wRGBI = (WORD)lua_tointeger(L, 1);
-	CONSOLE_SCREEN_BUFFER_INFO csbi = CConsoleGetInfo();
-	csbi.wAttributes &= BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY;
-	csbi.wAttributes |= wRGBI; 
-	
-	SetConsoleTextAttribute(
-		(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) ? m_hConsole : m_hConsoleError,
-		csbi.wAttributes);
-	return 0;
-}
-
-int Platform::SetConsoleBackgroundColor(lua_State* L) {
-	WORD wRGBI = (WORD)lua_tointeger(L, 1);
-	CONSOLE_SCREEN_BUFFER_INFO csbi = CConsoleGetInfo();
-	csbi.wAttributes &= FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
-	csbi.wAttributes |= wRGBI; 
-
-	SetConsoleTextAttribute(
-		(luaL_checkoption(L, 2, "stdout", console_output_options) == 0) ? m_hConsole : m_hConsoleError,
-		csbi.wAttributes);
-	return 0;
-}
-
 bool Platform::Initialize() {
 	SetConsoleOutputCP(CP_UTF8);
 	return true;
@@ -102,4 +62,52 @@ int Platform::Cwd(lua_State* L) {
 	getbuf[sizeof(getbuf) - 1] = '\0';
 	lua_pushstring(L, getbuf);
 	return 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Given a file descriptor, try to guess its type (tty, file or pipe).
+/// Code taken from libuv.
+int Platform::GetHandleType (lua_State* L) {
+	HANDLE handle;
+	DWORD mode;
+	
+	int file = luaL_checkinteger(L, 1);
+
+	if (file < 0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "Unknown handle");
+		return 2;
+	}
+
+	handle = (HANDLE)_get_osfhandle(file);
+
+	switch (::GetFileType(handle)) {
+	
+		case FILE_TYPE_CHAR: // The specified file is a character file, typically an LPT device or a console.
+			if (::GetConsoleMode(handle, &mode)) {
+				lua_pushstring(L, "TTY");
+				return 1;
+			}
+			else {
+				lua_pushstring(L, "FILE");
+				return 1;
+			}
+		break;
+
+		case FILE_TYPE_PIPE: // The specified file is a socket, a named pipe, or an anonymous pipe.
+			lua_pushstring(L, "PIPE");
+			return 1;
+		break;
+
+		case FILE_TYPE_DISK: // The specified file is a disk file.
+			lua_pushstring(L, "FILE");
+			return 1;
+		break;
+
+		default: // Either the type of the specified file is unknown, or the function failed.
+			lua_pushnil(L);
+			lua_pushstring(L, "Unknown handle");
+			return 2;
+		break;
+	}
 }

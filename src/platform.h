@@ -18,12 +18,11 @@ public:
 
 	static const char* GetPlatform();
 
-	static int SetConsoleForegroundColor(lua_State* L);
-	static int SetConsoleBackgroundColor(lua_State* L);
-
 	static bool Initialize();
 
 	static int Cwd(lua_State* L);
+
+	static int GetHandleType (lua_State* L);
 };
 
 

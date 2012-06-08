@@ -1,0 +1,288 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release Debuggable|Win32">
+      <Configuration>Release Debuggable</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4D9B134E-CC54-4175-8F80-EEFC3B635ED7}</ProjectGuid>
+    <RootNamespace>LuaNode</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="build_lua.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">false</LinkIncremental>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Message>Generate path</Message>
+      <Command>..\..\tools\lua5.1.exe ..\..\tools\path_to_string.lua $(ProjectDir) &gt; "../../build/temp/$(Configuration)/build_path.precomp"</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\;$(INCONCERT_DEVEL)\packages\boost_1_44_0;$(INCONCERT_DEVEL)\packages\lua5.1\include;$(INCONCERT_DEVEL)\sources;../../build/temp/$(Configuration);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501;ENABLE_LIBBLOGGER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>lua5.1.lib;libblogger2_d.lib;ssleay32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(INCONCERT_DEVEL)\bin\$(ProjectName)_d.exe</OutputFile>
+      <AdditionalLibraryDirectories>$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib;$(INCONCERT_DEVEL)\packages\Lua5.1\lib;$(INCONCERT_DEVEL)\lib;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Message>Generate path</Message>
+      <Command>..\..\tools\lua5.1.exe ..\..\tools\path_to_string.lua $(ProjectDir) &gt; "../../build/temp/$(Configuration)/build_path.precomp"</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(INCONCERT_DEVEL)\packages\boost_1_44_0;$(INCONCERT_DEVEL)\packages\lua5.1\include;$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\;../../build/temp/$(Configuration);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>lua5.1.lib;libblogger2.lib;ssleay32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(INCONCERT_DEVEL)\bin\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib;$(INCONCERT_DEVEL)\packages\Lua5.1\lib;$(INCONCERT_DEVEL)\lib;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">
+    <PreBuildEvent>
+      <Message>Generate path</Message>
+      <Command>..\..\tools\lua5.1.exe ..\..\tools\path_to_string.lua $(ProjectDir) &gt; "../../build/temp/$(Configuration)/build_path.precomp"</Command>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+      <Outputs>%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>$(INCONCERT_DEVEL)\packages\OpenSSL-1.0.0a\include\;$(INCONCERT_DEVEL)\packages\boost_1_44_0;$(INCONCERT_DEVEL)\packages\lua5.1\include;$(INCONCERT_DEVEL)\sources;../../build/temp/$(Configuration);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501;ENABLE_LIBBLOGGER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <StringPooling>false</StringPooling>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>lua5.1.lib;libblogger2.lib;ssleay32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(INCONCERT_DEVEL)\bin\$(ProjectName)_d.exe</OutputFile>
+      <AdditionalLibraryDirectories>$(INCONCERT_DEVEL)\packages\boost_1_44_0\lib;$(INCONCERT_DEVEL)\packages\Lua5.1\lib;$(INCONCERT_DEVEL)\lib;$(INCONCERT_DEVEL)\packages\openssl-1.0.0a\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(INCONCERT_DEVEL)\bin\$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <OptimizeReferences>
+      </OptimizeReferences>
+      <EnableCOMDATFolding>
+      </EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>
+      </LinkTimeCodeGeneration>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\blogger.cpp" />
+    <ClCompile Include="..\..\src\lua_vm.cpp" />
+    <ClCompile Include="..\..\src\luanode.cpp" />
+    <ClCompile Include="..\..\src\luanode_child_process.cpp" />
+    <ClCompile Include="..\..\src\luanode_constants.cpp" />
+    <ClCompile Include="..\..\src\luanode_crypto.cpp" />
+    <ClCompile Include="..\..\src\luanode_datagram_udp.cpp" />
+    <ClCompile Include="..\..\src\luanode_dns.cpp" />
+    <ClCompile Include="..\..\src\luanode_file_linux.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_file_win32.cpp" />
+    <ClCompile Include="..\..\src\luanode_hrtime.cpp" />
+    <ClCompile Include="..\..\src\luanode_http_parser.cpp" />
+    <ClCompile Include="..\..\src\luanode_module_api.cpp" />
+    <ClCompile Include="..\..\src\luanode_net.cpp" />
+    <ClCompile Include="..\..\src\luanode_net_acceptor.cpp" />
+    <ClCompile Include="..\..\src\luanode_os.cpp" />
+    <ClCompile Include="..\..\src\luanode_stdio_linux.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_stdio_win32.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">
+      </PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_timer.cpp" />
+    <ClCompile Include="..\..\src\platform_bsd.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\platform_linux.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\platform_windows.cpp" />
+    <ClCompile Include="..\..\lib\preloader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\detail\windows\input_tty.cpp" />
+    <ClCompile Include="..\..\src\detail\windows\output_tty.cpp" />
+    <ClCompile Include="..\..\src\detail\windows\windows_tty.cpp" />
+    <ClCompile Include="..\..\deps\http-parser\http_parser.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">
+      </PrecompiledHeader>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">CompileAsCpp</CompileAs>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\detail\windows\input_tty.h" />
+    <ClInclude Include="..\..\src\detail\windows\output_tty.h" />
+    <ClInclude Include="..\..\src\detail\windows\windows_tty.h" />
+    <ClInclude Include="..\..\src\blogger.h" />
+    <ClInclude Include="..\..\src\lua_runtime.h" />
+    <ClInclude Include="..\..\src\lua_stack_checker.h" />
+    <ClInclude Include="..\..\src\lua_vm.h" />
+    <ClInclude Include="..\..\src\luanode.h" />
+    <ClInclude Include="..\..\luanode_api.h" />
+    <ClInclude Include="..\..\src\luanode_child_process.h" />
+    <ClInclude Include="..\..\src\luanode_constants.h" />
+    <ClInclude Include="..\..\src\luanode_crypto.h" />
+    <ClInclude Include="..\..\src\luanode_datagram_udp.h" />
+    <ClInclude Include="..\..\src\luanode_dns.h" />
+    <ClInclude Include="..\..\src\luanode_file_linux.h" />
+    <ClInclude Include="..\..\src\luanode_file_win32.h" />
+    <ClInclude Include="..\..\src\luanode_hrtime.h" />
+    <ClInclude Include="..\..\src\luanode_http_parser.h" />
+    <ClInclude Include="..\..\src\luanode_module_api.h" />
+    <ClInclude Include="..\..\src\luanode_net.h" />
+    <ClInclude Include="..\..\src\luanode_net_acceptor.h" />
+    <ClInclude Include="..\..\src\luanode_os.h" />
+    <ClInclude Include="..\..\src\luanode_stdio.h" />
+    <ClInclude Include="..\..\src\luanode_timer.h" />
+    <ClInclude Include="..\..\src\platform.h" />
+    <ClInclude Include="..\..\lib\preloader.h" />
+    <ClInclude Include="..\..\src\shared_const_buffer.h" />
+    <ClInclude Include="..\..\src\stdafx.h" />
+    <ClInclude Include="..\..\src\targetver.h" />
+    <ClInclude Include="..\..\deps\http-parser\http_parser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build_Lua_File Include="..\..\lib\LuaNode\child_process.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Class.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\console.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\crypto.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Datagram.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\dns.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\event_emitter.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\free_list.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\fs.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\http.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\net.lua" />
+    <Build_Lua_File Include="..\..\src\node.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\path.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\querystring.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Readline.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Repl.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Script.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\stream.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Timers.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Tty.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\url.lua" />
+    <Build_Lua_File Include="..\..\lib\LuaNode\Utils.lua" />
+    <Build_Lua_File Include="..\..\deps\StackTracePlus\src\StackTracePlus.lua" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="build_lua.targets" />
+  </ImportGroup>
+</Project>

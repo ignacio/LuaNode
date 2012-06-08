@@ -28,6 +28,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="Generate path"
+				CommandLine="..\..\tools\lua5.1.exe ..\..\tools\path_to_string.lua $(InputDir) &gt; &quot;../../build/temp/$(ConfigurationName)/build_path.precomp&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -107,6 +109,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="Generate path"
+				CommandLine="..\..\tools\lua5.1.exe ..\..\tools\path_to_string.lua $(InputDir) &gt; &quot;../../build/temp/$(ConfigurationName)/build_path.precomp&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -188,9 +192,13 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="Generate path"
+				CommandLine="..\..\tools\lua5.1.exe ..\..\tools\path_to_string.lua $(InputDir) &gt; &quot;../../build/temp/$(ConfigurationName)/build_path.precomp&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				CommandLine=""
+				Outputs=""
 			/>
 			<Tool
 				Name="Build Lua File"
@@ -405,6 +413,34 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\platform_bsd.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Debuggable|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\src\platform_linux.cpp"
 				>
 				<FileConfiguration
@@ -492,6 +528,42 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<Filter
+				Name="detail"
+				>
+				<Filter
+					Name="windows"
+					>
+					<File
+						RelativePath="..\..\src\detail\windows\input_tty.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\detail\windows\input_tty.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\detail\windows\output_tty.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\detail\windows\output_tty.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\detail\windows\windows_tty.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\detail\windows\windows_tty.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="posix"
+					>
+				</Filter>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -708,6 +780,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lib\LuaNode\Readline.lua"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lib\LuaNode\Repl.lua"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\LuaNode\Script.lua"
 				>
 			</File>
@@ -721,10 +801,6 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\LuaNode\Tty.lua"
-				>
-			</File>
-			<File
-				RelativePath="..\..\lib\LuaNode\Tty_win.lua"
 				>
 			</File>
 			<File

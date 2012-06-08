@@ -11,9 +11,9 @@ LIB_DIR ?= /usr/local/lib
 
 PREFIX ?= /usr/local
 
-BOOST_VERSION ?=1_44
-BOOST_DIR     ?=$(INCLUDE_DIR)/boost-$(BOOST_VERSION)
-BOOST_LIBS    ?=$(LIB_DIR)
+BOOST_VERSION ?= 1_44
+BOOST_DIR     ?= $(INCLUDE_DIR)/boost-$(BOOST_VERSION)
+BOOST_LIBS    ?= $(LIB_DIR)
 
 # Lua includes directory
 #LUA_INC = -I$(PACKAGES)/lua5.1/include
@@ -63,7 +63,7 @@ BOOST_SYSTEM_LIBD ?=boost_system-gcc$(GCC_VERSION)-mt-d-$(BOOST_VERSION)
 
 ifeq ($(Target), Debug)
 	OUTPUT = $(OUTPUT_BASE)_d
-	CFLAGS = -Wall -c -g -D_DEBUG -DENABLE_LIBBLOGGER -Werror
+	CFLAGS = -Wall -c -g -D_DEBUG -D_SOURCE_PATH="\"$(BASE_SRC_DIR)\"" -DENABLE_LIBBLOGGER -Werror
 	LFLAGS = -Wall -g -Wl,-E
 	SPECIFIC_LIBS = -l$(BOOST_SYSTEM_LIBD) \
 			$(LUA_LIB) \
@@ -74,7 +74,7 @@ ifeq ($(Target), Debug)
 			-lblogger2_d
 else
 	OUTPUT = $(OUTPUT_BASE)
-	CFLAGS = -Wall -c -O2 -D_NDEBUG -D_SOURCE_PATH=$(BASE_SRC_DIR) -Wno-strict-aliasing -Werror
+	CFLAGS = -Wall -c -O2 -D_NDEBUG -D_SOURCE_PATH="\"$(BASE_SRC_DIR)\"" -Wno-strict-aliasing -Werror
 	LFLAGS = -Wall -Wl,-E
 	SPECIFIC_LIBS = -l$(BOOST_SYSTEM_LIB) \
 			$(LUA_LIB) \
@@ -99,40 +99,43 @@ OBJS = $(PACKAGES)/Lua5.1/src/liblua.a \
 		$(BUILD_TEMP_DIR)/luanode_crypto.o \
 		$(BUILD_TEMP_DIR)/luanode_dns.o \
 		$(BUILD_TEMP_DIR)/luanode_file_linux.o \
+		$(BUILD_TEMP_DIR)/luanode_hrtime.o \
 		$(BUILD_TEMP_DIR)/luanode_http_parser.o \
 		$(BUILD_TEMP_DIR)/luanode_module_api.o \
 		$(BUILD_TEMP_DIR)/luanode_net.o \
 		$(BUILD_TEMP_DIR)/luanode_datagram_udp.o \
 		$(BUILD_TEMP_DIR)/luanode_net_acceptor.o \
+		$(BUILD_TEMP_DIR)/luanode_posix_stream.o \
 		$(BUILD_TEMP_DIR)/luanode_timer.o \
 		$(BUILD_TEMP_DIR)/luanode_os.o \
 		$(BUILD_TEMP_DIR)/luanode_stdio_linux.o \
-		$(BUILD_TEMP_DIR)/luanode_hrtime.o \
 		$(BUILD_TEMP_DIR)/lua_vm.o \
 		$(BUILD_TEMP_DIR)/platform_linux.o \
 		$(BUILD_TEMP_DIR)/preloader.o \
+		$(BUILD_TEMP_DIR)/tty_stream.o \
 		$(BUILD_TEMP_DIR)/http_parser.o
 
 LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/class.precomp \
 		$(BUILD_TEMP_DIR)/console.precomp \
 		$(BUILD_TEMP_DIR)/crypto.precomp \
+		$(BUILD_TEMP_DIR)/datagram.precomp \
 		$(BUILD_TEMP_DIR)/dns.precomp \
 		$(BUILD_TEMP_DIR)/event_emitter.precomp \
 		$(BUILD_TEMP_DIR)/free_list.precomp \
 		$(BUILD_TEMP_DIR)/fs.precomp \
 		$(BUILD_TEMP_DIR)/http.precomp \
-		$(BUILD_TEMP_DIR)/datagram.precomp \
 		$(BUILD_TEMP_DIR)/net.precomp \
 		$(BUILD_TEMP_DIR)/path.precomp \
 		$(BUILD_TEMP_DIR)/querystring.precomp \
+		$(BUILD_TEMP_DIR)/readline.precomp \
+		$(BUILD_TEMP_DIR)/repl.precomp \
+		$(BUILD_TEMP_DIR)/script.precomp \
 		$(BUILD_TEMP_DIR)/stream.precomp \
 		$(BUILD_TEMP_DIR)/timers.precomp \
+		$(BUILD_TEMP_DIR)/tty.precomp \
 		$(BUILD_TEMP_DIR)/url.precomp \
 		$(BUILD_TEMP_DIR)/utils.precomp \
-		$(BUILD_TEMP_DIR)/script.precomp \
-		$(BUILD_TEMP_DIR)/tty.precomp \
-		$(BUILD_TEMP_DIR)/tty_posix.precomp \
 		$(BUILD_TEMP_DIR)/node.precomp \
 		$(BUILD_TEMP_DIR)/StackTracePlus/StackTracePlus.precomp
 
@@ -143,6 +146,10 @@ $(BUILD_TEMP_DIR) :
 	mkdir -p $(BUILD_TEMP_DIR)
 
 $(BUILD_TEMP_DIR)/%.o : $(BASE_SRC_DIR)/src/%.cpp
+	@echo ""
+	$(COMPILE)
+
+$(BUILD_TEMP_DIR)/%.o : $(BASE_SRC_DIR)/src/detail/posix/%.cpp
 	@echo ""
 	$(COMPILE)
 
