@@ -71,9 +71,9 @@ The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
    - sudo ldconfig -v
    
  - Install LuaRocks
-   - wget http://luarocks.org/releases/luarocks-2.0.8.tar.gz
-   - tar xvf luarocks-2.0.8.tar.gz
-   - cd luarocks-2.0.8
+   - wget http://luarocks.org/releases/luarocks-2.0.10.tar.gz
+   - tar xvf luarocks-2.0.10.tar.gz
+   - cd luarocks-2.0.10
    - ./configure
    - make
    - sudo make install
