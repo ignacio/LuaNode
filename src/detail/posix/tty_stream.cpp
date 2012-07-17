@@ -160,9 +160,8 @@ void TtyStream::Reset() {
 /// 
 int TtyStream::SetRawMode(lua_State* L)
 {
-	int res = 0;
 	if(lua_toboolean(L, 2) == false) {
-		res = uv_tty_set_mode(this, 0);
+		uv_tty_set_mode(this, 0);
 		/* we don care if it fails when disabling */
 	}
 	else {
