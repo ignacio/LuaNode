@@ -15,7 +15,7 @@ local keywords = {
 	'return', 'then', 'true', 'until', 'while'
 }
 
--- Can overridden with custom print functions, such as `probe` or `eyes.js`
+-- Can be overridden with custom print functions, such as `probe` or `eyes.js`
 writer = utils.inspect
 
 ---
@@ -201,9 +201,9 @@ function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 				end
 			else
 				if repl.useColors then
-					repl.outputStream:write( console.getColor("lightred") .. results[1] .. console.getResetColor() .. "\n" )
+					repl.outputStream:write( console.getColor("lightred") .. utils.inspect(results[1]) .. console.getResetColor() .. "\n" )
 				else
-					repl.outputStream:write( results[1] .. "\n" )
+					repl.outputStream:write( utils.inspect(results[1]) .. "\n" )
 				end
 				repl.rli:setPrompt(repl.prompt)
 			end
