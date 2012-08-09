@@ -182,6 +182,8 @@ local function createWritableStdioStream (fd)
 		error("Unknown stream type " .. tostring(fd))
 	end
 
+	stream._isStdio = true
+
 	return stream
 end
 
@@ -230,6 +232,7 @@ setmetatable(process, {
 				self:emit("error", err)
 			end
 			stdout.destroySoon = stdout.destroy
+			stdout.finish = stdout.destroy
 			if stdout.isTTY then
 				process:on('SIGWINCH', function()
 					stdout:_refreshSize()
@@ -245,6 +248,7 @@ setmetatable(process, {
 				self:emit("error", err)
 			end
 			stderr.destroySoon = stderr.destroy
+			stderr.finish = stderr.destroy
 			return stderr
 		end
 

@@ -372,9 +372,6 @@ function Interface:close ()
 		self:_setRawMode(false)
 	end
 	self:pause()
-	-- TODO: sacar ese destroy, ahora esta ahi porque
-	-- el pause no cancela el read que hay pending
-	self.input:destroy()
 	self.closed = true
 	self:emit("close")
 end

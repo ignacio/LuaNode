@@ -215,6 +215,8 @@ int InputTtyStream::Pause (lua_State* L) {
 	
 	m_tty_reader_thread->join();
 	m_tty_reader_thread.reset();
+	
+	m_input_asio_work.reset();
 	return 0;
 }
 

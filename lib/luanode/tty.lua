@@ -71,7 +71,9 @@ function ReadStream:__init(fd)
 				--newStream.ondata(pool, start, end)
 				newStream:ondata(data)
 			end
-			if newStream._raw_socket and not newStream._dont_read then	-- the socket may have been closed on Stream.destroy
+
+			-- the socket may have been closed on Stream.destroy or paused
+			if newStream._raw_socket and not newStream._dont_read and not newStream.paused then
 				newStream._raw_socket:read()	-- issue another async read
 				--newStream:_readImpl()
 			end

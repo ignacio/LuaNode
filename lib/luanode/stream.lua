@@ -34,33 +34,29 @@ function Stream:pipe (dest, options)
 
 	dest:on("drain", ondrain)
 
-	--
-	-- If the 'finish' option is not supplied, dest:finish() will be called when
-	-- source gets the 'end' or 'close' events. Only call dest:finish() once.
-	--
 
 	local did_onend = false
 	onend = function (source)
 		if did_onend then return end
 		did_onend = true
+
 		-- remove the listeners
 		cleanup()
+
 		dest:finish()
 	end
 
 	onclose = function (source)
 		if did_onend then return end
 		did_onend = true
+
 		-- remove the listeners
 		cleanup()
+
 		dest:destroy()
 	end
 
-	if not dest._isStdio and (not options or options.finish ~= false) then
-		source:on("end", onend)
-		source:on("close", onclose)
-	end
-
+	-- don't leave dangling pipes when there are errors.
 	onerror = function (source, err)
 		cleanup()
 		if #source:listeners("error") == 0 then
@@ -68,6 +64,19 @@ function Stream:pipe (dest, options)
 		end
 	end
 
+	--
+	-- If the 'finish' option is not supplied, dest:finish() will be called when
+	-- source gets the 'end' or 'close' events.
+	--
+	if not dest._isStdio and (not options or options.finish ~= false) then
+		source:on("end", onend)
+		source:on("close", onclose)
+	end
+
+	source:on("error", onerror)
+  	dest:on("error", onerror)
+
+	-- remove all the event listeners that were added.
 	cleanup = function ()
 		source:removeListener("data", ondata)
 		dest:removeListener("drain", ondrain)
@@ -93,5 +102,6 @@ function Stream:pipe (dest, options)
 
 	dest:emit("pipe", source)
 
+	-- Allow for unix-like usage: A:pipe(B):pipe(C)
 	return dest
 end
