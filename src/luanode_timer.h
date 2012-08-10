@@ -26,7 +26,6 @@ private:
 
 private:
 	boost::shared_ptr< boost::asio::deadline_timer > m_timer;
-	lua_State* m_L;
 	bool m_repeats;
 	int m_after;
 };
