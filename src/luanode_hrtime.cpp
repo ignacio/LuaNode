@@ -87,7 +87,7 @@ boost::uint64_t LuaNode::HighresTime::Get () {
 boost::uint64_t LuaNode::HighresTime::Get () {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return (ts.tv_sec * NANOSEC + ts.tv_nsec);
+	return ((boost::uint64_t) ts.tv_sec * NANOSEC + ts.tv_nsec);
 }
 #endif
 
