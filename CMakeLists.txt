@@ -31,14 +31,16 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "BSD")
         src/luanode_file_linux.cpp
         src/platform_bsd.cpp
         src/luanode_stdio_linux.cpp
-        src/detail/tty_stream.cpp
+        src/luanode_posix_stream.cpp
+        src/detail/posix/tty_stream.cpp
     )
 ELSE()
     SET(OS
         src/luanode_file_linux.cpp
         src/platform_linux.cpp
         src/luanode_stdio_linux.cpp
-        src/detail/tty_stream.cpp
+        src/luanode_posix_stream.cpp
+        src/detail/posix/tty_stream.cpp
     )
 ENDIF()
 
@@ -73,6 +75,8 @@ SET(DST ${CMAKE_SOURCE_DIR}/build/temp)
 SET(SRC ${CMAKE_SOURCE_DIR})
 FILE(MAKE_DIRECTORY ${DST})
 
+SET(SRC ${CMAKE_SOURCE_DIR})
+ADD_DEFINITIONS( -D_SOURCE_PATH=\"${CMAKE_SOURCE_DIR}\" )
 FILE(WRITE ${DST}/${target}/build_path.precomp \"${SRC}\")
 
 FOREACH(filename ${LUAS})
