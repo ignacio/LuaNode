@@ -66,10 +66,10 @@ extern char **environ;
   #define environ (*_NSGetEnviron())
 #endif
 
-#ifdef _MSC_VER
-static const char* _SOURCE_PATH = 
-#include "build_path.precomp"
-;
+#if !defined(_SOURCE_PATH) && defined(_MSC_VER)
+  static const char* _SOURCE_PATH = 
+  #include "build_path.precomp"
+  ;
 #endif
 
 namespace LuaNode {
