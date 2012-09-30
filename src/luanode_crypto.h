@@ -8,6 +8,7 @@
 
 #include <openssl/hmac.h>
 #include <boost/asio/ssl.hpp>
+#include <boost/array.hpp>
 
 namespace LuaNode {
 

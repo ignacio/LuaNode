@@ -1,16 +1,28 @@
 PROJECT(LuaNode C CXX)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-FIND_PACKAGE(Lua51 REQUIRED)
-FIND_PACKAGE(OpenSSL REQUIRED)
-FIND_PACKAGE(Threads REQUIRED)
+FIND_PACKAGE( Lua51 REQUIRED )
+FIND_PACKAGE( OpenSSL REQUIRED )
+FIND_PACKAGE( Threads REQUIRED )
 
+SET( BOOST_MIN_VERSION "1.44.0" )
+
+# We want to statically link the multithreaded versions. And we don't want Boost auto-link feature
+# since it doesn't play nice with CMake
 SET( Boost_USE_STATIC_LIBS ON )
 SET( Boost_USE_MULTITHREADED ON )
 SET( Boost_USE_STATIC_RUNTIME OFF )
 ADD_DEFINITIONS( -DBOOST_ALL_NO_LIB )
 
-FIND_PACKAGE(Boost COMPONENTS system date_time thread REQUIRED)
+# boost::thread since version 1.50 relies on boost::chrono
+# So check which Boost version is available and look for the required libs
+FIND_PACKAGE( Boost )
+SET( local_boost_version "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" )
+IF (${local_boost_version} VERSION_GREATER "1.49")
+    FIND_PACKAGE( Boost ${BOOST_MIN_VERSION} COMPONENTS system date_time thread chrono REQUIRED )
+ELSE()
+    FIND_PACKAGE( Boost ${BOOST_MIN_VERSION} COMPONENTS system date_time thread REQUIRED )
+ENDIF()
 
 FIND_PROGRAM(LUA NAMES lua-5.1 lua5.1 lua)
 
