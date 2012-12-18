@@ -333,12 +333,16 @@ function REPLServer:complete (line, callback)
     	---[[
 		-- TODO: don't try to autocomplete stuff like ). }., etc
 		local i1,i2 = line:find("[.:%a_]+$")
-  		if not i1 then return end
+  		if not i1 then
+  			callback(nil, {})	-- report no completions
+  			return
+  		end
 
   		local group = {}
   		local front, partial = line:sub(1, i1 - 1), line:sub(i1)
   		-- if it ends on a non letter, and partial is not . or :, go away
-  		if front:match("[^%w_]$") and partial == "." or partial == ":" then 
+  		if front:match("[^%w_]$") and partial == "." or partial == ":" then
+  			callback(nil, {})	-- report no completions
   			return
   		end
   		--print(front, partial)
@@ -360,15 +364,20 @@ function REPLServer:complete (line, callback)
     		all = (last == "")
     		for w in P:gmatch("[^.:]+") do
       			t = t[w]
-      			if not t then return end
+      			if not t then
+      				callback(nil, {})	-- report no completions
+      				return
+      			end
     		end
   		end
   		prefix = front .. prefix
   		group = {}
   		local function append_candidates(t)  
     		for k, v in pairs(t) do
-      			if all or k:sub(1, #last) == last then
-        			table.insert(group, prefix .. k)
+				if type(k) == "string" or type(k) == "number" then
+					if all or k:sub(1, #last) == last then
+						table.insert(group, prefix .. k)
+					end
       			end
     		end
   		end
