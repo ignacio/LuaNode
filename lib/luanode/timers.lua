@@ -275,7 +275,7 @@ function Timers.setInterval(callback, repeat_, ...)
 	return timer
 end
 
-function Timers.clearInterval ()
+function Timers.clearInterval (timer)
 	--TODO: assert(timer es un timer posta)
 	timer.callback = nil
 	timer:stop()
