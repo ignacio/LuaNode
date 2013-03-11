@@ -80,7 +80,7 @@ SET(LUAS
     lib/luanode/utils
     ${LUA_OS}
     src/node
-    deps/StackTracePlus/src/StackTracePlus
+    deps/stacktraceplus/src/StackTracePlus
 )
 
 SET(DST ${CMAKE_SOURCE_DIR}/build/temp)
