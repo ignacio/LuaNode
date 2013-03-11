@@ -1,0 +1,16 @@
+src/Debug
+src/Release
+Test/Debug
+Test/Release
+*.opt
+*.plg
+*.dsw
+*.user
+*.tlh
+*.tli
+*.ncb
+*.positions
+*.suo
+*.opt
+.MySCMServerInfo
+*.o

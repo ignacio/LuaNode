@@ -5,7 +5,7 @@
 #include <vector>
 #include <boost/thread.hpp>
 #include <lua.hpp>
-#include "../../../deps/LuaCppBridge51/lcbHybridObjectWithProperties.h"
+#include "../../../deps/luacppbridge51/lcbHybridObjectWithProperties.h"
 
 namespace LuaNode {
 

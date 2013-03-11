@@ -1,7 +1,7 @@
 #pragma once
 
 #include <lua.hpp>
-#include "../../../deps/LuaCppBridge51/lcbHybridObjectWithProperties.h"
+#include "../../../deps/luacppbridge51/lcbHybridObjectWithProperties.h"
 
 #include <termios.h>
 #include <boost/asio.hpp>

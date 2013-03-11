@@ -1,7 +1,7 @@
 #pragma once
 
 #include <lua.hpp>
-#include "../deps/LuaCppBridge51/lcbHybridObjectWithProperties.h"
+#include "../deps/luacppbridge51/lcbHybridObjectWithProperties.h"
 
 #include <boost/asio/windows/stream_handle.hpp>
 #include <boost/asio/windows/random_access_handle.hpp>

@@ -137,7 +137,7 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/url.precomp \
 		$(BUILD_TEMP_DIR)/utils.precomp \
 		$(BUILD_TEMP_DIR)/node.precomp \
-		$(BUILD_TEMP_DIR)/StackTracePlus/StackTracePlus.precomp
+		$(BUILD_TEMP_DIR)/stacktraceplus/StackTracePlus.precomp
 
 all : $(OUTPUT_FILE)
 
@@ -161,7 +161,7 @@ $(BUILD_TEMP_DIR)/%.precomp : $(BASE_SRC_DIR)/src/%.lua
 	@echo ""
 	$(COMPILE_LUA)
 
-$(BUILD_TEMP_DIR)/StackTracePlus/%.precomp : $(BASE_SRC_DIR)/deps/StackTracePlus/src/%.lua
+$(BUILD_TEMP_DIR)/stacktraceplus/%.precomp : $(BASE_SRC_DIR)/deps/stacktraceplus/src/%.lua
 	@echo ""
 	$(COMPILE_LUA)
 
