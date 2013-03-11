@@ -71,9 +71,9 @@ The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
    - sudo ldconfig -v
    
  - Install LuaRocks
-   - wget http://luarocks.org/releases/luarocks-2.0.10.tar.gz
-   - tar xvf luarocks-2.0.10.tar.gz
-   - cd luarocks-2.0.10
+   - wget http://luarocks.org/releases/luarocks-2.0.12.tar.gz
+   - tar xvf luarocks-2.0.12.tar.gz
+   - cd luarocks-2.0.12
    - ./configure
    - make
    - sudo make install
@@ -83,10 +83,8 @@ The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
    - mkdir -p devel/sources
    - mkdir -p devel/bin
    - cd devel/sources
-   - git clone git://github.com/ignacio/LuaNode.git --recursive
-   - cd LuaNode
-   - git fetch --all
-   - cd build/linux
+   - git clone git://github.com/ignacio/LuaNode.git
+   - cd LuaNode/build/linux
    - export INCONCERT_DEVEL=~/devel
    - make
 
@@ -99,14 +97,14 @@ When compiling on ArchLinux, the last step is this:
 If you already have Lua, OpenSSL and Boost installed, you can use [CMake](http://www.cmake.org/) to build LuaNode 
 (thanks to Michal Kottman). Just do:
 
- - git clone git://github.com/ignacio/LuaNode.git --recursive
+ - git clone git://github.com/ignacio/LuaNode.git
  - cd LuaNode/build
  - cmake ..
  - cmake --build .
 
  When build on ArchLinux, you need to change the install prefix, so the steps required are:
 
- - git clone git://github.com/ignacio/LuaNode.git --recursive
+ - git clone git://github.com/ignacio/LuaNode.git
  - cd LuaNode/build
  - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
  - cmake --build .
