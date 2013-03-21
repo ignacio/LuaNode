@@ -562,12 +562,11 @@ end
 function Interface:_wordLeft ()
 	if self.cursor > 0 then
 		local leading = self.line:sub(1, self.cursor)
-		local match = leading:match("%s*(%w+%s*)$")
+		local match = leading:match("([^%w%s]+)%s*$")
 		if not match then
-			self:_moveCursor(0)
-		else
-			self:_moveCursor(-#match)
+			match = leading:match("(%w+)%s*$")
 		end
+		self:_moveCursor(-#match)
 	end
 end
 
@@ -575,8 +574,14 @@ end
 -- 
 function Interface:_wordRight ()
 	if self.cursor < #self.line then
-		local trailing = self.line:sub(self.cursor)
-		local match = trailing:match("^%s*(%w+%s*)")
+		local trailing = self.line:sub(self.cursor + 1)
+		local match = trailing:match("^(%s+%s*)")
+		if not match then
+			match = trailing:match("^(%W+%s*)")
+		end
+		if not match then
+			match = trailing:match("^(%w+%s*)")
+		end
 		self:_moveCursor(#match)
 	end
 end
@@ -603,7 +608,10 @@ end
 function Interface:_deleteWordLeft ()
 	if self.cursor > 0 then
 		local leading = self.line:sub(1, self.cursor)
-		local match = leading:match("%s+(%w+%s*)$")
+		local match = leading:match("([^%w%s]+)%s*$")
+		if not match then
+			match = leading:match("(%w+)%s*$")
+		end
 		if not match then
 			self.line = ""
 			self.cursor = 0
@@ -621,7 +629,13 @@ end
 function Interface:_deleteWordRight ()
 	if self.cursor < #self.line then
 		local trailing = self.line:sub(self.cursor + 1)
-		local match = trailing:match("^%s*(%w+%s*)")
+		local match = trailing:match("^(%s+%s*)")
+		if not match then
+			match = trailing:match("^(%W+%s*)")
+		end
+		if not match then
+			match = trailing:match("^(%w+%s*)")
+		end
 		self.line = self.line:sub(1, self.cursor) .. trailing:sub(#match + 1)
 		self:_refreshLine()
 	end
