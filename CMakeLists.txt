@@ -27,6 +27,7 @@ ENDIF()
 FIND_PROGRAM(LUA NAMES lua-5.1 lua5.1 lua)
 
 IF(WIN32)
+    # Windows specific code
     ADD_DEFINITIONS( -D_CRT_SECURE_NO_WARNINGS )
     ADD_DEFINITIONS( -D_WIN32_WINNT=0x0501 )
     SET(OS
@@ -38,6 +39,7 @@ IF(WIN32)
         src/detail/windows/windows_tty.cpp
     )
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "BSD")
+    # BSD specific code
     FIND_LIBRARY(KVM_LIBRARIES NAMES kvm)
     SET(OS
         src/luanode_file_linux.cpp
@@ -46,7 +48,17 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "BSD")
         src/luanode_posix_stream.cpp
         src/detail/posix/tty_stream.cpp
     )
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # Mac OS X specific code
+    SET(OS
+        src/luanode_file_linux.cpp
+        src/platform_darwin.cpp
+        src/luanode_stdio_linux.cpp
+        src/luanode_posix_stream.cpp
+        src/detail/posix/tty_stream.cpp
+    )
 ELSE()
+    # Linux specific code
     SET(OS
         src/luanode_file_linux.cpp
         src/platform_linux.cpp

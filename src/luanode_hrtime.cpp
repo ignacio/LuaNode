@@ -50,6 +50,11 @@ public:
 
 hrtime_init init;
 
+#elif defined (__APPLE__)
+#  include <mach/mach.h>
+#  include <mach/mach_time.h>
+#  define __STDC_FORMAT_MACROS
+#  include <inttypes.h>
 #else
 #  include <time.h>
 #  define __STDC_FORMAT_MACROS
@@ -82,6 +87,16 @@ boost::uint64_t LuaNode::HighresTime::Get () {
 	return ((boost::uint64_t) counter.LowPart * NANOSEC / uv_hrtime_frequency_) +
 			(((boost::uint64_t) counter.HighPart * NANOSEC / uv_hrtime_frequency_)
 			<< 32);
+}
+#elif defined (__APPLE__)
+boost::uint64_t LuaNode::HighresTime::Get () {
+	mach_timebase_info_data_t info;
+	
+	if (mach_timebase_info(&info) != KERN_SUCCESS) {
+		abort();
+	}
+
+	return mach_absolute_time() * info.numer / info.denom;
 }
 #else
 boost::uint64_t LuaNode::HighresTime::Get () {
