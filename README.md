@@ -9,7 +9,7 @@ In fact, **LuaNode** is heavily based on [Node.js][11], because I wanted to be a
 **LuaNode** is written using [Boost.Asio][5]. From its homepage:
 > Boost.Asio is a cross-platform C++ library for network and low-level I/O programming that provides developers with a consistent asynchronous model using a modern C++ approach.
 
-That allows **LuaNode** to be cross-platform. It is mainly developed on Windows, but it is being tested also on Linux.
+That allows **LuaNode** to be cross-platform. It is mainly developed on Windows, but it is being tested also on Linux and OSX.
 
 ## Hello, world #
 
@@ -19,8 +19,8 @@ The following is the *"hello world"* of HTTP servers.
 local http = require('luanode.http')
 
 http.createServer(function(self, request, response)
-	response:writeHead(200, {["Content-Type"] = "text/plain"})
-	response:finish("Hello World")
+   response:writeHead(200, {["Content-Type"] = "text/plain"})
+   response:finish("Hello World")
 end):listen(8124)
 
 console.log('Server running at http://127.0.0.1:8124/')
@@ -108,8 +108,21 @@ If you already have Lua, OpenSSL and Boost installed, you can use [CMake](http:/
  - cd LuaNode/build
  - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
  - cmake --build .
- 
 
+### Mac OSX installation 
+*Note: Installation was tested on OSX Lion 10.7.5.*
+
+If you don't have boost or cmake installed, you can use [Homebrew](http://mxcl.github.com/homebrew/):
+
+ - brew install boost cmake
+ 
+Compile from sources with cmake:
+
+ - git clone git://github.com/ignacio/LuaNode.git
+ - cd LuaNode/build
+ - cmake ../
+ - make
+ 
 ## Status #
 Currently, there's a lot of functionality missing. Doing a `grep TODO` should give an idea :D
 
