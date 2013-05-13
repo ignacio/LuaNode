@@ -312,7 +312,7 @@ local function initSocket(self)
 			end
 
 		elseif #data > 0 then
-			if self._raw_socket then	-- the socket may have been closed on Stream.destroy
+			if self.readable then	-- the socket may have been closed on Stream.destroy
 				Timers.Active(self)
 			end
 			
@@ -329,7 +329,7 @@ local function initSocket(self)
 				--self.ondata(pool, start, end)
 				self:ondata(data)
 			end
-			if self._raw_socket and not self._dont_read then	-- the socket may have been closed on Stream.destroy
+			if self.readable and not self._dont_read then	-- the socket may have been closed on Stream.destroy
 				--self._raw_socket:read()	-- issue another async read
 				self:_readImpl()
 			end
@@ -634,10 +634,17 @@ local connect_callback = function(raw_socket, ok, err_msg, err_code)
 	local socket = assert(raw_socket._owner)
 	if ok then
 		socket._connecting = false
-		--socket:resume()
-		socket.readable = true
-		socket.writable = true
-		socket._raw_socket.write_callback = _doFlush
+		
+		if socket.destroyed then
+			LogWarning("Socket '%s' connected but was closed in the meantime", raw_socket)
+			return
+		end
+		
+		if socket._raw_socket then
+			socket.readable = true
+			socket.writable = true
+			socket._raw_socket.write_callback = _doFlush
+		end
 		local ok, err = pcall(socket.emit, socket, "connect")
 		if not ok then
 			socket:destroy(err)
@@ -798,7 +805,7 @@ end
 --
 -- At the moment, just issue an async read
 function Socket:resume()
-	if not self._raw_socket then
+	if self.destroyed then
 		error("Cannot resume() closed Socket.")
 	end
 	-- all it does is issuing an initial read
@@ -861,9 +868,9 @@ function Socket:destroy (err_msg, err_code)
 			else
 				self:emit("close", false)
 			end
+			self._raw_socket = nil
 		end
 		self._raw_socket:close()
-		self._raw_socket = nil
 	end
 	
 	self.secureContext = nil	-- todo: why Net does have to deal with this?
