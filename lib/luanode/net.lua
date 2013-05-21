@@ -632,13 +632,12 @@ end
 local connect_callback = function(raw_socket, ok, err_msg, err_code)
 	raw_socket.connect_callback = nil
 	local socket = assert(raw_socket._owner)
+	if socket.destroyed then
+		LogWarning("Socket '%s' connected but was closed in the meantime", raw_socket)
+		return
+	end
 	if ok then
 		socket._connecting = false
-		
-		if socket.destroyed then
-			LogWarning("Socket '%s' connected but was closed in the meantime", raw_socket)
-			return
-		end
 		
 		if socket._raw_socket then
 			socket.readable = true
@@ -1224,3 +1223,4 @@ function new()
 	local t = setmetatable({}, { __index = _M })
 	return t
 end
+
