@@ -22,7 +22,7 @@ writer = utils.inspect
 --
 local function gatherResults (success, ...)
 	local n = select("#", ...)
-	return success, { n = n, ...}
+	return success, utils.pack(...)
 end
 
 ---
@@ -167,6 +167,7 @@ function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 	rli:on("line", function (self, line)
 		sawSIGINT = false
 		line = line:match("^%s*(.-)[%s]*$")	-- trim whitespace
+
 		-- Check to see if a REPL keyword was used. If it returns true, display next prompt and return.
 		if line and line:match("^%.") then
 			local keyword, rest = line:match("^([^%s]+)%s*(.*)$")

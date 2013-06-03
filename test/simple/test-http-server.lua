@@ -1,3 +1,7 @@
+-- This test needs httpAllowHalfOpen enabled, because it sends the last
+-- requests (pipelined) and then calls finish.
+-- The http implementation will close http connections that are half open.
+
 module(..., lunit.testcase, package.seeall)
 
 
@@ -26,21 +30,21 @@ function test()
 		end
 
 		if req.id == 1 then
-			common.error("req 1")
+			--common.error("req 1")
 			assert_equal("POST", req.method)
 			assert_equal("/quit", url.parse(req.url).pathname)
 		end
 
 		if req.id == 2 then
-			common.error("req 2")
+			--common.error("req 2")
 			assert_equal("foo", req.headers['x-x'])
 		end
 
 		if req.id == 3 then
-			common.error("req 3")
+			--common.error("req 3")
 			assert_equal("bar", req.headers['x-x'])
 			self:close()
-			common.error("server closed")
+			console.log("server closed")
 		end
 
 		setTimeout(function ()
@@ -49,6 +53,7 @@ function test()
 			res:finish()
 		end, 1)
 	end)
+	server.httpAllowHalfOpen = true
 	server:listen(common.PORT)
 
 	server:addListener("listening", function()
@@ -72,7 +77,7 @@ function test()
 			if requests_sent == 2 then
 				c:write("GET / HTTP/1.1\r\nX-X: foo\r\n\r\n" .. "GET / HTTP/1.1\r\nX-X: bar\r\n\r\n")
 				c:finish()
-				--assert_equal(c:readyState(), "readOnly")
+				assert_equal(c:readyState(), "readOnly")
 				requests_sent = requests_sent + 2
 			end
 		end)

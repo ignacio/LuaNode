@@ -2,6 +2,7 @@ local string, table, math = string, table, math
 local console = require "luanode.console"
 local tostring, type, process = tostring, type, process
 local rawget, ipairs, pairs = rawget, ipairs, pairs
+local select = select
 
 module((...))
 
@@ -46,6 +47,13 @@ function isArray(t)
 		return true
 	end
 	return false
+end
+
+---
+-- Like Lua 5.2 table.pack
+function pack (...)
+	local n = select("#",...)
+	return {n = n; ...}
 end
 
 --

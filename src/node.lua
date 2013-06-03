@@ -156,9 +156,40 @@ local function createWritableStdioStream (fd)
 		end
 		
 		local net = require "luanode.net"
-		stream = net.Socket(fd)
-		stream._raw_socket = process.PosixStream(fd, true)
-		stream._raw_socket.write_callback = function(raw_socket, ok)
+		--stream = net.Socket(fd)
+		stream = net.Socket({ handle = process.PosixStream(fd, true) })
+		--stream._raw_socket = process.PosixStream(fd, true)
+		stream._handle.write_callback = function(raw_socket, ok)
+			local self = raw_socket.owner
+			-- callback may come after call to destroy
+			if self.destroyed then
+				return
+			end
+
+			if not ok then
+				--console.error("%s: %s - %s, %s", ok, socket, raw_socket, err_code)
+				local err = socket
+				self:_destroy(err, err_code)
+				return
+			end
+			while self._writeQueue and #self._writeQueue > 0 do
+				local data = table.remove(self._writeQueue, 1)
+				local encoding = table.remove(self._writeQueueEncoding, 1)
+				local cb = table.remove(self._writeQueueCB, 1)
+				
+				if data == END_OF_FILE then
+					self:_shutdown()
+					--return true
+				end
+				self:_write(data, encoding, cb)
+				break
+
+				--local flushed = self:_writeOut(data, encoding, fd)
+				--if not flushed then
+					--return false
+				--end
+			end
+			--[[
 			-- flush the write queue when a write completes
 			if not ok then
 				--console.error("%s: %s", ok, socket)
@@ -173,6 +204,7 @@ local function createWritableStdioStream (fd)
 					stream:ondrain() -- Optimization
 				end
 			end
+			--]]
 		end
 		stream.readable = false
 		stream.writable = true
@@ -410,7 +442,11 @@ console.time = function(label)
 end
 
 console.timeEnd = function(label)
-	local duration = os.time() - (times[label] or 0)
+	local entry = times[label]
+	if not entry then
+		error("No such label " .. tostring(label))
+	end
+	local duration = os.time() - entry
 	console.log("%s: %dms", label, duration);
 end
 

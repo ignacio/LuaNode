@@ -2,7 +2,6 @@ module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")
 local net = require "luanode.net"
-local json = require "json"
 local fs = require('luanode.fs')
 
 

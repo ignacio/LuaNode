@@ -40,10 +40,10 @@ function ReadStream:__init(fd)
 	
 	-- veamos si podemos salirnos con la nuestra. Pongo en raw_socket algo que "parece" un socket, pero en realidad 
 	-- es un boost::asio::posix_stream
-	newStream._raw_socket = process.TtyStream(fd, true)
-	stdinHandle = newStream._raw_socket
+	newStream._handle = process.TtyStream(fd, true)
+	stdinHandle = newStream._handle
 	
-	newStream._raw_socket.read_callback = function(raw_socket, data, reason)
+	newStream._handle.read_callback = function(raw_socket, data, err_msg, err_code)
 		--print("read_callback: %s", data)
 		if not data or #data == 0 then
 			newStream.readable = false
@@ -73,8 +73,8 @@ function ReadStream:__init(fd)
 			end
 
 			-- the socket may have been closed on Stream.destroy or paused
-			if newStream._raw_socket and not newStream._dont_read and not newStream.paused then
-				newStream._raw_socket:read()	-- issue another async read
+			if newStream._handle and not newStream._dont_read and not newStream.paused then
+				newStream._handle:read()	-- issue another async read
 				--newStream:_readImpl()
 			end
 		end
@@ -86,7 +86,7 @@ end
 ---
 --
 function ReadStream:setRawMode (flag)
-	self._raw_socket:setRawMode(flag)
+	self._handle:setRawMode(flag)
 	self.isRaw = flag
 end
 
@@ -97,7 +97,7 @@ ReadStream.isTTY = true
 function ReadStream:pause ()
 	if self.paused then return end
 	self.paused = true
-	self._raw_socket:pause()
+	self._handle:pause()
 	--Class.superclass(ReadStream).pause(self)
 end
 
@@ -112,20 +112,25 @@ function ReadStream:resume ()
 	self.paused = false
 	-- en serio no tengo una forma mejor de hacer esto?
 	--Class.superclass(ReadStream).resume(self)
-	self._raw_socket:read()
+	self._handle:read()
 end
 
 ---
 --
-function ReadStream:destroy ()
+function ReadStream:destroy (err_msg, err_code)
 	if not self.readable then return end
 	
 	self.readable = false
 	
+	if self._handle then
+		self._handle:close()
+		self._handle.read_callback = function() end
+		self._handle = nil
+	end
+
 	process.nextTick(function()
 		-- try
-		self._raw_socket:close()
-		self:emit("close")
+		self:emit("close", err_msg and true or false)
 		-- catch self:emit("error")
 	end)
 end
@@ -138,11 +143,11 @@ function WriteStream:__init (fd)
 	local newStream = Class.construct(WriteStream)
 	
 	newStream.fd = fd
-	newStream._raw_socket = process.TtyStream(fd, false)
+	newStream._handle = process.TtyStream(fd, false)
 	newStream.writable = true
 	newStream.readable = false
 	
-	local winSizeCols, winSizeRows = newStream._raw_socket:getWindowSize()
+	local winSizeCols, winSizeRows = newStream._handle:getWindowSize()
 	if winSizeCols then
 		newStream.columns = winSizeCols
 		newStream.rows = winSizeRows
@@ -157,7 +162,7 @@ WriteStream.isTTY = true
 function WriteStream:_refreshSize ()
 	local oldCols = self.columns
 	local oldRows = self.rows
-	local newCols, newRows = self._raw_socket:getWindowSize()
+	local newCols, newRows = self._handle:getWindowSize()
 	if not newCols then
 		self:emit("error", "error in getWindowSize")--errnoException(errno, 'getWindowSize'))
 		return
@@ -177,7 +182,7 @@ function WriteStream:write (data, encoding)
 		return false
 	end
 	-- ignore encoding and buffer stuff (for now)
-	self._raw_socket:write(data)
+	self._handle:write(data)
 	return true
 end
 

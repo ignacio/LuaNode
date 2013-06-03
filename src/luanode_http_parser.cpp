@@ -146,10 +146,17 @@ int Parser::Execute(lua_State* L) {
 int Parser::Finish(lua_State* L) {
 	m_got_exception = false;
 
-	http_parser_execute(&m_parser, &Parser::s_settings, NULL, 0);
+	int rv = http_parser_execute(&m_parser, &Parser::s_settings, NULL, 0);
+	if(rv != 0) {
+		enum http_errno err = HTTP_PARSER_ERRNO(&m_parser);
+		lua_pushstring(L, http_errno_name(err));
+		return 1;
+	}
 
 	if(m_got_exception) {
 		// TODO: y??
+		lua_pushstring(L, "Parse error (finish).");
+		return 1;
 	}
 	lua_pushnil(L);
 	return 1;

@@ -1,7 +1,6 @@
 local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
 local utils = require "luanode.utils"
-local tty = require "luanode.tty"
 
 module(..., package.seeall)
 
@@ -190,7 +189,6 @@ function Interface:__init (input, output, completer, terminal)
 	
 	interface.input = input
 	interface.output = output
-	input:resume()
 
 	-- TODO
 	--// Check arity, 2 - for async, 1 for sync
@@ -200,22 +198,32 @@ function Interface:__init (input, output, completer, terminal)
 	interface:setPrompt("> ")
 	
 	interface.terminal = not not terminal
+
+	local function ondata (self, data)
+		interface:_normalWrite(data)
+	end
+
+	local function onend (self)
+		interface:close()
+	end
 	
 	if not interface.terminal then
-		input:on("data", function(self, data)
-			interface:_normalWrite(data)
-		end)
-		input:on("end", function()
-			interface:close()
+		input:on("data", ondata)
+		input:on("end", onend)
+		interface:once("close", function()
+			input:removeListener("data", ondata)
+			input:removeListener("end", onend)
 		end)
 		
 	else
 		emitKeypressEvents(input)
+
+		local function onkeypress (self, s, key)
+			interface:_ttyWrite(s, key)
+		end
 		
 		-- input usually refers to stdin
-		input:on("keypress", function(self, s, key)
-			interface:_ttyWrite(s, key)
-		end)
+		input:on("keypress", onkeypress)
 
 		-- Current line
 		interface.line = ""
@@ -228,12 +236,21 @@ function Interface:__init (input, output, completer, terminal)
 
 		interface.history = {}
 		interface.historyIndex = -1
+
+		local function onresize (self)
+			self:_refreshLine()
+		end
 		
-		output:on("resize", function()
-			interface:_refreshLine()
+		output:on("resize", onresize)
+
+		interface:once("close", function()
+			input:removeListener("keypress", onkeypress)
+			output:removeListener("resize", onresize)
 		end)
 	end
-	
+
+	input:resume()
+
 	return interface
 end
 
@@ -401,7 +418,7 @@ function Interface:write (d, key)
 	if self.terminal then
 		self:_ttyWrite(d, key)
 	else
-		self:_normalWrite(d, key)
+		self:_normalWrite(d)
 	end
 end
 
@@ -488,7 +505,7 @@ function Interface:_tabComplete ()
 				local maxColumns = math.floor(self:columns() / width) or 1
 
 				-- this shows each group, grouped by columns
-				local function handleGroup(group)
+				local function handleGroup(group, width, maxColumns)
 					if #group == 0 then
 						return
 					end
@@ -517,13 +534,13 @@ function Interface:_tabComplete ()
 				for i = 1, #completions do
 					local c = completions[i]
 					if c == "" then
-						handleGroup(group)
+						handleGroup(group, width, maxColumns)
 						group = {}
 					else
 						table.insert(group, c)
 					end
 				end
-				handleGroup(group)
+				handleGroup(group, width, maxColumns)
 
 				-- If there is a common prefix to all matches, then apply that portion.
 				local f = completions
@@ -912,13 +929,11 @@ function emitKeypressEvents (stream)
 	if stream._emitKeypress then return end
 	stream._emitKeypress = true
 
-	local keypressListeners = stream:listeners("keypress")
-
 	local onData
 	local onNewListener
 	
 	onData = function(self, b)
-		if #keypressListeners then
+		if #stream:listeners("keypress") > 0 then
 			emitKey(stream, b)
 		else
 			-- Nobody's watching anyway
@@ -934,7 +949,7 @@ function emitKeypressEvents (stream)
 		end
 	end
 
-	if #keypressListeners then
+	if #stream:listeners("keypress") > 0 then
 		stream:on("data", onData)
 	else
 		stream:on("newListener", onNewListener)

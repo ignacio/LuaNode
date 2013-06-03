@@ -1,7 +1,7 @@
 local assert = assert
 
 if process.platform == "windows" then
-	require "luarocks.require"
+	--require "luarocks.require"
 	-- TODO: traerse esto para adentro
 end
 local Url = require "socket.url"

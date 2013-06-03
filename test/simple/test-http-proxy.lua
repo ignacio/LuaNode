@@ -1,6 +1,6 @@
 module(..., lunit.testcase, package.seeall)
 
-require "json"
+require "luanode.utils"
 
 local common = dofile("common.lua")
 local http = require("luanode.http")
@@ -26,12 +26,12 @@ end)
 
 local proxy_client = http.createClient(BACKEND_PORT)
 local proxy = http.createServer(function (self, req, res)
-	common.debug("proxy req headers: " .. json.encode(req.headers))
+	common.debug("proxy req headers: " .. luanode.utils.inspect(req.headers))
 	local proxy_req = proxy_client:request(url.parse(req.url).pathname)
 	proxy_req:finish()
 	proxy_req:addListener('response', function(self, proxy_res)
 
-		common.debug("proxy res headers: " .. json.encode(proxy_res.headers))
+		common.debug("proxy res headers: " .. luanode.utils.inspect(proxy_res.headers))
 		assert_equal('world', proxy_res.headers['hello'])
 		assert_equal('text/plain', proxy_res.headers['content-type'])
 		for k,v in ipairs(cookies) do

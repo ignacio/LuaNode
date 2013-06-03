@@ -198,6 +198,8 @@ function Timers.setTimeout(callback, after, ...)
 	assert(callback, "A callback function must be supplied")
 	local timer
 	
+	after = after or 1 -- schedule on next tick
+
 	-- Can't use timer lists.
 	-- I'm failing simple/test-next-tick-ordering.lua
 	-- It's either that boost::deadline_timer are firing out of order (unlikely) or that having a resolution of one second 

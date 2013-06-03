@@ -7,31 +7,39 @@ function test()
 local tests_run = 0
 
 function pingPong (port, host)
-	local N = 1000
+	--local N = 1000
+	local N = 2
 	local count = 0
+	local sentPongs = 0
 	local sent_final_ping = false
 
-	local server = net.createServer(function (self, socket)
+	local server = net.createServer({ allowHalfOpen = true }, function (self, socket)
+	--local server = net.createServer(function (self, socket)
 		console.log("connection: %s:%d", socket:remoteAddress())
 		assert_equal(self, socket.server)
-		assert_equal(1, self.connections)
+		assert_equal(1, self._connections)
 
 		socket:setNoDelay()
 		socket.timeout = 0
 
 		socket:setEncoding("utf8")
 		socket:addListener("data", function (self, data)
+			-- Since we never queue data (we're always waiting for the PING
+			-- before sending a pong) the writeQueueSize should always be less
+			-- than one message.
+			--assert.ok(0 <= socket.bufferSize && socket.bufferSize <= 4);
+
 			console.log("server got: %s", data)
 			assert_equal(true, socket.writable)
 			assert_equal(true, socket.readable)
 			assert_equal(true, count <= N)
 			if data:match("PING") then
-				socket:write("PONG")
+				socket:write("PONG")	-- TODO: implement callbacks
 			end
 		end)
 
 		socket:addListener("end", function (self)
-			assert_equal(true, socket.writable)
+			assert_equal(true, socket.writable)	-- because allowHalfOpen
 			assert_equal(false, socket.readable)
 			socket:finish()
 		end)

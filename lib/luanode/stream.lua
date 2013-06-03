@@ -1,6 +1,5 @@
 local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
---var util = require('util');
 
 -- TODO: sacar el seeall
 module(..., package.seeall)
@@ -40,9 +39,6 @@ function Stream:pipe (dest, options)
 		if did_onend then return end
 		did_onend = true
 
-		-- remove the listeners
-		cleanup()
-
 		dest:finish()
 	end
 
@@ -50,10 +46,9 @@ function Stream:pipe (dest, options)
 		if did_onend then return end
 		did_onend = true
 
-		-- remove the listeners
-		cleanup()
-
-		dest:destroy()
+		if type(dest.destroy) == "function" then
+			dest:destroy()
+		end
 	end
 
 	-- don't leave dangling pipes when there are errors.
