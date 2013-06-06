@@ -268,7 +268,9 @@ end
 ---
 --
 function IncomingMessage:destroy (err)
-	self.socket:destroy(err)
+	if self.socket then
+		self.socket:destroy(err)
+	end
 end
 
 ---
@@ -440,7 +442,13 @@ end
 ---
 --
 function OutgoingMessage:destroy (err)
-	self.socket:destroy(err)
+	if self.socket then
+		self.socket:destroy(err)
+	else
+		self:once("socket", function(_, socket)
+			socket:destroy(err)
+		end)
+	end
 end
 
 ---

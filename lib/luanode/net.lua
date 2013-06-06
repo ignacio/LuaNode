@@ -1526,6 +1526,8 @@ createConnection = function(...) -- (port, host)
 	return s:connect(args, cb)
 end
 
+_M.connect = createConnection
+
 
 
 -- Server Class
