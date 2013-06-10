@@ -800,6 +800,7 @@ function OutgoingMessage:finish (data, encoding)
 				and type(data) == "string"
 				and #data > 0
 				and #self.output == 0
+				and self.connection
 				and self.connection.writable
 				and self.connection._httpMessage == self
 
