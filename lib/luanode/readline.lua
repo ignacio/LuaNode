@@ -809,6 +809,11 @@ function Interface:_ttyWrite (s, key)
 			
 		elseif key.name == "f" then -- forward one character
 			self:_moveCursor(1)
+
+		elseif key.name == "l" then -- clear the whole screen
+			cursorTo(self.output, 0, 0)
+			clearScreenDown(self.output)
+			self:_refreshLine()
 			
 		elseif key.name == "n" then -- next history item
 			self:_historyNext()
