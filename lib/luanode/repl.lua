@@ -375,7 +375,7 @@ function REPLServer:complete (line, callback)
   		group = {}
   		local function append_candidates(t)  
     		for k, v in pairs(t) do
-				if type(k) == "string" or type(k) == "number" then
+				if type(k) == "string" then
 					if all or k:sub(1, #last) == last then
 						table.insert(group, prefix .. k)
 					end
