@@ -199,7 +199,23 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 	assert(lua_type(L, -1) == LUA_TFUNCTION); //An acceptor must have a callback"
 
 	if(!error) {
-		boost::asio::ip::address address = socket->remote_endpoint().address();
+		// Get the remote endpoint, dealing with the case the connection is already closed when we get here.
+		boost::system::error_code ec;
+		const boost::asio::ip::tcp::endpoint& endpoint = socket->remote_endpoint(ec);
+		if(ec) {
+			if(ec == boost::asio::error::not_connected) {
+				LogWarning("Acceptor::HandleAccept (%p) (id:%u) (new socket %p) - Socket was already closed when accepted. %s", 
+					this, m_acceptorId, socket.get(), ec.message().c_str());
+			}
+			else {
+				LogWarning("Acceptor::HandleAccept (%p) (id:%u) (new socket %p) - Error retrieving remote endpoint. %s", 
+					this, m_acceptorId, socket.get(), ec.message().c_str());
+			}
+			// TODO: Should I call the callback, even when the connection is already closed and there's nothing to be done?
+			return;
+		}
+
+		boost::asio::ip::address address = endpoint.address();
 		
 		lua_pushnil(L);
 		lua_newtable(L);
@@ -216,7 +232,7 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 		lua_rawset(L, peer);
 
 		lua_pushstring(L, "port");
-		lua_pushnumber(L, socket->remote_endpoint().port());
+		lua_pushnumber(L, endpoint.port());
 		lua_rawset(L, peer);
 
 		LuaNode::GetLuaVM().call(2, LUA_MULTRET);
