@@ -212,6 +212,7 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 					this, m_acceptorId, socket.get(), ec.message().c_str());
 			}
 			// TODO: Should I call the callback, even when the connection is already closed and there's nothing to be done?
+			lua_settop(L, 0);
 			return;
 		}
 
