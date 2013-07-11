@@ -3,7 +3,6 @@ local EventEmitter = require "luanode.event_emitter"
 local luanode_stream = require "luanode.stream"
 local Timers = require "luanode.timers"
 local Utils = require "luanode.utils"
-local FreeList = require "luanode.free_list"
 local assert = assert
 
 local function noop() end

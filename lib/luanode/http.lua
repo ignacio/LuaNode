@@ -1920,7 +1920,7 @@ local function connectionListener (server, socket)
 		finish = finish or #d
 		local ret, err = parser:execute(d, start, finish - start)
 		if not ret then
-			LogDebug("parse error")
+			LogDebug("parse error in:\n%s", d)
 			socket:destroy(err)
 
 		elseif parser.incoming and parser.incoming.upgrade then
