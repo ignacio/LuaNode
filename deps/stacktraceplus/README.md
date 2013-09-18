@@ -1,6 +1,6 @@
 # StackTracePlus #
 
-StackTracePlus provides enhaced stack traces for Lua.
+StackTracePlus provides enhanced stack traces for Lua.
 
 StackTracePlus can be used as a replacement for debug.traceback. It gives detailed information about locals, tries to guess 
 function names when they're not available, etc, so, instead of
