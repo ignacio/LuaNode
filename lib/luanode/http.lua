@@ -1533,13 +1533,13 @@ local function socketCloseListener (socket)
 	end
 end
 
-local function socketErrorListener (socket, err)
+local function socketErrorListener (socket, err, err_code)
 	local parser = socket.parser
 	local req = socket._httpMessage
 	LogDebug("HTTP SOCKET ERROR: %s\n%s", err.message, err.stack)
 
 	if req then
-		req:emit("error", err)
+		req:emit("error", err, err_code)
 		-- For safety. Some additional error might fire later on
 		-- and we need to make sure we don't double-fire the error event.
 		req._hadError = true
@@ -2141,8 +2141,8 @@ function Client:request (method, path, headers)
 	options.headers = headers
 	options.agent = self.agent
 	local c = ClientRequest(options)
-	c:on("error", function(_, e)
-		self:emit("error", e)
+	c:on("error", function(_, e, ...)
+		self:emit("error", e, ...)
 	end)
 	-- The old Client interface emitted 'end' on socket end.
 	-- This doesn't map to how we want things to operate in the future
