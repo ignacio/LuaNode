@@ -1,5 +1,7 @@
 # LuaNode #
 
+[![Build Status](https://travis-ci.org/ignacio/LuaNode.png?branch=master)](https://travis-ci.org/ignacio/LuaNode)
+
 Asynchronous I/O for Lua.
 
 **LuaNode** allows to write performant net servers or clients, using an asynchronous model of computing (the [Reactor pattern][1]). 
