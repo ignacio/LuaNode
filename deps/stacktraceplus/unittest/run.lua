@@ -1,9 +1,7 @@
-require "luarocks.require"
-require "lunit"
-
+local lunit = require "lunit"
 local console = require "lunit-console"
 
-package.path = [[d:\trunk_git\sources\StackTracePlus\src\?.lua;.\?.lua]] --.. package.path
+package.path = "../src/?.lua;../src/?/init.lua;".. package.path
 
 require "test"
 

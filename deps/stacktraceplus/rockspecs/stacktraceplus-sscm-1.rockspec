@@ -5,7 +5,7 @@ source = {
 	branch = "master"
 }
 description = {
-	summary = "StackTracePlus provides enhaced stack traces for Lua",
+	summary = "StackTracePlus provides enhanced stack traces for Lua",
 	detailed = [[
 StackTracePlus can be used as a replacement for debug.traceback. It gives detailed information about locals, tries to guess 
 function names when they're not available, etc.
