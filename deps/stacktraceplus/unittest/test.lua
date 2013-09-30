@@ -2,6 +2,16 @@ local STP = require "StackTracePlus"
 
 module(..., lunit.testcase, package.seeall)
 
+function testLuaModule()
+	local f = function()
+		local t = table
+		error("an error")
+	end
+
+	local ok, err = xpcall(f, STP.stacktrace)
+	assert_match( [[t = table module]], err, "" )
+end
+
 function testKnownFunction()
 	local my_function = function()
 	end

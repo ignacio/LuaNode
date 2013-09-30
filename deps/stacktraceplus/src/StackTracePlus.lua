@@ -1,12 +1,12 @@
 -- tables
 local _G = _G
-local string, io, os, table, math, package, debug, coroutine = string, io, os, table, math, package, debug, coroutine
+local string, io, debug, coroutine = string, io, debug, coroutine
 
 -- functions
-local xpcall, tostring, print, unpack, require, getfenv, setmetatable = xpcall, tostring, print, unpack, require, getfenv, setmetatable
-local next, assert, tonumber, rawequal, collectgarbage, getmetatable = next, assert, tonumber, rawequal, collectgarbage, getmetatable
-local module, rawset, pcall, newproxy, type, select, gcinfo, pairs = module, rawset, pcall, newproxy, type, select, gcinfo, pairs
-local rawget, loadstring, ipairs, dofile, setfenv, load, error, loadfile = rawget, loadstring, ipairs, dofile, setfenv, load, error, loadfile
+local tostring, print, require = tostring, print, require
+local next, assert = next, assert
+local pcall, type, pairs, ipairs = pcall, type, pairs, ipairs
+local error = error
 
 assert(debug, "debug table must be available at this point")
 
@@ -18,51 +18,75 @@ local table_concat = table.concat
 local _M = {}
 
 -- this tables should be weak so the elements in them won't become uncollectable
-local m_known_tables = {
-	[_G] = "_G (global table)",
-	[string] = "string module",
-	[io] = "io module",
-	[os] = "os module",
-	[table] = "table module",
-	[math] = "math module",
-	[package] = "package table",
-	[debug] = "debug table",
-	[coroutine] = "coroutine table"
-}
+local m_known_tables = { [_G] = "_G (global table)" }
+local function add_known_module(name, desc)
+	local ok, mod = pcall(require, name)
+	if ok then
+		m_known_tables[mod] = desc
+	end
+end
+
+add_known_module("string", "string module")
+add_known_module("io", "io module")
+add_known_module("os", "os module")
+add_known_module("table", "table module")
+add_known_module("math", "math module")
+add_known_module("package", "package module")
+add_known_module("debug", "debug module")
+add_known_module("coroutine", "coroutine module")
+
+-- lua5.2
+add_known_module("bit32", "bit32 module")
+-- luajit
+add_known_module("bit", "bit module")
+add_known_module("jit", "jit module")
+
+
 local m_user_known_tables = {}
 
-local m_known_functions = {
-	[xpcall] = "xpcall",
-	[tostring] = "tostring",
-	[print] = "print",
-	[unpack] = "unpack",
-	[require] = "require",
-	[getfenv] = "getfenv",
-	[setmetatable] = "setmetatable",
-	[next] = "next",
-	[assert] = "assert",
-	[tonumber] = "tonumber",
-	[rawequal] = "rawequal",
-	[collectgarbage] = "collectgarbage",
-	[getmetatable] = "getmetatable",
-	[module] = "module",
-	[rawset] = "rawset",
-	[pcall] = "pcall",
-	[newproxy] = "newproxy",
-	[type] = "type",
-	[select] = "select",
-	[gcinfo] = "gcinfo",
-	[pairs] = "pairs",
-	[rawget] = "rawget",
-	[loadstring] = "loadstring",
-	[ipairs] = "ipairs",
-	[dofile] = "dofile",
-	[setfenv] = "setfenv",
-	[load] = "load",
-	[error] = "error",
-	[loadfile] = "loadfile",
+local m_known_functions = {}
+for _, name in ipairs{
+	-- Lua 5.2, 5.1
+	"assert",
+	"collectgarbage",
+	"dofile",
+	"error",
+	"getmetatable",
+	"ipairs",
+	"load",
+	"loadfile",
+	"next",
+	"pairs",
+	"pcall",
+	"print",
+	"rawequal",
+	"rawget",
+	"rawlen",
+	"rawset",
+	"require",
+	"select",
+	"setmetatable",
+	"tonumber",
+	"tostring",
+	"type",
+	"xpcall",
+	
+	-- Lua 5.1
+	"gcinfo",
+	"getfenv",
+	"loadstring",
+	"module",
+	"newproxy",
+	"setfenv",
+	"unpack",
 	-- TODO: add table.* etc functions
-}
+} do
+	if _G[name] then
+		m_known_functions[_G[name]] = name
+	end
+end
+
+
 
 local m_user_known_functions = {}
 

@@ -1,6 +1,8 @@
 # StackTracePlus #
 
-StackTracePlus provides enhanced stack traces for Lua.
+[![Build Status](https://travis-ci.org/ignacio/StackTracePlus.png?branch=master)](https://travis-ci.org/ignacio/StackTracePlus)
+
+StackTracePlus provides enhanced stack traces for [Lua 5.1, Lua 5.2][1] and [LuaJIT][2].
 
 StackTracePlus can be used as a replacement for debug.traceback. It gives detailed information about locals, tries to guess 
 function names when they're not available, etc, so, instead of
@@ -32,7 +34,8 @@ you'll get
 
 ## Usage #
 
-StackTracePlus can be used as a replacement for `debug.traceback`, as an `xpcall` error handler or even from C code.
+StackTracePlus can be used as a replacement for `debug.traceback`, as an `xpcall` error handler or even from C code. Note that 
+only the Lua 5.1 interpreter allows the traceback function to be replaced "on the fly". Lua 5.2 always calls luaL_traceback.
 
 ```lua
 local STP = require "StackTracePlus"
@@ -108,3 +111,18 @@ Will output:
              s = string: "this is a string"
     (5) main chunk of file '..\test\example2.lua' at line 19
     (6)  C function 'function: 00317B30'
+
+
+## Installation #
+The easiest way to install is with [LuaRocks][3].
+
+  - luarocks install stacktraceplus
+
+If you don't want to use LuaRocks, just copy StackTracePlus.lua to Lua's path.
+
+## License #
+**StackTracePlus** is available under the MIT license.
+
+[1]: http://www.lua.org/
+[2]: http://luajit.org/
+[3]: http://luarocks.org/
