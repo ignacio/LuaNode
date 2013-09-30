@@ -1,0 +1,42 @@
+language: c++
+
+compiler:
+  - clang
+  - gcc
+
+env:
+  global:
+    - LUAROCKS_BASE=luarocks-2.1.0
+  matrix:
+    - LUA=lua5.1 LUA_DEV=liblua5.1-dev LUA_VER=5.1 LUA_SFX=5.1 LUA_INCDIR=/usr/include/lua5.1
+    #- LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0
+
+before_install:
+  - if [ $LUA = "luajit" ]; then
+      sudo add-apt-repository ppa:mwild1/ppa -y && sudo apt-get update -y;
+    fi
+  - sudo apt-get install $LUA
+  - sudo apt-get install $LUA_DEV
+  - lua$LUA_SFX -v
+  # Install a recent luarocks release
+  - wget http://luarocks.org/releases/$LUAROCKS_BASE.tar.gz
+  - tar zxvpf $LUAROCKS_BASE.tar.gz
+  - cd $LUAROCKS_BASE
+  - ./configure --lua-version=$LUA_VER --lua-suffix=$LUA_SFX --with-lua-include="$LUA_INCDIR"
+  - sudo make install
+  #
+  # install dependencies
+  #
+  - sudo luarocks install lunit 
+  - sudo luarocks install luasocket
+  - sudo apt-get install libboost-dev libboost-system-dev libboost-date-time-dev libboost-thread-dev liblua5.1-json
+
+install:
+  - cd $TRAVIS_BUILD_DIR/build
+  - cmake -DBOOST_ROOT=/usr/lib ..
+  - cmake --build .
+  - sudo mv luanode /usr/bin/luanode_d
+
+script: 
+  - cd $TRAVIS_BUILD_DIR/test
+  - ./run.sh
