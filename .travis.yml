@@ -6,7 +6,7 @@ compiler:
 
 env:
   global:
-    - LUAROCKS_BASE=luarocks-2.1.0
+    - LUAROCKS_BASE=luarocks-2.1.1
   matrix:
     - LUA=lua5.1 LUA_DEV=liblua5.1-dev LUA_VER=5.1 LUA_SFX=5.1 LUA_INCDIR=/usr/include/lua5.1
     #- LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0
@@ -28,7 +28,6 @@ before_install:
   # install dependencies
   #
   - sudo luarocks install lunit 
-  - sudo luarocks install luasocket
   - sudo apt-get install libboost-dev libboost-system-dev libboost-date-time-dev libboost-thread-dev liblua5.1-json
 
 install:

@@ -137,7 +137,8 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/url.precomp \
 		$(BUILD_TEMP_DIR)/utils.precomp \
 		$(BUILD_TEMP_DIR)/node.precomp \
-		$(BUILD_TEMP_DIR)/stacktraceplus/StackTracePlus.precomp
+		$(BUILD_TEMP_DIR)/stacktraceplus/StackTracePlus.precomp \
+		$(BUILD_TEMP_DIR)/__private_url.precomp
 
 all : $(OUTPUT_FILE)
 

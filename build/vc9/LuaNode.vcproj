@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="LuaNode"
 	ProjectGUID="{4D9B134E-CC54-4175-8F80-EEFC3B635ED7}"
 	RootNamespace="LuaNode"
@@ -721,7 +721,7 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Lua files"
+			Name="lib"
 			>
 			<File
 				RelativePath="..\..\lib\LuaNode\child_process.lua"
@@ -816,6 +816,14 @@
 				>
 				<File
 					RelativePath="..\..\deps\StackTracePlus\src\StackTracePlus.lua"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="private"
+				>
+				<File
+					RelativePath="..\..\lib\luanode\__private_url.lua"
 					>
 				</File>
 			</Filter>
