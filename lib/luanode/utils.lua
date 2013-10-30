@@ -4,7 +4,13 @@ local tostring, type, process = tostring, type, process
 local rawget, ipairs, pairs = rawget, ipairs, pairs
 local select = select
 
-module((...))
+local _M = {
+	_NAME = "luanode.utils",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.utils = _M
 
 ---
 -- Dumps binary data in a "memory viewer" fashion. Ie:
@@ -13,7 +19,7 @@ module((...))
 -- [first] begin dump at 16 byte-aligned offset containing 'first' byte
 -- [last] end dump at 16 byte-aligned offset containing 'last' byte
 -- Adapted from a snippet by Steve Donovan (http://snippets.luacode.org/?p=snippets/Hex_Dump_of_a_String_22)
-function DumpDataInHex(buf, first, last)
+function _M.DumpDataInHex(buf, first, last)
 	local res = {}
 	if not first and not last then
 		res[#res + 1] = ("Dumping %d bytes\n"):format((last or #buf) - (first or 1) + 1)
@@ -42,7 +48,7 @@ end
 ---
 -- Checks that a given table is array-like
 -- TODO: Avoid false positives??
-function isArray(t)
+function _M.isArray(t)
 	if type(t) == "table" and rawget(t, 1) ~= nil then
 		return true
 	end
@@ -51,7 +57,7 @@ end
 
 ---
 -- Like Lua 5.2 table.pack
-function pack (...)
+function _M.pack (...)
 	local n = select("#",...)
 	return {n = n; ...}
 end
@@ -75,7 +81,7 @@ local styleTable = {
 -- depth in which to descend. 2 by default.
 -- Adapted from Penlight.pretty, by Steve Donovan
 -- https://github.com/stevedonovan/Penlight
-function inspect(value, showHidden, depth, colors)
+function _M.inspect(value, showHidden, depth, colors)
 	depth = depth or 2
 	if type(depth) == "string" then depth = 1000 end	-- hack
 	
@@ -180,7 +186,7 @@ function inspect(value, showHidden, depth, colors)
 			end
 			tables[t] = true
 			local newindent = indent .. space
-			local t_is_array_like = isArray(t)
+			local t_is_array_like = _M.isArray(t)
 			
 			putln(t_is_array_like and '[' or '{')
 			eat_last_comma()
@@ -221,3 +227,5 @@ function inspect(value, showHidden, depth, colors)
 	eat_last_comma()
 	return table.concat(lines, #space > 0 and '\n' or '')
 end
+
+return _M

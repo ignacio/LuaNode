@@ -5,6 +5,9 @@ local _M = {
 	_PACKAGE = "luanode."
 }
 
+-- Make LuaNode 'public' modules available as globals.
+luanode.url = _M
+
 function _M.parse (url, parseQueryString, slashesDenoteHost)
 	local parsed = Url.parse(url)
 	parsed.href = url

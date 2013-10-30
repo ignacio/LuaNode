@@ -5,6 +5,9 @@ local _M = {
 	_PACKAGE = "luanode."
 }
 
+-- Make LuaNode 'public' modules available as globals.
+luanode.querystring = _M
+
 --
 -- Encodes the key-value pairs of a table according the application/x-www-form-urlencoded content type.
 function _M.url_encode_arguments(arguments)

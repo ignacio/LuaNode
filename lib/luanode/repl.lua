@@ -4,9 +4,15 @@ local utils = require "luanode.utils"
 local rl = require "luanode.readline"
 local console = console
 local _G = _G
+local debug = require "debug"
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.repl",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.repl = _M
 
 -- The list of Lua keywords
 local keywords = {
@@ -16,7 +22,7 @@ local keywords = {
 }
 
 -- Can be overridden with custom print functions, such as `probe` or `eyes.js`
-writer = utils.inspect
+_M.writer = utils.inspect
 
 ---
 --
@@ -59,7 +65,8 @@ end
 
 ---
 -- Repl Class
-REPLServer = Class.InheritsFrom(EventEmitter)
+local REPLServer = Class.InheritsFrom(EventEmitter)
+_M.REPLServer = REPLServer
 
 ---
 --
@@ -428,7 +435,9 @@ end
 
 ---
 --
-function start (prompt, source)
+function _M.start (prompt, source)
 	local repl = REPLServer(prompt, source)
 	return repl
 end
+
+return _M

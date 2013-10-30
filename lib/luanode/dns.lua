@@ -1,7 +1,12 @@
 local Resolver = process.Resolver
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.dns",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.dns = _M
 
 local net = require "luanode.net"
 local m_resolver = Resolver()
@@ -9,7 +14,7 @@ local m_resolver = Resolver()
 --
 -- Easy DNS A/AAAA look up
 -- lookup(domain, [family,] callback)
-function lookup(domain, family, callback)
+function _M.lookup(domain, family, callback)
 	if not callback then
 		callback = family
 		family = nil
@@ -64,7 +69,7 @@ function lookup(domain, family, callback)
 	end
 end
 
-function lookupAll(domain, family, callback)
+function _M.lookupAll(domain, family, callback)
 	if not callback then
 		callback = family
 		family = nil
@@ -118,3 +123,5 @@ function lookupAll(domain, family, callback)
 			--]]
 	end
 end
+
+return _M

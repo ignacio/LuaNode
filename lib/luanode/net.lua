@@ -7,8 +7,13 @@ local assert = assert
 
 local function noop() end
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.net",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.net = _M
 
 local Net = require "Net"  --process.Net
 
@@ -32,14 +37,14 @@ end
 
 --
 -- Public:
-isIP = Net.isIP
+_M.isIP = Net.isIP
 
-function isIPv4 (input)
+function _M.isIPv4 (input)
 	local isIP, kind = Net.isIP(input)
 	return (isIP and kind == 4)
 end
 
-function isIPv6 (input)
+function _M.isIPv6 (input)
 	local isIP, kind = Net.isIP(input)
 	return (isIP and kind == 6)
 end
@@ -98,7 +103,8 @@ end
 
 
 -- Socket Class
-Socket = Class.InheritsFrom(luanode_stream.Stream)
+local Socket = Class.InheritsFrom(luanode_stream.Stream)
+_M.Socket = Socket
 
 -- FIXME: tengo que guardar las conexiones en algun lado. Y eventualmente las tengo que sacar
 local m_opened_sockets = {}
@@ -1466,7 +1472,7 @@ end
 
 --
 --
-createConnection = function(...) -- (port, host)
+_M.createConnection = function(...) -- (port, host)
 	--[==[
 	local newSocket
 	-- determine the required socket type
@@ -1525,12 +1531,13 @@ createConnection = function(...) -- (port, host)
 	return s:connect(args, cb)
 end
 
-_M.connect = createConnection
+_M.connect = _M.createConnection
 
 
 
 -- Server Class
-Server = Class.InheritsFrom(EventEmitter)
+local Server = Class.InheritsFrom(EventEmitter)
+_M.Server = Server
 
 -- Last time we've issued a EMFILE warning
 local lastEMFILEWarning = 0
@@ -1604,7 +1611,7 @@ end
 
 --
 --
-createServer = function(options, callback)
+_M.createServer = function(options, callback)
 	return Server(options, callback)
 end
 
@@ -1868,3 +1875,5 @@ function new()
 	return t
 end
 --]]
+
+return _M

@@ -5,9 +5,15 @@ local setmetatable, print, assert, select, unpack, type, tostring =
 
 --local process = process
 
-module((...))
+local _M = {
+	_NAME = "luanode.timers",
+	_PACKAGE = "luanode."
+}
 
-function debug(...)
+-- Make LuaNode 'public' modules available as globals.
+luanode.timers = _M
+
+local function debug(...)
 	--if DEBUG 
 end
 

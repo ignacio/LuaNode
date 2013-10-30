@@ -9,8 +9,13 @@ local Url = require "luanode.url"
 
 local END_OF_FILE = {}
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.http",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.http = _M
 
 -- Classes exported by this module:
 -- IncomingMessage
@@ -22,7 +27,7 @@ module(..., package.seeall)
 
 
 local function parserOnMessageBegin (parser)
-	parser.incoming = IncomingMessage(parser.socket)
+	parser.incoming = _M.IncomingMessage(parser.socket)
 	parser.field = nil
 	parser.value = nil
 end
@@ -149,7 +154,7 @@ local function parserOnMessageComplete (parser)
 end
 
 
-parsers = FreeList.new("parsers", 1000, function ()
+local parsers = FreeList.new("parsers", 1000, function ()
 	local parser = HTTPParser("request")
 
 	parser._headers = {}
@@ -173,7 +178,7 @@ end)
 
 local CRLF = "\r\n"
 -- HTTP status codes
-status_codes = {
+_M.status_codes = {
 	[100] = "Continue",
 	[101] = "Switching Protocols",
 	[102] = "Processing",						-- RFC 2518, obsoleted by RFC 4918
@@ -232,7 +237,8 @@ status_codes = {
 
 -- Abstract base class for ServerRequest and ClientResponse.
 -- Public:
-IncomingMessage = Class.InheritsFrom(stream.Stream)
+local IncomingMessage = Class.InheritsFrom(stream.Stream)
+_M.IncomingMessage = IncomingMessage
 
 function IncomingMessage:__init (socket)
 	local newMessage = Class.construct(IncomingMessage)
@@ -410,7 +416,8 @@ end
 
 
 -- Public:
-OutgoingMessage = Class.InheritsFrom(stream.Stream)
+local OutgoingMessage = Class.InheritsFrom(stream.Stream)
+_M.OutgoingMessage = OutgoingMessage
 
 function OutgoingMessage:__init (socket)
 	local newMessage = Class.construct(OutgoingMessage)
@@ -909,7 +916,8 @@ end
 
 ---
 --
-ServerResponse = Class.InheritsFrom(OutgoingMessage)
+local ServerResponse = Class.InheritsFrom(OutgoingMessage)
+_M.ServerResponse = ServerResponse
 
 function ServerResponse:__init (req)
 	local newResponse = Class.construct(ServerResponse, req.socket)
@@ -996,9 +1004,9 @@ function ServerResponse:writeHead (statusCode, reasonPhrase, headers)
 	
 	if type(reasonPhrase) == "table" then
 		headers = reasonPhrase
-		reasonPhrase = status_codes[statusCode] or "unknown"
+		reasonPhrase = _M.status_codes[statusCode] or "unknown"
 	elseif not reasonPhrase then
-		reasonPhrase = status_codes[statusCode] or "unknown"
+		reasonPhrase = _M.status_codes[statusCode] or "unknown"
 	end
 	self.statusCode = statusCode
 	
@@ -1073,7 +1081,8 @@ end
 
 ---
 --
-Agent = Class.InheritsFrom(EventEmitter)
+local Agent = Class.InheritsFrom(EventEmitter)
+_M.Agent = Agent
 
 function Agent:__init (options)
 	local new = Class.construct(Agent)
@@ -1209,11 +1218,12 @@ function Agent:removeSocket (socket, name, host, port, localAddress)
 end
 
 local agent = Agent()
-globalAgent = agent
+_M.globalAgent = agent
 
 ---
 --
-ClientRequest = Class.InheritsFrom(OutgoingMessage)
+local ClientRequest = Class.InheritsFrom(OutgoingMessage)
+_M.ClientRequest = ClientRequest
 
 --
 --
@@ -1826,7 +1836,7 @@ end
 
 --
 -- public
-request = function(options, cb)
+_M.request = function(options, cb)
 	if type(options) == "string" then
 		options = Url.parse(options)
 	end
@@ -1839,8 +1849,8 @@ end
 
 --
 -- public
-get = function(options, cb)
-	local req = request(options, cb)
+_M.get = function(options, cb)
+	local req = _M.request(options, cb)
 	req:finish()
 	return req
 end
@@ -2074,11 +2084,12 @@ local function connectionListener (server, socket)
 end
 --
 -- public
-_connectionListener = connectionListener
+_M._connectionListener = connectionListener
 
 
 -- Server Class
-Server = Class.InheritsFrom(net.Server)
+local Server = Class.InheritsFrom(net.Server)
+_M.Server = Server
 
 function Server:__init (requestListener)
 	local newServer = Class.construct(Server, { allowHalfOpen = true })
@@ -2104,12 +2115,13 @@ end
 
 --
 --
-function createServer (requestListener)
+function _M.createServer (requestListener)
 	return Server(requestListener)
 end
 
 -- Legacy Interface
-Client = Class.InheritsFrom(EventEmitter)
+local Client = Class.InheritsFrom(EventEmitter)
+_M.Client = Client
 
 function Client:__init (port, host)
 	console.warn("http.Client will be removed soon. Do not use it.")
@@ -2180,7 +2192,7 @@ function Client:finish()
 end
 
 
-function createClient (port, host, https, context)
+function _M.createClient (port, host, https, context)
 	console.warn("http.createClient is deprecated. Use 'http.request' instead.")
 	local c = Client(port, host)
 	c.port = port
@@ -2495,3 +2507,6 @@ function cat (url, encoding_, headers_, callback_)
 	req:finish()
 end
 --]]
+
+
+return _M

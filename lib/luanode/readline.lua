@@ -2,7 +2,13 @@ local Class = require "luanode.class"
 local EventEmitter = require "luanode.event_emitter"
 local utils = require "luanode.utils"
 
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.readline",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.readline = _M
 
 -- Reference:
 -- * http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
@@ -12,6 +18,15 @@ local kHistorySize = 30
 local kBufSize = 10 * 1024
 
 local emitKey
+
+-- Forward declarations
+local commonPrefix
+local emitKeypressEvents
+local emitKey
+local cursorTo
+local moveCursor
+local clearLine
+local clearScreenDown
 
 ---
 -- Mappings from ansi codes to key names (and modifiers)
@@ -157,11 +172,12 @@ end
 
 ---
 --
-Interface = Class.InheritsFrom(EventEmitter)
+local Interface = Class.InheritsFrom(EventEmitter)
+_M.Interface = Interface
 
 ---
 --
-function createInterface (input, output, completer, terminal)
+function _M.createInterface (input, output, completer, terminal)
 	return Interface(input, output, completer, terminal)
 end
 
@@ -1255,3 +1271,5 @@ end
 function clearScreenDown (stream)
 	stream:write("\027[0J")
 end
+
+return _M

@@ -5,8 +5,13 @@ local luanode_stream = require "luanode.stream"
 local utils = require "luanode.utils"
 local stdinHandle
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.tty",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.tty = _M
 
 _M.isatty = function (fd)
 	return Stdio.isatty(fd)
@@ -18,7 +23,7 @@ end
 
 ---
 --
-function setRawMode (flags)
+function _M.setRawMode (flags)
 	assert(stdinHandle, "stdin must be initialized before calling setRawMode")
 	stdinHandle:setRawMode(flags)
 end
@@ -26,7 +31,8 @@ end
 ---
 -- ReadStream class
 --ReadStream = Class.InheritsFrom(Socket)
-ReadStream = Class.InheritsFrom(luanode_stream.Stream)
+local ReadStream = Class.InheritsFrom(luanode_stream.Stream)
+_M.ReadStream = ReadStream
 
 function ReadStream:__init(fd)
 	--local newStream = Class.construct(ReadStream)--, fd)
@@ -137,7 +143,8 @@ end
 
 ---
 -- WriteStream class
-WriteStream = Class.InheritsFrom(luanode_stream.Stream)
+local WriteStream = Class.InheritsFrom(luanode_stream.Stream)
+_M.WriteStream = WriteStream
 
 function WriteStream:__init (fd)
 	local newStream = Class.construct(WriteStream)
