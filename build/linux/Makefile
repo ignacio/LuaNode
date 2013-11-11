@@ -185,6 +185,10 @@ $(OUTPUT_FILE): $(BUILD_TEMP_DIR) $(LUAS) $(OBJS)
 
 .PHONY: clean
 
+# until I get my act together...
+.NOTPARALLEL:
+
+
 clean:
 	rm -rf $(BUILD_TEMP_DIR)
 	rm -f $(BASE_SRC_DIR)/lib/luanode/*.precomp
