@@ -83,7 +83,7 @@ local styleTable = {
 -- https://github.com/stevedonovan/Penlight
 function _M.inspect(value, showHidden, depth, colors)
 	depth = depth or 2
-	if type(depth) == "string" then depth = 1000 end	-- hack
+	if type(depth) ~= "number" then depth = 1000 end	-- hack
 	
 	local stylize = function(str, styleType)
 		local style = styleTable[styleType]
