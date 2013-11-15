@@ -1000,7 +1000,7 @@ end
 --
 --
 function ServerResponse:writeHead (statusCode, reasonPhrase, headers)
-	local headers, headerIndex
+	local headerIndex
 	
 	if type(reasonPhrase) == "table" then
 		headers = reasonPhrase
