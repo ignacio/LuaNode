@@ -5,12 +5,12 @@ set -e
 declare -i noProcessed=0
 
 case $(uname) in 
-Linux)
-	lscommand=$(ls -1 --hide=disabled simple)
-    ;;
 Darwin)
 	lscommand=$(ls -1 simple | grep -v disabled)
-    ;;
+	;;
+*)
+	lscommand=$(ls -1 --hide=disabled simple)
+	;;
 esac
 
 for i in $lscommand; do
