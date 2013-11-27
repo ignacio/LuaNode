@@ -4,7 +4,17 @@ set -e
 
 declare -i noProcessed=0
 
-for i in $( ls -1 --hide=disabled simple ); do
+case $(uname) in 
+Linux)
+	lscommand=$(ls -1 --hide=disabled simple)
+    ;;
+Darwin)
+	# TODO allow for disabled
+	lscommand=$(ls -1 simple | grep -v disabled)
+    ;;
+esac
+
+for i in $lscommand; do
 	echo -e "\033[32mRunning test case: simple."$i"\033[0m"
 	#valgrind --error-exitcode=1 --quiet --gen-suppressions=yes --tool=helgrind luanode run.lua simple.$i
 	#valgrind --error-exitcode=1 --db-attach=yes --quiet --suppressions=suppressions.supp --leak-check=full --show-reachable=yes --tool=memcheck luanode run.lua simple.$i
