@@ -111,7 +111,7 @@ If you already have Lua, OpenSSL and Boost installed, you can use [CMake](http:/
  - cmake --build .
 
 ### Mac OSX installation 
-*Note: Installation was tested on OSX Lion 10.7.5.*
+*Note: Installation was tested on OSX Lion 10.7.5 and OSX Mavericks 10.9*
 
 If you don't have boost or cmake installed, you can use [Homebrew](http://mxcl.github.com/homebrew/):
 
