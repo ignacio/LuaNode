@@ -9,7 +9,6 @@ Linux)
 	lscommand=$(ls -1 --hide=disabled simple)
     ;;
 Darwin)
-	# TODO allow for disabled
 	lscommand=$(ls -1 simple | grep -v disabled)
     ;;
 esac
