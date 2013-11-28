@@ -1293,7 +1293,7 @@ end
 function Socket:setSecure(context)
 
 	-- We need a socket here in order to make it secure
-	if not self._raw_socket then
+	if not self._handle then
 		error("Socket is closed.")
 	end
 	
