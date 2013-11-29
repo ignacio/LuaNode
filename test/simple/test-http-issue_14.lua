@@ -19,12 +19,10 @@ end)
 
 
 server:listen(common.PORT, function ()
-	local client = http.createClient(common.PORT)
-	local request = client:request("GET", "/")
-	request:finish()
-	request:on("response", function (self, response)
+	local request = http.request({ port = common.PORT, path = "/" }, function(self, response)
 		assert_equal(response.headers["content-type"], "text/plain")
 	end)
+	request:finish("")
 end)
 
 process:loop()

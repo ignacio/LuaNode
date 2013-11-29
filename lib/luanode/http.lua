@@ -1097,7 +1097,7 @@ function Agent:__init (options)
 			name = name .. ":" .. localAddress
 		end
 
-		if not socket.destroyed and new.requests[name] and #new.requests[name] then
+		if not socket.destroyed and new.requests[name] and #new.requests[name] > 0 then
 			local req = table.remove(new.requests[name], 1)
 			req:onSocket(socket)
 			if #new.requests[name] == 0 then

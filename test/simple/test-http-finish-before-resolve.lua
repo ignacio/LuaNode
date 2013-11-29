@@ -4,8 +4,7 @@ function test()
 
 local http = require "luanode.http"
 
-local google = http.createClient(80, 'www.google.com')
-local request = google:request('GET', '/', { host = 'www.google.com'})
+local request = http.request{ port = 80, path = "/", host = "www.google.com"}
 
 request:finish("")
 
@@ -17,9 +16,9 @@ local timer = setTimeout(function()
 	process:exit(-1)
 end, 5000)
 
-request:on('response', function (self, response)
-	console.log('STATUS: ' .. response.statusCode)
-	console.log('HEADERS: ')
+request:on("response", function (self, response)
+	console.log("STATUS: " .. response.statusCode)
+	console.log("HEADERS: ")
 	for k,v in pairs(response.headers) do
 		console.log(k, v)
 	end
@@ -28,8 +27,8 @@ request:on('response', function (self, response)
 	timer:stop()
 	--clearInterval(timer)
 	
-	response:on('data', function (self, chunk)
-		console.log('BODY: %s', chunk)
+	response:on("data", function (self, chunk)
+		console.log("BODY: %s", chunk)
 	end)
 end)
 

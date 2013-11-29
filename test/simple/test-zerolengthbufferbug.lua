@@ -17,12 +17,7 @@ function test()
 	local resBodySize = 0
 
 	server:listen(common.PORT, function ()
-		local client = http.createClient(common.PORT)
-	  
-		local req = client:request("GET", "/")
-		req:finish()
-
-		req:on("response", function (self, res)
+		http.get({ port = common.PORT }, function(self, res)
 			gotResponse = true
 
 			res:on("data", function (self, d)
