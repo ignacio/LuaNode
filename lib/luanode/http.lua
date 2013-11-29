@@ -250,7 +250,7 @@ function OutgoingMessage:_send (data, encoding)
 	-- This is a shameful hack to get the headers and first body chunk onto
 	-- the same packet. Future versions of Node (ehem, LuaNode :D) are going to take care of
 	-- this at a lower level and in a more general way.
-	if not self._headerSent then
+	if self._header and not self._headerSent then
 		if type(data) == "string" then
 			data = self._header .. data
 		else
@@ -258,6 +258,8 @@ function OutgoingMessage:_send (data, encoding)
 			self.outputEncodings.unshift("ascii")	-- TODO: remove me
 		end
 		self._headerSent = true
+	else
+		error("You have to call writeHead() before write()")
 	end
 	
 	return self:_writeRaw(data, encoding)
