@@ -31,20 +31,20 @@
 static const char HRTIME_MT[] = "luanode_hrtime_mt";
 
 #if defined (_WIN32)
-/* The resolution of the high-resolution clock. */
-static boost::uint64_t uv_hrtime_frequency_ = 0;
+/* Frequency (ticks per nanosecond) of the high-resolution clock. */
+static double uv_hrtime_frequency_ = 0;
 
 class hrtime_init {
 public:
 	hrtime_init() { 
-		LARGE_INTEGER frequency;
+		LARGE_INTEGER perf_frequency;
 
-		if (!::QueryPerformanceFrequency(&frequency)) {
-			uv_hrtime_frequency_ = 0;
-			return;
+		if (::QueryPerformanceFrequency(&perf_frequency)) {
+			uv_hrtime_frequency_ = (double) perf_frequency.QuadPart / (double) NANOSEC;
 		}
-
-		uv_hrtime_frequency_ = frequency.QuadPart;
+		else {
+			uv_hrtime_frequency_ = 0;
+		}
 	}
 };
 
@@ -71,7 +71,7 @@ boost::uint64_t LuaNode::HighresTime::Get () {
 	LARGE_INTEGER counter;
 
 	/* If the performance frequency is zero, there's no support. */
-	if (!uv_hrtime_frequency_) {
+	if (uv_hrtime_frequency_ == 0) {
 	    /* uv__set_sys_error(loop, ERROR_NOT_SUPPORTED); */
 	    return 0;
 	}
@@ -82,11 +82,9 @@ boost::uint64_t LuaNode::HighresTime::Get () {
 	}
 
 	/* Because we have no guarantee about the order of magnitude of the */
-	/* performance counter frequency, and there may not be much headroom to */
-	/* multiply by NANOSEC without overflowing, we use 128-bit math instead. */
-	return ((boost::uint64_t) counter.LowPart * NANOSEC / uv_hrtime_frequency_) +
-			(((boost::uint64_t) counter.HighPart * NANOSEC / uv_hrtime_frequency_)
-			<< 32);
+	/* performance counter frequency, integer math could cause this computation */
+	/* to overflow. Therefore we resort to floating point math. */
+	return (boost::uint64_t) ((double) counter.QuadPart / uv_hrtime_frequency_);
 }
 #elif defined (__APPLE__)
 boost::uint64_t LuaNode::HighresTime::Get () {
