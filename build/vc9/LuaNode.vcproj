@@ -721,7 +721,7 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Lua files"
+			Name="lib"
 			>
 			<File
 				RelativePath="..\..\lib\LuaNode\child_process.lua"
@@ -816,6 +816,14 @@
 				>
 				<File
 					RelativePath="..\..\deps\StackTracePlus\src\StackTracePlus.lua"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="private"
+				>
+				<File
+					RelativePath="..\..\lib\luanode\__private_url.lua"
 					>
 				</File>
 			</Filter>

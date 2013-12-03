@@ -90,6 +90,7 @@ SET(LUAS
     lib/luanode/tty
     lib/luanode/url
     lib/luanode/utils
+    lib/luanode/__private_url
     ${LUA_OS}
     src/node
     deps/stacktraceplus/src/StackTracePlus

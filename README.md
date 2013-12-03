@@ -49,7 +49,6 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
 
  - [Boost.Asio][5]
  - [OpenSSL][7] 
- - [LuaSocket][8]
  - [JSON4Lua][9]
  - [lunit][10]
  
@@ -57,7 +56,7 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
 The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
 
  - Install Lua and libraries
-   - sudo apt-get install lua5.1 liblua5.1-0-dev luasocket-dev liblua5.1-json
+   - sudo apt-get install lua5.1 liblua5.1-0-dev liblua5.1-json
 
  - Install OpenSSL
    - sudo apt-get install libssl-dev
@@ -112,7 +111,7 @@ If you already have Lua, OpenSSL and Boost installed, you can use [CMake](http:/
  - cmake --build .
 
 ### Mac OSX installation 
-*Note: Installation was tested on OSX Lion 10.7.5 and OSX Mavericks 10.9*
+*Note: Installation was tested on OS X Lion 10.7.5, OS X Mountain Lion 10.8 and OSX Mavericks 10.9*
 
 If you don't have boost or cmake installed, you can use [Homebrew](http://mxcl.github.com/homebrew/):
 
@@ -148,6 +147,7 @@ I'd like to acknowledge the work of the following people or group:
  - Michal Kottman, for his additions to [LuaCrypto][16]. He also contributed a CMakeLists.txt to ease building.
  - Steve Donovan, for allowing me to take parts of [Penlight][17].
  - Joyent, for [Node.js][11] and [libuv][18]. Parts of libuv were adapted (terminal handling, etc). 
+ - Diego Nehab, for [LuaSocket][8] (which we use parts of).
 
  
 ## License #

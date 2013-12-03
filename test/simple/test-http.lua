@@ -32,6 +32,7 @@ local server = http.createServer(function (self, req, res)
 	end
 
 	req:addListener('end', function (self)
+		console.log("replying")
 		res:writeHead(200, {["Content-Type"] = "text/plain"})
 		res:write("The path was " .. url.parse(req.url).pathname)
 		res:finish()
@@ -43,23 +44,31 @@ end)
 server:listen(common.PORT)
 
 server:addListener("listening", function(self)
-	local client = http.createClient(common.PORT)
-	local req = client:request("/hello", {Accept = "*/*", Foo = "bar"})
-	req:finish()
-	req:addListener('response', function (self, res)
+	local agent = http.Agent({ port = common.PORT, maxSockets = 1 })
+	http.get({
+		port = common.PORT,
+		path = "/hello",
+		headers = {Accept = "*/*", Foo = "bar" },
+		agent = agent
+	},
+	function (_, res)
 		assert_equal(200, res.statusCode)
 		responses_recvd = responses_recvd + 1
 		res:setEncoding("utf8")
-		res:addListener('data', function (self, chunk)
+		res:on('data', function (self, chunk)
 			body0 = body0 .. chunk
 		end)
 		common.debug("Got /hello response")
 	end)
 
 	setTimeout(function ()
-		req = client:request("POST", "/world")
-		req:finish()
-		req:addListener('response',function (self, res)
+		req = http.request({
+			port = common.PORT,
+			method = "POST",
+			path = "/world",
+			agent = agent
+		},
+		function (self, res)
 			assert_equal(200, res.statusCode)
 			responses_recvd = responses_recvd + 1;
 			res:setEncoding("utf8")
@@ -68,6 +77,7 @@ server:addListener("listening", function(self)
 			end)
 			common.debug("Got /world response")
 		end)
+		req:finish()
 	end, 1)
 end)
 

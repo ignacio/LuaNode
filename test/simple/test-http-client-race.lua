@@ -21,27 +21,26 @@ server:listen(common.PORT)
 local body1 = ""
 local body2 = ""
 
-server:addListener("listening", function()
-	local client = http.createClient(common.PORT)
+server:on("listening", function()
 
-	local req1 = client:request("/1")
+	local req1 = http.request{ port = common.PORT, path = "/1" }
 	req1:finish()
-	req1:addListener("response", function (self, res1)
+	req1:on("response", function (self, res1)
 		res1:setEncoding("utf8")
 
-		res1:addListener("data", function (self, chunk)
+		res1:on("data", function (self, chunk)
 			body1 = body1 .. chunk
 		end)
 
-		res1:addListener('end', function ()
-			local req2 = client:request("/2")
+		res1:on('end', function ()
+			local req2 = http.request{ port = common.PORT, path = "/2" }
 			req2:finish()
-			req2:addListener('response', function (self, res2)
+			req2:on('response', function (self, res2)
 				res2:setEncoding("utf8")
-				res2:addListener("data", function (self, chunk)
+				res2:on("data", function (self, chunk)
 					body2 = body2 .. chunk
 				end)
-				res2:addListener("end", function ()
+				res2:on("end", function ()
 					server:close()
 				end)
 			end)
@@ -49,7 +48,7 @@ server:addListener("listening", function()
 	end)
 end)
 
-process:addListener("exit", function ()
+process:on("exit", function ()
 	assert_equal(body1_s, body1)
 	assert_equal(body2_s, body2)
 end)

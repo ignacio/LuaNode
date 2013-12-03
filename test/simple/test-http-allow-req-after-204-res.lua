@@ -19,14 +19,15 @@ function test()
 		res:finish()
 	end)
 
-	local client = http.createClient(common.PORT)
-
 	function nextRequest()
 		local method = table.remove(methods, 1)
 		console.debug("writing request: %s", method)
 	
-		local request = client:request(method, '/')
-		request:on('response', function (self, response)
+		local request = http.request({
+			port = common.PORT,
+			method = method,
+			path = "/"
+		}, function(self, response)
 			if #methods == 1 then
 				assert_equal(204, response.statusCode)
 			else

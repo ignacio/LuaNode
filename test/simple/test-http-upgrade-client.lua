@@ -16,12 +16,12 @@ function test()
 			data = data .. d
 			
 			if data:match("\r\n\r\n$") then
-				c:write('HTTP/1.1 101\r\n')
-				c:write('hello: world\r\n')
-				c:write('connection: upgrade\r\n')
-				c:write('upgrade: websocket\r\n')
-				c:write('\r\n')
-				c:write('nurtzo')
+				c:write('HTTP/1.1 101\r\n' ..
+						'hello: world\r\n' ..
+						'connection: upgrade\r\n' ..
+						'upgrade: websocket\r\n' ..
+						'\r\n' .. 
+						'nurtzo')
 			end
 		end)
 
@@ -34,7 +34,8 @@ function test()
 	
 	srv:listen(common.PORT, '127.0.0.1', function()
 
-		local hc = http.createClient(common.PORT, '127.0.0.1')
+		--local hc = http.createClient(common.PORT, '127.0.0.1')
+		local hc = http.get({ port = common.PORT })
 		hc:addListener('upgrade', function(self, res, socket, upgradeHead)
 			-- XXX: This test isn't fantastic, as it assumes that the entire response
 			--      from the server will arrive in a single data callback
@@ -56,7 +57,7 @@ function test()
 			-- Otherwise socket will be destroyed
 			return false
 		end)
-		hc:request('GET', '/'):finish()
+		--hc:request('GET', '/'):finish()
 	end)
 
 	process:addListener('exit', function()

@@ -1,3 +1,7 @@
+-- This test needs httpAllowHalfOpen enabled, because it sends the last
+-- requests (pipelined) and then calls finish.
+-- The http implementation will close http connections that are half open.
+
 module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")
@@ -6,7 +10,6 @@ local http = require "luanode.http"
 local url = require "luanode.url"
 local qs = require "luanode.querystring"
 local fs = require "luanode.fs"
-local json = require "json"
 
 function test()
 local have_openssl
@@ -38,8 +41,10 @@ local https_server = http.createServer(function (self, req, res)
 	res.id = request_number
 	req.id = request_number
 	request_number = request_number + 1
-
-	local verified = res.connection:verifyPeer()
+	
+	-- we check against req instead of res, because the response may not have a connection bound to it
+	-- see the way sockets are assigned on luanode.http -> parser.onIncoming
+	local verified = req.connection:verifyPeer()
 	local peerDN = req.connection:getPeerCertificate()
 	assert_equal(true, verified)
 	assert_equal("/C=UY/ST=Montevideo/L=Montevideo/O=LuaNode/OU=LuaNode/CN=agent1/emailAddress=iburgueno@gmail.com", peerDN.subject)
@@ -64,15 +69,17 @@ local https_server = http.createServer(function (self, req, res)
 	if req.id == 3 then
 		assert_equal("bar", req.headers['x-x']);
 		self:close()
-		--console.log("server closed")
+		console.log("server closed")
 	end
 	setTimeout(function ()
+		console.log("reply")
 		res:writeHead(200, {["Content-Type"] = "text/plain"})
 		res:write(url.parse(req.url).pathname)
 		res:finish()
 	end, 1)
 end)
 
+https_server.httpAllowHalfOpen = true
 https_server:setSecure(context)
 https_server:listen(common.PORT)
 
@@ -106,8 +113,8 @@ https_server:addListener("listening", function()
 		end
 
 		if requests_sent == 2 then
-			c:write("GET / HTTP/1.1\r\nX-X: foo\r\n\r\n"
-				.. "GET / HTTP/1.1\r\nX-X: bar\r\n\r\n")
+			c:write("GET /req1 HTTP/1.1\r\nX-X: foo\r\n\r\n"
+				.. "GET /req2 HTTP/1.1\r\nX-X: bar\r\n\r\n")
 			c:finish()
 			assert_equal(c:readyState(), "readOnly")
 			requests_sent = requests_sent + 2
@@ -126,10 +133,14 @@ end)
 process:addListener("exit", function ()
 	assert_equal(4, request_number)
 	assert_equal(4, requests_sent)
+
+	--console.log(server_response)
+	--console.log(#server_response)
 	
 	assert_equal("/hello", server_response:match("/hello"));
-	
 	assert_equal("/quit", server_response:match("/quit"));
+	assert_equal("/req1", server_response:match("/req1"));
+	assert_equal("/req2", server_response:match("/req2"));
 	
 	assert_true(client_got_eof)
 end)

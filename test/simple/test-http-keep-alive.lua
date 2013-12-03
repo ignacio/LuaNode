@@ -5,7 +5,7 @@ local http = require("luanode.http")
 
 function test()
 local body = "hello world\n"
-local headers = {connection = 'keep-alive'}
+local headers = {connection = "keep-alive"}
 
 local server = http.createServer(function (self, req, res)
 	res:writeHead(200, {["Content-Length"] = #body})
@@ -13,37 +13,34 @@ local server = http.createServer(function (self, req, res)
 	res:finish()
 end)
 
-local connectCount = 0
+local name = "localhost:" .. common.PORT
+local agent = http.Agent{ maxSockets = 1 }
+local headers = { connection = "keep-alive" }
 
 server:listen(common.PORT, function ()
-	local client = http.createClient(common.PORT)
-
-	client:addListener("connect", function ()
-		common.error("CONNECTED")
-		connectCount = connectCount + 1
+	http.get({ path = "/", headers = headers, port = common.PORT, agent = agent }, function(self, response)
+		assert_equal(1, agent.sockets[name].length)
+		assert_equal(2, #agent.requests[name])
 	end)
 
-	local request = client:request("GET", "/", headers)
-	request:finish()
-	request:addListener('response', function (self, response)
-		common.error('response start')
+	http.get({ path = "/", headers = headers, port = common.PORT, agent = agent }, function(self, response)
+		assert_equal(1, agent.sockets[name].length)
+		assert_equal(1, #agent.requests[name])
+	end)
 
-		response:addListener("end", function ()
-			common.error('response end')
-			local req = client:request("GET", "/", headers)
-			req:addListener('response', function (self, response)
-				response:addListener("end", function ()
-					client:finish()
-					server:close()
-				end)
-			end)
-			req:finish()
+	http.get({ path = "/", headers = headers, port = common.PORT, agent = agent }, function(self, response)
+
+		response:on("end", function()
+			assert_equal(1, agent.sockets[name].length)
+			assert_nil(agent.requests[name])
+			server:close()
 		end)
 	end)
 end)
 
-process:addListener('exit', function ()
-	assert_equal(1, connectCount)
+process:on("exit", function ()
+	assert_nil(agent.requests[name])
+	assert_nil(agent.sockets[name])
 end)
 
 process:loop()

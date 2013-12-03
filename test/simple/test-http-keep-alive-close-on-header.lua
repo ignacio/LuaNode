@@ -7,43 +7,81 @@ function test()
 body = "hello world\n"
 headers = {connection = 'keep-alive'}
 
-server = http.createServer(function (self, req, res)
+local server = http.createServer(function (self, req, res)
 	res:writeHead(200, {["Content-Length"] = #body, Connection="close"})
 	res:write(body)
 	res:finish()
 end)
 
-connectCount = 0
+local connectCount = 0
 
 server:listen(common.PORT, function () 
-	local client = http.createClient(common.PORT)
-
-	client:addListener("connect", function () 
-		common.error("CONNECTED")
-		connectCount = connectCount + 1
+	
+	local agent = http.Agent({ maxSockets = 1 })
+	local request = http.request({
+		method = "GET",
+		path = "/",
+		headers = headers,
+		port = common.PORT,
+		agent = agent,
+	}, function()
+		assert_equal(1, agent.sockets["localhost:"..common.PORT].length)
 	end)
+	request.id = "request 1"
 
-  local request = client:request("GET", "/", headers)
-	request:finish()
-	request:addListener('response', function (self, response) 
-		common.error('response start')
-
-		response:addListener("end", function () 
-			common.error('response end')
-			local req = client:request("GET", "/", headers)
-			req:addListener('response', function (self, response) 
-				response:addListener("end", function () 
-					client:finish()
-					server:close()
-				end)
-			end)
-			req:finish()
+	request:on("socket", function(_, s)
+		s:on("connect", function()
+			connectCount = connectCount + 1
 		end)
 	end)
+
+	request:finish()
+	--------------------
+
+	request = http.request({
+		method = "GET",
+		path = "/",
+		headers = headers,
+		port = common.PORT,
+		agent = agent,
+	}, function()
+		assert_equal(1, agent.sockets["localhost:"..common.PORT].length)
+	end)
+	request.id = "request 2"
+
+	request:on("socket", function(_, s)
+		s:on("connect", function()
+			connectCount = connectCount + 1
+		end)
+	end)
+
+	request:finish()
+	--------------------
+
+	request = http.request({
+		method = "GET",
+		path = "/",
+		headers = headers,
+		port = common.PORT,
+		agent = agent,
+	}, function(_, response)
+		response:on("end", function()
+			assert_equal(1, agent.sockets["localhost:"..common.PORT].length)
+			server:close()
+		end)
+	end)
+
+	request:on("socket", function(_, s)
+		s:on("connect", function()
+			connectCount = connectCount + 1
+		end)
+	end)
+
+	request:finish()
 end)
 
 process:addListener('exit', function () 
-	assert_equal(2, connectCount)
+	assert_equal(3, connectCount)
 end)
 
 process:loop()

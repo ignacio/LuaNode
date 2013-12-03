@@ -13,11 +13,8 @@ local s  = http.createServer(function(self, req, res)
 end)
 s:listen(common.PORT, function()
 
-	local r = http.createClient(common.PORT)
-	local request = r:request('GET', '/')
-
-	request:on('response', function (self, response)
-		console.log('STATUS: ' .. response.statusCode)
+	local request = http.request({ port = common.PORT }, function(self, response)
+		console.log("STATUS: " .. response.statusCode)
 		s:close()
 	end)
 

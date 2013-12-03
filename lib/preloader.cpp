@@ -286,6 +286,20 @@ static int luaopen_StackTracePlus(lua_State* L) {
 	return 1;
 }
 
+static int luaopen_LuaNode_Private_Url (lua_State* L)
+{
+	static const unsigned char code[] = {
+		#include "__private_url.precomp"
+	};
+	int arg = lua_gettop(L);
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.__private_url")) {
+		return lua_error(L);
+	}
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
 
 void PreloadModules(lua_State* L) {
 	luaL_findtable(L, LUA_GLOBALSINDEX, "package.preload", 1);
@@ -353,6 +367,9 @@ void PreloadModules(lua_State* L) {
 
 	lua_pushcfunction(L, luaopen_LuaNode_Readline);
 	lua_setfield(L, -2, "luanode.readline");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Private_Url);
+	lua_setfield(L, -2, "luanode.__private_url");
 
 	lua_pop(L, 1);
 }

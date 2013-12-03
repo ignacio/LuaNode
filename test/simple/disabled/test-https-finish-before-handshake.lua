@@ -15,6 +15,7 @@ request:finish("")
 
 google:on("secure", function ()
 	console.log("secure")
+	---[[
 	local verified = google:verifyPeer()
 	local peerDN = google:getPeerCertificate()
 	
@@ -26,6 +27,7 @@ google:on("secure", function ()
 	console.log(peerDN.valid_from)
 	console.log(peerDN.valid_to)
 	console.log(peerDN.fingerprint)
+	--]]
 end)
 
 

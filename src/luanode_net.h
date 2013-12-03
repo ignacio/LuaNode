@@ -48,6 +48,8 @@ public:
 	int GetLocalAddress(lua_State* L);
 	int GetRemoteAddress(lua_State* L);
 
+	LCB_DECL_GET(writeQueueSize);
+
 public:
 	boost::asio::ip::tcp::socket& GetSocketRef() { return *m_socket; };
 
@@ -61,6 +63,9 @@ private:
 	void HandleCloseCallback(int reference);
 	void CallCloseCallback(lua_State* L);
 
+	void HandleShutdownCallback (int reference);
+	void CallShutdownCallback (lua_State* L);
+
 
 private:
 	lua_State* m_L;
@@ -69,6 +74,7 @@ private:
 	bool m_write_shutdown_pending;
 	unsigned long m_pending_writes;
 	unsigned long m_pending_reads;
+	unsigned long m_write_queue_size;
 	
 	boost::shared_ptr< boost::asio::ip::tcp::socket > m_socket;
 	boost::asio::streambuf m_inputBuffer;

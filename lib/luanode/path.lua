@@ -1,5 +1,10 @@
--- TODO: sacar el seeall
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.path",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.path = _M
 
 -- TODO: Deberia usar penlight.path y dejarme de joder
 
@@ -25,14 +30,14 @@ end
 _M.dir_sep = dir_sep
 
 
-function join(...)
+function _M.join(...)
 	local t = {...}
-	return normalize( table.concat(t, dir_sep) )
+	return _M.normalize( table.concat(t, dir_sep) )
 end
 
 --
 --
-function normalizeArray(parts, keepBlanks)
+function _M.normalizeArray(parts, keepBlanks)
 	local directories = {}
 	local prev
 	
@@ -73,7 +78,7 @@ end
 
 --
 --
-function normalize(path, keepBlanks)
+function _M.normalize(path, keepBlanks)
 	local paths = {}
 	--print("normalize", path)
 	path = path:gsub("[\\/]", dir_sep)
@@ -82,7 +87,7 @@ function normalize(path, keepBlanks)
 		--print("p", p)
 		paths[#paths + 1] = p
 	end
-	paths = normalizeArray(paths, keepBlanks)
+	paths = _M.normalizeArray(paths, keepBlanks)
 	if process.platform ~= "windows" then
 		return dir_sep .. table.concat(paths, dir_sep)
 	else
@@ -102,14 +107,14 @@ end
 
 --
 --
-function dirname(path)
+function _M.dirname(path)
 	local path = splitpath(path)
 	return path
 end
 
 --
 --
-function basename(path, ext)
+function _M.basename(path, ext)
 	local path, file = splitpath(path)
 	if file and ext then
 		local file2 = file:match("(.*)"..ext.."$")
@@ -123,12 +128,12 @@ end
 
 --
 --
-function extname(path)
+function _M.extname(path)
 	-- TODO: implementar
 	error("not yet implemented")
 end
 
-function exists(path, callback)
+function _M.exists(path, callback)
 	-- TODO: implementar
 	error("not yet implemented")
 	--process.binding('fs').stat(path, function (err, stats) {
@@ -136,12 +141,10 @@ function exists(path, callback)
 --	});
 end
 
-function existsSync(path)
+function _M.existsSync(path)
 	-- TODO: implementar
 	error("not yet implemented")
 	--process.binding('fs').stat(path)
 end
 
-
-
-
+return _M

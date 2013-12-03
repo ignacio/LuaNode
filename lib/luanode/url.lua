@@ -1,17 +1,14 @@
-local assert = assert
+local Url = require "luanode.__private_url"
 
-if process.platform == "windows" then
-	require "luarocks.require"
-	-- TODO: traerse esto para adentro
-end
-local Url = require "socket.url"
+local _M = {
+	_NAME = "luanode.url",
+	_PACKAGE = "luanode."
+}
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+-- Make LuaNode 'public' modules available as globals.
+luanode.url = _M
 
-
-
-function parse (url, parseQueryString, slashesDenoteHost)
+function _M.parse (url, parseQueryString, slashesDenoteHost)
 	local parsed = Url.parse(url)
 	parsed.href = url
 	parsed.pathname = parsed.path
@@ -24,18 +21,20 @@ function parse (url, parseQueryString, slashesDenoteHost)
 	return parsed
 end
 
-function format (parsed_url)
+function _M.format (parsed_url)
 	if not parsed_url.scheme then
 		parsed_url.scheme = parsed_url.protocol
 	end
 	return Url.build(parsed_url)
 end
 
-function resolve (source, relative)
+function _M.resolve (source, relative)
 end
 
-function resolveObject (source, relative)
+function _M.resolveObject (source, relative)
 end
 
-function parseHost (host)
+function _M.parseHost (host)
 end
+
+return _M

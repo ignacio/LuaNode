@@ -5,6 +5,7 @@ module(..., lunit.testcase, package.seeall)
 function test()
 
 local catched = false
+local got_close = false
 
 local net = require "luanode.net"
 
@@ -25,7 +26,12 @@ client:on("error", function()
 	server:close()
 end)
 
+client:on("close", function()
+	got_close = true
+end)
+
 process:loop()
 
 assert_true(catched)
+assert_true(got_close)
 end

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(Build_Lua_FileBeforeTargets)' == '' and '$(Build_Lua_FileAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <Build_Lua_FileBeforeTargets>Midl</Build_Lua_FileBeforeTargets>
+    <Build_Lua_FileAfterTargets>CustomBuild</Build_Lua_FileAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Build_Lua_FileDependsOn
+      Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(Build_Lua_FileDependsOn)</Build_Lua_FileDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Build_Lua_File>
+      <CommandLineTemplate>..\..\tools\lua5.1.exe ..\..\tools\bin2c.lua %(FullPath) extension_status &gt; "../../build/temp/$(Configuration)/%(Filename).precomp"</CommandLineTemplate>
+      <Outputs>../../build/temp/$(Configuration)/%(Filename).precomp</Outputs>
+    </Build_Lua_File>
+  </ItemDefinitionGroup>
+</Project>

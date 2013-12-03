@@ -7,7 +7,7 @@ local http = require("luanode.http")
 function test()
 local requests_recv = 0
 local requests_sent = 0
-local request_upgradeHead = null
+local request_upgradeHead
 
 function createTestServer()
 	local server = http.Server()
@@ -28,7 +28,7 @@ function createTestServer()
 					.. "Connection: Upgrade\r\n"
 					.. "\r\n\r\n");
 
-		request_upgradeHead = upgradeHead
+		request_upgradeHead = assert(upgradeHead)
 
 		socket.ondata = function(self, d, start, finish)
 			local data = d

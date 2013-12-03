@@ -5,7 +5,7 @@ local http = require("luanode.http")
 
 -- This test is to make sure that when the HTTP server
 -- responds to a HEAD request, it does not send any body.
--- In this case it was sending '0\r\n\r\n'
+-- In this case it was sending "0\r\n\r\n"
 
 function test()
 local server = http.createServer(function(self, req, res)
@@ -16,21 +16,24 @@ server:listen(common.PORT)
 
 local responseComplete = false
 
-server:addListener("listening", function()
-	local req = http.createClient(common.PORT):request('HEAD', '/')
-	common.error('req')
-	req:finish()
-	req:addListener('response', function (self, res)
-		common.error('response');
-		res:addListener('end', function()
-			common.error('response end')
+server:on("listening", function()
+	local req = http.request({
+		port = common.PORT,
+		method = "HEAD",
+		path = "/"
+	}, function (self, res)
+		common.error("response");
+		res:on("end", function()
+			common.error("response end")
 			server:close()
 			responseComplete = true
 		end)
 	end)
+	common.error("req")
+	req:finish()
 end)
 
-process:addListener('exit', function ()
+process:on("exit", function ()
 	assert_true(responseComplete)
 end)
 

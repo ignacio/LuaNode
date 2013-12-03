@@ -123,6 +123,7 @@ const Socket::RegType Socket::setters[] = {
 };
 
 const Socket::RegType Socket::getters[] = {
+	LCB_ADD_GET(Socket, writeQueueSize),
 	{0}
 };
 
@@ -134,7 +135,8 @@ Socket::Socket(lua_State* L) :
 	m_close_pending(false),
 	m_write_shutdown_pending(false),
 	m_pending_writes(0),
-	m_pending_reads(0)
+	m_pending_reads(0),
+	m_write_queue_size(0)
 {
 	s_socketCount++;
 	LogDebug("Constructing Socket (%p) (id:%u). Current socket count = %lu", this, m_socketId, s_socketCount);
@@ -162,6 +164,7 @@ Socket::Socket(lua_State* L, boost::shared_ptr<boost::asio::ip::tcp::socket> soc
 	m_write_shutdown_pending(false),
 	m_pending_writes(0),
 	m_pending_reads(0),
+	m_write_queue_size(0),
 	m_socket(socket)
 {
 	s_socketCount++;
@@ -241,6 +244,14 @@ int Socket::GetLocalAddress(lua_State* L) {
 		lua_pushstring(L, e.what());
 	}
 	return 2;
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+LCB_IMPL_GET(Socket, writeQueueSize)
+{
+	lua_pushinteger(L, m_write_queue_size);
+	return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -413,6 +424,20 @@ int Socket::Shutdown(lua_State* L) {
 		}
 		m_socket->shutdown(boost::asio::socket_base::shutdown_receive, ec);
 	}
+	if(!ec) {
+		// If the socket could be shutdown right away, call the callback asynchronously
+		//lua_getfield(L, 1, "shutdown_callback");
+		//if(lua_type(L, 2) == LUA_TFUNCTION) {
+			lua_pushvalue(L, 1);
+			int reference = luaL_ref(L, LUA_REGISTRYINDEX);
+			m_socket->get_io_service().post(
+				boost::bind(&Socket::HandleShutdownCallback, this, reference)
+			);
+		//}
+		//else {
+			//lua_pop(L, 1);
+		//}
+	}
 	return BoostErrorCodeToLua(L, ec);
 }
 
@@ -436,6 +461,7 @@ int Socket::Write(lua_State* L) {
 		LogDebug("Socket::Write (%p) (id:%u) - Length=%lu, \r\n'%s'", this, m_socketId, (unsigned long)length, data);
 	
 		m_pending_writes++;
+		////Pm_write_queue_size += length;
 		boost::asio::async_write(*m_socket, buffer,
 			boost::bind(&Socket::HandleWrite, this, reference, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred)
 		);
@@ -455,6 +481,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 	luaL_unref(L, LUA_REGISTRYINDEX, reference);
 
 	m_pending_writes--;
+	////Pm_write_queue_size -= bytes_transferred;
 	if(!error) {
 		LogInfo("Socket::HandleWrite (%p) (id:%u) - Bytes Transferred (%lu)", this, m_socketId, 
 			(unsigned long)bytes_transferred);
@@ -488,6 +515,7 @@ void Socket::HandleWrite(int reference, const boost::system::error_code& error, 
 		if(ec) {
 			LogError("Socket::HandleWrite - Error shutting down socket (%p) (id:%u) (send) - %s", this, m_socketId, ec.message().c_str());
 		}
+		CallShutdownCallback(L);
 	}
 	
 	if(m_close_pending) CallCloseCallback(L);
@@ -910,4 +938,35 @@ void Socket::CallCloseCallback(lua_State* L) {
 			LuaNode::GetLuaVM().call(2, LUA_MULTRET);
 		}
 	}
+}
+
+/**
+* 
+*/
+void Socket::CallShutdownCallback (lua_State* L)
+{
+	lua_getfield(L, 1, "shutdown_callback");
+	if(lua_type(L, 2) == LUA_TFUNCTION) {
+		lua_pushvalue(L, 1);
+		lua_pushboolean(L, 1);
+		LuaNode::GetLuaVM().call(2, LUA_MULTRET);
+	}
+}
+
+/**
+* Calls the shutdown callback. See 'Shutdown' method.
+*/
+void Socket::HandleShutdownCallback (int reference)
+{
+	lua_State* L = LuaNode::GetLuaVM();
+	lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+	luaL_unref(L, LUA_REGISTRYINDEX, reference);
+
+	lua_getfield(L, 1, "shutdown_callback");
+	if(lua_type(L, 2) == LUA_TFUNCTION) {
+		lua_pushvalue(L, 1);
+		lua_pushboolean(L, 1);
+		LuaNode::GetLuaVM().call(2, LUA_MULTRET);
+	}
+	lua_settop(L, 0);
 }

@@ -4,9 +4,15 @@ local utils = require "luanode.utils"
 local rl = require "luanode.readline"
 local console = console
 local _G = _G
+local debug = require "debug"
 
--- TODO: sacar el seeall
-module(..., package.seeall)
+local _M = {
+	_NAME = "luanode.repl",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.repl = _M
 
 -- The list of Lua keywords
 local keywords = {
@@ -16,13 +22,13 @@ local keywords = {
 }
 
 -- Can be overridden with custom print functions, such as `probe` or `eyes.js`
-writer = utils.inspect
+_M.writer = utils.inspect
 
 ---
 --
 local function gatherResults (success, ...)
 	local n = select("#", ...)
-	return success, { n = n, ...}
+	return success, utils.pack(...)
 end
 
 ---
@@ -59,7 +65,8 @@ end
 
 ---
 -- Repl Class
-REPLServer = Class.InheritsFrom(EventEmitter)
+local REPLServer = Class.InheritsFrom(EventEmitter)
+_M.REPLServer = REPLServer
 
 ---
 --
@@ -167,6 +174,7 @@ function REPLServer:__init (prompt, stream, eval, useGlobal, ignoreUndefined)
 	rli:on("line", function (self, line)
 		sawSIGINT = false
 		line = line:match("^%s*(.-)[%s]*$")	-- trim whitespace
+
 		-- Check to see if a REPL keyword was used. If it returns true, display next prompt and return.
 		if line and line:match("^%.") then
 			local keyword, rest = line:match("^([^%s]+)%s*(.*)$")
@@ -374,7 +382,7 @@ function REPLServer:complete (line, callback)
   		group = {}
   		local function append_candidates(t)  
     		for k, v in pairs(t) do
-				if type(k) == "string" or type(k) == "number" then
+				if type(k) == "string" then
 					if all or k:sub(1, #last) == last then
 						table.insert(group, prefix .. k)
 					end
@@ -427,7 +435,9 @@ end
 
 ---
 --
-function start (prompt, source)
+function _M.start (prompt, source)
 	local repl = REPLServer(prompt, source)
 	return repl
 end
+
+return _M

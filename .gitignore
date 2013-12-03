@@ -33,3 +33,4 @@ LuaNode.deuser
 *.opt
 *.vs*scc
 *.precomp
+*.sdf

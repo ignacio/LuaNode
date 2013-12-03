@@ -1,7 +1,14 @@
 local process = process
 local esc = string.char(27)
 
-module((...), package.seeall)
+local _M = {
+	_NAME = "luanode.console",
+	_PACKAGE = "luanode."
+}
+
+-- Make LuaNode 'public' modules available as globals.
+luanode.console = _M
+
 
 local fg_colors = {
 	black = esc.."[30m",
@@ -46,7 +53,7 @@ local bg_colors = {
 
 local reset = esc.."[0m"
 
-reset_color = function (stream)
+_M.reset_color = function (stream)
 	stream = stream or process.stdout
 	stream:write(reset)
 end
@@ -69,19 +76,19 @@ end
 --BLINK_OFF = "\033[25m"
 --REVERSE_OFF = "\033[27m"
 
-function getColor(value)
+function _M.getColor(value)
 	return fg_colors[value]
 end
 
-function getBgColor(value)
+function _M.getBgColor(value)
 	return bg_colors[value]
 end
 
-function getResetColor()
+function _M.getResetColor()
 	return reset
 end
 
-function color(value, stream)
+function _M.color(value, stream)
 	local v = fg_colors[value]
 	if v then
 		stream = stream or process.stdout
@@ -89,10 +96,12 @@ function color(value, stream)
 	end
 end
 
-function bgcolor(value, stream)
+function _M.bgcolor(value, stream)
 	local v = bg_colors[value]
 	if v then
 		stream = stream or process.stdout
 		stream:write(v)
 	end
 end
+
+return _M

@@ -127,11 +127,16 @@ end
 
 --
 --
-function EventEmitter:removeAllListeners(kind)
+function EventEmitter:removeAllListeners (kind)
+	if not kind then
+		self._events = {}
+		return self
+	end
+
+	-- does not use listeners(), so no side effect of creating _events[type]
 	if kind and self._events and self._events[kind] then
 		self._events[kind] = nil
 	end
-	
 	return self
 end
 

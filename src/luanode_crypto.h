@@ -45,6 +45,8 @@ public:
 
 	int DoHandShake(lua_State* L);
 
+	LCB_DECL_GET(writeQueueSize);
+
 private:
 	void HandleWrite(int reference, const boost::system::error_code& error, size_t bytes_transferred);
 	void HandleRead(int reference, const boost::system::error_code& error, size_t bytes_transferred);
@@ -60,6 +62,7 @@ private:
 	bool m_close_pending;
 	unsigned long m_pending_writes;
 	unsigned long m_pending_reads;
+	unsigned long m_write_queue_size;
 	
 	boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>* m_ssl_socket;
 	
@@ -67,7 +70,8 @@ private:
 	//boost::array<char, 4> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 32> m_inputArray;	// agrandar esto y poolearlo
 	//boost::array<char, 64> m_inputArray;	// agrandar esto y poolearlo
-	boost::array<char, 128> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
+	//boost::array<char, 128> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
+	boost::array<char, 8192> m_inputArray;	// agrandar esto y poolearlo (el test simple\test-http-upgrade-server necesita un buffer grande sino falla)
 	
 	boost::asio::ssl::stream_base::handshake_type m_handshake_type;
 	bool m_should_verify;
