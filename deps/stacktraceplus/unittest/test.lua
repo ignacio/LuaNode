@@ -55,3 +55,25 @@ function testCoroutine()
 	assert_match("arg_inside_co", trace)
 	assert_match("arg_helper", trace)
 end
+
+---
+-- Test case for issue #4
+-- https://github.com/ignacio/StackTracePlus/issues/4
+--
+-- When building the stack trace, if there is a table or userdata with a __tostring metamethod which may throw an 
+-- error, we fail with 'error in error handling'.
+--
+function test_error_in_tostring()
+	local t = setmetatable({}, {
+		__tostring = function()
+			error("Error in tostring")
+		end
+	})
+
+	local f = function()
+		error("an error")
+	end
+
+	local ok, err = xpcall(f, STP.stacktrace)
+	assert_not_equal("error in error handling", err)
+end
