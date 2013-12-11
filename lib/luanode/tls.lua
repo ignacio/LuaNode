@@ -23,6 +23,7 @@ local SecureSocket = process.SecureSocket
 
 -- forward references
 local initSocketHandle
+local setSecure
 
 local function isPipeName (s)
 	return type(s) == "string" and not tonumber(s)
@@ -350,7 +351,7 @@ local connect_callback = function(handle, ok, err_msg, err_code)
 		
 		Timers.Active(socket)
 		
-		socket:setSecure()
+		setSecure(socket)
 
 		--local ok, err, err_code = pcall(socket.emit, socket, "connect")
 		--if not ok then
@@ -404,7 +405,7 @@ end
 -- var socket = new Socket()
 -- socket.connect(443)               - TCP connect to port 442 on the localhost
 -- socket.connect(443, 'nodejs.org') - TCP connect to port 443 on nodejs.org
--- socket.connect('/tmp/socket')    - UNIX connect to socket specified by path
+-- socket.connect('/tmp/socket')     - UNIX connect to socket specified by path
 
 -- ojo! Http crea el stream y entra derecho por acá, no llama a net.createConnection
 function Socket:connect (options, callback, ...)
@@ -808,8 +809,8 @@ end
 --]]
 
 
--- TODO: make this private
-function Socket:setSecure(context)
+-- Private
+setSecure = function (self, context)
 
 	-- We need a socket here in order to make it secure
 	if not self._handle then

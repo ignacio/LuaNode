@@ -75,7 +75,7 @@ extern char **environ;
 namespace LuaNode {
 
 static const char* LUANODE_PROGNAME = "LuaNode";
-static const char* LUANODE_VERSION = "0.0.2";
+static const char* LUANODE_VERSION = "0.0.2 (pre)";
 static const char* compileDateTime = "" __DATE__ """ - """ __TIME__ "";
 
 static int option_end_index = 0;

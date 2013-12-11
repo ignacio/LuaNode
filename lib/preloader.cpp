@@ -104,6 +104,19 @@ static int luaopen_LuaNode_Http(lua_State* L) {
 	return 1;
 }
 
+static int luaopen_LuaNode_Https(lua_State* L) {
+	int arg = lua_gettop(L);
+	static const unsigned char code[] = {
+		#include "https.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.https")) {
+		return lua_error(L);
+	}
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
 static int luaopen_LuaNode_Net(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
@@ -162,6 +175,19 @@ static int luaopen_LuaNode_Stream(lua_State* L) {
 		#include "stream.precomp"
 	};
 	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.stream")) {
+		return lua_error(L);
+	}
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
+static int luaopen_LuaNode_Tls(lua_State* L) {
+	int arg = lua_gettop(L);
+	static const unsigned char code[] = {
+		#include "tls.precomp"
+	};
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.tls")) {
 		return lua_error(L);
 	}
 	lua_insert(L,1);
@@ -328,6 +354,9 @@ void PreloadModules(lua_State* L) {
 	
 	lua_pushcfunction(L, luaopen_LuaNode_Http);
 	lua_setfield(L, -2, "luanode.http");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Https);
+	lua_setfield(L, -2, "luanode.https");
 	
 	lua_pushcfunction(L, luaopen_LuaNode_Net);
 	lua_setfield(L, -2, "luanode.net");
@@ -358,6 +387,9 @@ void PreloadModules(lua_State* L) {
 
 	lua_pushcfunction(L, luaopen_LuaNode_Script);
 	lua_setfield(L, -2, "luanode.script");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Tls);
+	lua_setfield(L, -2, "luanode.tls");
 
 	lua_pushcfunction(L, luaopen_LuaNode_Tty);
 	lua_setfield(L, -2, "luanode.tty");

@@ -11,6 +11,11 @@ local _M = {
 -- Make LuaNode 'public' modules available as globals.
 luanode.https = _M
 
+-- Classes exported by this module:
+-- Server
+-- Agent
+
+
 -- Server Class
 local Server = Class.InheritsFrom(Tls.Server)
 _M.Server = Server
@@ -35,18 +40,27 @@ local function createConnection (options)
 	return Tls.connect(options)
 end
 
+
+---
+-- HTTPS Agents.
+--
+
 local Agent = Class.InheritsFrom(Http.Agent)
+--
+-- public
 _M.Agent = Agent
 
 function Agent:__init (options)
 	local newAgent = Class.construct(Agent, options)
 	newAgent.createConnection = createConnection
-	newAgent.defaulPort = 443
+	newAgent.defaulPort = newAgent.defaulPort or 443
 	return newAgent
 end
 
-local agent = Agent()
-_M.globalAgent = agent
+--
+-- public
+local globalAgent = Agent()
+_M.globalAgent = globalAgent
 
 --
 -- public
@@ -59,7 +73,7 @@ _M.request = function (options, cb)
 		error("Protocol: " .. options.protocol .. " not supported.")
 	end
 
-	options.agent = options.agent or _M.globalAgent
+	options.agent = options.agent or globalAgent
 	
 	options.createConnection = createConnection
 	options.defaultPort = options.defaultPort or 443
