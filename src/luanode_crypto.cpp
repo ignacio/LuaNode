@@ -588,24 +588,27 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 
 			switch(error.value()) {
 				case boost::asio::error::eof:
-					LogDebug("Socket::HandleReadSome (EOF) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+					LogDebug("SecureSocket::HandleReadSome (EOF) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 					break;
 				case boost::asio::error::connection_aborted:
-					LogDebug("Socket::HandleReadSome (connection aborted) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+					LogDebug("SecureSocket::HandleReadSome (connection aborted) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 					break;
 #ifdef _WIN32
 				case ERROR_CONNECTION_ABORTED:
-					LogDebug("Socket::HandleReadSome (ERROR_CONNECTION_ABORTED) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+					LogDebug("SecureSocket::HandleReadSome (ERROR_CONNECTION_ABORTED) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 					break;
 #endif
 				case boost::asio::error::operation_aborted:
-					LogDebug("Socket::HandleReadSome (operation aborted) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+					LogDebug("SecureSocket::HandleReadSome (operation aborted) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 					break;
 				case boost::asio::error::connection_reset:
-					LogDebug("Socket::HandleReadSome (connection reset) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+					LogDebug("SecureSocket::HandleReadSome (connection reset) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+					break;
+				case boost::asio::error::shut_down:
+					LogDebug("SecureSocket::HandleReadSome (shut down) (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 					break;
 				default:
-					LogError("Socket::HandleReadSome with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
+					LogError("SecureSocket::HandleReadSome with error (%p) (id:%u) - %s", this, m_socketId, error.message().c_str());
 					break;
 			}
 			LuaNode::GetLuaVM().call(4, LUA_MULTRET);
@@ -633,7 +636,7 @@ void Socket::HandleReadSome(int reference, const boost::system::error_code& erro
 		boost::system::error_code ec;
 		m_ssl_socket->lowest_layer().close(ec);
 		if(ec) {
-			LogError("Socket::HandleReadSome - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
+			LogError("SecureSocket::HandleReadSome - Error closing socket (%p) (id:%u) - %s", this, m_socketId, ec.message().c_str());
 		}
 	}
 
@@ -665,14 +668,22 @@ int Socket::Shutdown(lua_State* L) {
 
 	m_shutdown_pending = true;
 
-	/*m_ssl_socket->async_shutdown(
-		boost::bind(&Socket::HandleShutdown, this,
-		reference, boost::asio::placeholders::error)
-		);
+	if(m_pending_writes == 0) {
+		// store a reference in the registry
+		lua_pushvalue(L, 1);
+		int reference = luaL_ref(L, LUA_REGISTRYINDEX);
 
-	if(ec) {
-		luaL_error(L, ec.message().c_str());
-	}*/
+		m_ssl_socket->async_shutdown(
+			boost::bind(&Socket::HandleShutdown, this,
+			reference, boost::asio::placeholders::error)
+			);
+
+		/*if(ec) {
+			luaL_error(L, ec.message().c_str());
+		}*/
+	}
+
+	/**/
 
 	if(strcmp(luaL_checkstring(L, 2), "write") == 0) {
 		m_shutdown_send = true;
