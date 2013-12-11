@@ -79,6 +79,7 @@ SET(LUAS
     lib/luanode/free_list
     lib/luanode/fs
     lib/luanode/http
+    lib/luanode/https
     lib/luanode/net
     lib/luanode/path
     lib/luanode/querystring
@@ -87,6 +88,7 @@ SET(LUAS
     lib/luanode/script
     lib/luanode/stream
     lib/luanode/timers
+    lib/luanode/tls
     lib/luanode/tty
     lib/luanode/url
     lib/luanode/utils

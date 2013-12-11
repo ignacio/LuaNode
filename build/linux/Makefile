@@ -125,6 +125,7 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/free_list.precomp \
 		$(BUILD_TEMP_DIR)/fs.precomp \
 		$(BUILD_TEMP_DIR)/http.precomp \
+		$(BUILD_TEMP_DIR)/https.precomp \
 		$(BUILD_TEMP_DIR)/net.precomp \
 		$(BUILD_TEMP_DIR)/path.precomp \
 		$(BUILD_TEMP_DIR)/querystring.precomp \
@@ -133,6 +134,7 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/script.precomp \
 		$(BUILD_TEMP_DIR)/stream.precomp \
 		$(BUILD_TEMP_DIR)/timers.precomp \
+		$(BUILD_TEMP_DIR)/tls.precomp \
 		$(BUILD_TEMP_DIR)/tty.precomp \
 		$(BUILD_TEMP_DIR)/url.precomp \
 		$(BUILD_TEMP_DIR)/utils.precomp \
