@@ -159,6 +159,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\blogger.cpp" />
+    <ClCompile Include="..\..\src\detail\posix\tty_stream.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\lua_vm.cpp" />
     <ClCompile Include="..\..\src\luanode.cpp" />
     <ClCompile Include="..\..\src\luanode_child_process.cpp" />
@@ -228,6 +233,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\detail\posix\tty_stream.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Debuggable|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\..\src\detail\windows\input_tty.h" />
     <ClInclude Include="..\..\src\detail\windows\output_tty.h" />
     <ClInclude Include="..\..\src\detail\windows\windows_tty.h" />
@@ -270,7 +280,10 @@
     <Build_Lua_File Include="..\..\lib\LuaNode\free_list.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\fs.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\http.lua" />
+    <Build_Lua_File Include="..\..\lib\luanode\https.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\net.lua" />
+    <Build_Lua_File Include="..\..\lib\luanode\tls.lua" />
+    <Build_Lua_File Include="..\..\lib\luanode\__private_url.lua" />
     <Build_Lua_File Include="..\..\src\node.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\path.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\querystring.lua" />

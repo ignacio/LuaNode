@@ -562,6 +562,30 @@
 				<Filter
 					Name="posix"
 					>
+					<File
+						RelativePath="..\..\src\detail\posix\tty_stream.cpp"
+						>
+						<FileConfiguration
+							Name="Release Debuggable|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath="..\..\src\detail\posix\tty_stream.h"
+						>
+						<FileConfiguration
+							Name="Release Debuggable|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCustomBuildTool"
+							/>
+						</FileConfiguration>
+					</File>
 				</Filter>
 			</Filter>
 		</Filter>

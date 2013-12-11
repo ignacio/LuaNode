@@ -34,3 +34,5 @@ LuaNode.deuser
 *.vs*scc
 *.precomp
 *.sdf
+*.opensdf
+*.ipch

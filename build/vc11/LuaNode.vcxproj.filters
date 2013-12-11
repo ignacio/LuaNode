@@ -1,0 +1,296 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\deps\http-parser\http_parser.c">
+      <Filter>http-parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\detail\windows\input_tty.cpp">
+      <Filter>Source Files\detail\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\detail\windows\windows_tty.cpp">
+      <Filter>Source Files\detail\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\detail\windows\output_tty.cpp">
+      <Filter>Source Files\detail\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\blogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\lua_vm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_child_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_constants.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_crypto.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_datagram_udp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_dns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_file_linux.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_file_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_hrtime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_http_parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_module_api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_net.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_net_acceptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_os.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_stdio_linux.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_stdio_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\luanode_timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\platform_bsd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\platform_linux.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\platform_windows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\preloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\detail\posix\tty_stream.cpp">
+      <Filter>Source Files\detail\posix</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Build_Lua_File Include="..\..\lib\LuaNode\child_process.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Class.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\console.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\crypto.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Datagram.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\dns.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\event_emitter.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\free_list.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\fs.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\http.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\net.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\src\node.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\path.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\querystring.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Readline.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Repl.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Script.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\stream.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Timers.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Tty.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\url.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\LuaNode\Utils.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\luanode\__private_url.lua">
+      <Filter>lib\private</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\deps\StackTracePlus\src\StackTracePlus.lua">
+      <Filter>lib\StackTracePlus</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\luanode\https.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+    <Build_Lua_File Include="..\..\lib\luanode\tls.lua">
+      <Filter>lib</Filter>
+    </Build_Lua_File>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\deps\http-parser\http_parser.h">
+      <Filter>http-parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\detail\windows\input_tty.h">
+      <Filter>Source Files\detail\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\blogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lua_runtime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lua_stack_checker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\lua_vm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\luanode_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_child_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_crypto.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_datagram_udp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_dns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_file_linux.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_file_win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_hrtime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_http_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_module_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_net.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_net_acceptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_stdio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\luanode_timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\lib\preloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared_const_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\detail\windows\windows_tty.h">
+      <Filter>Source Files\detail\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\detail\windows\output_tty.h">
+      <Filter>Source Files\detail\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\detail\posix\tty_stream.h">
+      <Filter>Source Files\detail\posix</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{017d26e3-c696-4022-98d1-2ae1b3b795a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="http-parser">
+      <UniqueIdentifier>{30fc0b89-399e-49ff-b902-089955c7d5ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{1fbc5e0c-42fb-4043-84d0-900ad337c1e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{20663781-3c74-40ee-a040-9f9937711d38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\detail">
+      <UniqueIdentifier>{683ff984-738e-4223-991d-68e390f51b1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\detail\posix">
+      <UniqueIdentifier>{172f96ce-5b47-4687-8e54-cb35f47c2530}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\detail\windows">
+      <UniqueIdentifier>{bb59c2d5-5085-45be-ae13-efc5f0519130}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\private">
+      <UniqueIdentifier>{1b6e56f6-345e-491a-bae4-d0e93e0517ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\StackTracePlus">
+      <UniqueIdentifier>{adc9b269-8d88-4cc9-a87c-1d5c0fa579cf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
