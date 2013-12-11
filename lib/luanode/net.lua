@@ -630,7 +630,7 @@ local function connect (self, address, port, addressType, localAddress)
 		end
 	end
 
-	local connectReq
+	--local connectReq
 	--connectReq = 
 	local ok, err_msg, err_code = self._handle:connect(address, port)
 	if not ok then

@@ -1,22 +1,24 @@
 module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")
-local http = require "luanode.http"
+local https = require "luanode.https"
 local fs = require "luanode.fs"
 local crypto = require ("luanode.crypto")
 
 function test()
 
-local google = http.createClient(443, "encrypted.google.com", true)
-local request = google:request("GET", "/", { Host = "encrypted.google.com"})
+--local google = http.createClient(443, "encrypted.google.com", true)
+--local request = google:request("GET", "/", { Host = "encrypted.google.com"})
+local request = https.request{ path = "/", host = "encrypted.google.com" }
 
 
 request:finish("")
 
-google:on("secure", function ()
+request:on("secure", function ()
 	console.log("secure")
-	---[[
-	local verified = google:verifyPeer()
+	--[[
+	--local verified = google:verifyPeer()
+	local verified = request:verifyPeer()
 	local peerDN = google:getPeerCertificate()
 	
 	assert_true(verified)
