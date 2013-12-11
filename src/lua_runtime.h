@@ -19,7 +19,7 @@ public:
 			static_cast<TBase*>(this)->Initialize();
 		}
 	}
-	CLuaRuntime(lua_State* L) : m_owner(false) {
+	CLuaRuntime(lua_State* L) : m_owner(false), m_error_handler(LUA_NOREF) {
 		m_L = L;
 	}
 	virtual ~CLuaRuntime() {
