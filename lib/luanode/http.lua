@@ -1217,8 +1217,8 @@ function Agent:removeSocket (socket, name, host, port, localAddress)
 	end
 end
 
-local agent = Agent()
-_M.globalAgent = agent
+local globalAgent = Agent()
+_M.globalAgent = globalAgent
 
 ---
 --
@@ -1231,7 +1231,7 @@ _M.ClientRequest = ClientRequest
 function ClientRequest:__init (options, callback)
 	local newRequest = Class.construct(ClientRequest) --local newRequest = Class.construct(ClientRequest, socket)
 	
-	newRequest.agent = (options.agent == nil and _M.globalAgent) or options.agent
+	newRequest.agent = (options.agent == nil and globalAgent) or options.agent
 
 	local defaultPort = options.defaultPort or 80
 

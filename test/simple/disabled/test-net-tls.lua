@@ -1,3 +1,8 @@
+-- DISABLED
+--
+-- for SSL servers, use tls.Server instead of net.Server
+--
+
 module(..., lunit.testcase, package.seeall)
 
 local common = dofile("common.lua")

@@ -918,6 +918,104 @@ end
 
 
 
+-- Socket Class
+local Server = Class.InheritsFrom(Net.Server)
+-- public
+_M.Server = Server
+
+function Server:__init (options, listener)
+	local newServer, sharedCreds
+	
+	-- create a server and supply a function to create sockets
+	
+	newServer = Class.construct(Server, {
+		allowHalfOpen = options.allowHalfOpen,
+		createConnection = function(options)
+			local opts = {}
+			for k,v in pairs(options) do opts[k] = v end
+			opts.context = sharedCreds
+			return Socket(opts)
+		end
+	})
+
+	newServer._contexts = {}
+
+	-- Handle option defaults
+	newServer:setOptions(options)
+
+	if not newServer.pfx and (not newServer.cert or not newServer.key) then
+		error("Missing PFX or certificate plus private key")
+	end
+
+	--local sharedCreds = Crypto.createCredentials{
+	sharedCreds = Crypto.createContext{
+		pfx = newServer.pfx,
+		key = newServer.key,
+		passphrase = newServer.passphrase,
+		cert = newServer.cert,
+		ca = newServer.ca,
+		ciphers = newServer.ciphers or DEFAULT_CIPHERS,
+		secureProtocol = newServer.secureProtocol,
+		secureOptions = newServer.secureOptions,
+		crl = newServer.crl,
+		sessionIdContext = newServer.sessionIdContext
+	}
+
+	local timeout = options.handshakeTimeout or (120 * 1000)
+	assert(type(timeout) == "number", "handshakeTimeout must be a number")
+
+	newServer:on("connection", function(self, socket)
+		setSecure(socket)
+		socket:_checkForSecureHandshake()
+		
+		-- once the connection has been handshaken, emit the secureConnection event
+		socket:on("secureConnect", function(socket)
+			newServer:emit("secureConnection")
+		end)
+	end)
+
+	if listener then
+		newServer:on("secureConnection", listener)
+	end
+
+	return newServer
+end
+
+
+function Server:setOptions (options)
+	if type(options.requestCert) == "boolean" then
+		self.requestCert = options.requestCert
+	else
+		self.requestCert = false
+	end
+
+	if type(options.rejectUnauthorized) == "boolean" then
+		self.rejectUnauthorized = options.rejectUnauthorized
+	else
+		self.rejectUnauthorized = false
+	end
+
+	if options.pfx then self.pfx = options.pfx end
+	if options.key then self.key = options.key end
+	if options.passphrase then self.passphrase = options.passphrase end
+	if options.cert then self.cert = options.cert end
+	if options.ca then self.ca = options.ca end
+	if options.secureProtocol then self.secureProtocol = options.secureProtocol end
+	if options.crl then self.crl = options.crl end
+	if options.ciphers then self.ciphers = options.ciphers end
+
+	if options.sessionIdContext then
+		self.sessionIdContext = options.sessionIdContext
+	else
+		self.sessionIdContext = Crypto.createHash("md5"):update( table.concat(process.argv) ):final("hex")
+	end
+end
+
+-- public
+_M.createServer = function(options, listener)
+	return Server(options, listener)
+end
+
 
 
 return _M

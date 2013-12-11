@@ -1567,6 +1567,10 @@ function Server:__init (options, listener)
 	
 	newServer.allowHalfOpen = not not options.allowHalfOpen --or false
 	newServer._handle = nil
+	-- createConnection is an optional function that allows me to abstract
+	-- the socket creation. It is used by tls.Server to create tls.Sockets
+	-- when the server wants to accept a connection
+	newServer._createConnection = options.createConnection
 	
 	return newServer
 end
@@ -1664,7 +1668,7 @@ function Server:listen (port, host, callback)
 			if err then
 				self:emit("error", err)
 			else
-				listen(self, address.address, port, address.family, 128)
+				listen(self, address.address, port, address.family)
 				--self.kind = (address.family == 6 and "tcp6") or (address.family == 4 and "tcp4") or error("unknown address family" .. tostring(address.family))
 				--self.acceptor:open(self.kind)
 				--self:_doListen(port, ip)
@@ -1731,7 +1735,8 @@ function Server:_listen2 (address, port, addressType, backlog, fd)
 			return
 		end
 
-		local socket = Socket({ handle = peer.socket, allowHalfOpen = server.allowHalfOpen })
+		local createSocket = self._createConnection or Socket
+		local socket = createSocket({ handle = peer.socket, allowHalfOpen = server.allowHalfOpen })
 		--local socket = Socket(peer.socket, addressType) -- esto cambia luego
 		--socket:open(peer.socket, addressType)	-- esto cambia luego
 		socket.readable = true
@@ -1749,9 +1754,8 @@ function Server:_listen2 (address, port, addressType, backlog, fd)
 		socket:emit("connect")
 
 		if not socket.destroyed then
-			if socket.secure then
-				socket._handle:doHandShake()
-			else
+			-- TODO: this class should not be aware of 'secure' stuff
+			if not socket.secure then
 				socket:resume()
 			end
 		end
