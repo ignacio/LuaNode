@@ -46,7 +46,10 @@ local function normalizeConnectArgs (...)
 	else
 		-- connect(port, [host], [cb])
 		options.port = args[1]
-		if type(args[2]) == "string" then
+		
+		if type(args[2]) == "table" then
+			for k,v in pairs(args[2]) do options[k] = v end
+		elseif type(args[2]) == "string" then
 			options.host = args[2]
 		end
 	end
@@ -845,7 +848,7 @@ setSecure = function (self, context)
 			self:emit("secureConnect")
 		end
 
-		if self._connectQueue then
+		if self._connectQueue and self.writable then
 			-- when the ssl handshake is done we can send the data
 			drainConnectQueue(self)
 		end
