@@ -211,7 +211,6 @@ void Acceptor::HandleAccept(int reference, boost::shared_ptr<boost::asio::ip::tc
 				LogWarning("Acceptor::HandleAccept (%p) (id:%u) (new socket %p) - Error retrieving remote endpoint. %s", 
 					this, m_acceptorId, socket.get(), ec.message().c_str());
 			}
-			// TODO: Should I call the callback, even when the connection is already closed and there's nothing to be done?
 			LogInfo("Acceptor::HandleAccept - Retrying accept operation");
 			lua_settop(L, 1);	// leave only 'self' on the stack
 			Accept(L);
