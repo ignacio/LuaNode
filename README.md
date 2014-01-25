@@ -51,6 +51,13 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
  - [OpenSSL][7] 
  - [JSON4Lua][9]
  - [lunit][10]
+
+### Ubuntu 12.04 Precise
+ - `sudo apt-get install lua5.1 liblua5.1-0-dev liblua5.1-json libssl-dev libboost1.46-dev libboost-system1.46-dev luarocks cmake libboost-date-time1.48.0 libboost-date-time1.48-dev libboost-thread1.48.0 libboost-thread1.48-dev libboost-system1.48.0 libboost-system1.48-dev`
+ - `git clone git://github.com/ignacio/LuaNode.git`
+ - `cd LuaNode/build`
+ - `cmake ../`
+ - `make`
  
 ### Debian installation #
 The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
