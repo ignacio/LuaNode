@@ -14,7 +14,8 @@ before_install:
   - gcc --version
   - brew install lua
   # sudo apt-get install $LUA_DEV
-  - lua$LUA_SFX -v
+  - which lua
+  - lua -v
   # Install a recent luarocks release
   - brew install luarocks
   #
