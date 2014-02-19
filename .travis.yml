@@ -15,7 +15,6 @@ before_install:
   - env
   - gcc --version
   - if [ $LUA = "luajit" ]; then
-      #sudo add-apt-repository ppa:mwild1/ppa -y && sudo apt-get update -y;
       brew install luajit
     fi
   - brew install lua
