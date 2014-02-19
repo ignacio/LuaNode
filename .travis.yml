@@ -1,7 +1,6 @@
 language: objective-c
 
 compiler:
-  #- clang
   - gcc
 
 env:
@@ -9,14 +8,10 @@ env:
     - LUAROCKS_BASE=luarocks-2.1.1
   matrix:
     - LUA=lua5.1 LUA_DEV=liblua5.1-dev LUA_VER=5.1 LUA_SFX=5.1 LUA_INCDIR=/usr/include/lua5.1
-    #- LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0
 
 before_install:
   - env
   - gcc --version
-  - if [ $LUA = "luajit" ]; then
-      brew install luajit
-    fi
   - brew install lua
   # sudo apt-get install $LUA_DEV
   - lua$LUA_SFX -v
