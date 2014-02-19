@@ -1,7 +1,7 @@
 language: objective-c
 
 compiler:
-  - clang
+  #- clang
   - gcc
 
 env:
@@ -12,7 +12,6 @@ env:
     #- LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0
 
 before_install:
-  - cat /Users/travis/build.sh
   - env
   - gcc --version
   - if [ $LUA = "luajit" ]; then
