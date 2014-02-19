@@ -1,4 +1,4 @@
-language: c++
+language: objective-c
 
 compiler:
   - clang
@@ -12,6 +12,8 @@ env:
     #- LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0
 
 before_install:
+  - env
+  - gcc --version
   - if [ $LUA = "luajit" ]; then
       sudo add-apt-repository ppa:mwild1/ppa -y && sudo apt-get update -y;
     fi
@@ -27,7 +29,7 @@ before_install:
   #
   # install dependencies
   #
-  - sudo luarocks install lunit 
+  - sudo luarocks install lunit
   - sudo apt-get install libboost-dev libboost-system-dev libboost-date-time-dev libboost-thread-dev liblua5.1-json
 
 install:
@@ -36,6 +38,6 @@ install:
   - cmake --build .
   - sudo mv luanode /usr/bin/luanode_d
 
-script: 
+script:
   - cd $TRAVIS_BUILD_DIR/test
   - ./run.sh
