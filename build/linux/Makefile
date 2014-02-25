@@ -17,8 +17,8 @@ BOOST_LIBS    ?= $(LIB_DIR)
 
 # Lua includes directory
 #LUA_INC = -I$(PACKAGES)/lua5.1/include
-LUA_INC ?= $(INCLUDE_DIR)
-LUA_LIB ?= $(LIB_DIR)/liblua.a
+LUA_INC ?= /usr/include/lua5.1
+LUA_LIB ?= /usr/lib/liblua5.1.a
 
 
 OPENSSL_INC ?= /usr/include/openssl
