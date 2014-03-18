@@ -21,7 +21,9 @@ function EventEmitter:emit(kind, ...)
 	assert(type(self) == "table" or type(self) == "userdata")
 	-- If there is no 'error' event listener then throw.
 	if kind == "error" then
-		if not self._events or not self._events.error or ( type(self._events.error) == "table" and #(self._events.error) ) then
+		if not self._events or not self._events.error or
+			( type(self._events.error) == "table" and #(self._events.error) == 0 )  -- an empty array?
+		then
 			-- squash the arguments and build an error message
 			local msg = ""
 			for i=1, select("#", ...) do
@@ -141,7 +143,7 @@ function EventEmitter:removeAllListeners (kind)
 end
 
 --
--- Returns an array of listeners for the specified event. This array can be manipulated, e.g. to 
+-- Returns an array of listeners for the specified event. This array can be manipulated, e.g. to
 -- remove listeners.
 function EventEmitter:listeners(kind)
 	self._events = self._events or {}
