@@ -89,7 +89,7 @@ local function bind(socket, port, ip)
 	if not ip then
 		ip = "0.0.0.0"
 	end
-	-- disgusting hack. In 
+	-- disgusting hack. In
 	if process.platform ~= "windows" then
 		socket:setoption("reuseaddr", true)
 	end
@@ -241,7 +241,7 @@ local function onread (raw_socket, data, err_msg, err_code)
 end
 
 ---
--- 
+--
 function Socket:setEncoding (encoding)
 	--error("not implemented")
 	-- como que acá en Lua no aplica mucho esto
@@ -251,8 +251,8 @@ function Socket:remoteAddress ()
 	return self._remoteAddress, self._remotePort
 end
 
---- 
--- 
+---
+--
 function Socket:write (data, encoding, cb)
 	-- If we are still connecting, then buffer this for later.
 	if self._connecting then
@@ -278,7 +278,7 @@ function Socket:write (data, encoding, cb)
 			error('Socket:finish() called already; cannot write.')
 		end
 		
-		if type(data) == "string" and #self._writeQueue > 0 and 
+		if type(data) == "string" and #self._writeQueue > 0 and
 			type(self._writeQueue[#self._writeQueue]) == "string" and
 			self._writeQueueEncoding[#self._writeQueueEncoding] == encoding
 		then
@@ -415,7 +415,7 @@ function Socket:_write (data, encoding, cb)
 	--table.insert(self._writeQueueEncoding, 1, encoding)
 	--table.insert(self._writeQueueCB, 1, cb)
 	--[[
-	if type(data) == "string" and #self._writeQueue > 0 and 
+	if type(data) == "string" and #self._writeQueue > 0 and
 		type(self._writeQueue[#self._writeQueue]) == "string" and
 		self._writeQueueEncoding[#self._writeQueueEncoding] == encoding
 	then
@@ -434,8 +434,8 @@ function Socket:_write (data, encoding, cb)
 	return false
 end
 
--- 
--- 
+--
+--
 --[=[
 function Socket:_writeOut(data, encoding, fd)
 	--error("not implemented")
@@ -461,7 +461,7 @@ function Socket:_writeOut(data, encoding, fd)
 		table.insert(self._writeQueueEncoding, 1, encoding)
 		--[[
 		-- Slow. There is already a write queue, so let's append to it.
-		if type(data) == "string" and #self._writeQueue > 0 and 
+		if type(data) == "string" and #self._writeQueue > 0 and
 			type(self._writeQueue[#self._writeQueue]) == "string" and
 			self._writeQueueEncoding[#self._writeQueueEncoding] == encoding
 		then
@@ -631,7 +631,7 @@ local function connect (self, address, port, addressType, localAddress)
 	end
 
 	local connectReq
-	--connectReq = 
+	--connectReq =
 	local ok, err_msg, err_code = self._handle:connect(address, port)
 	if not ok then
 		local msg = ("Failed to connect to %s:%d - %s"):format(address, port, err_msg)
@@ -1311,8 +1311,8 @@ function Socket:setSecure(context)
 		self.secureContext = context
 	end
 	
-	-- Determine default value. Don't overwrite this.secureContext because the 
-	-- same context might be shared by a client and a server with different 
+	-- Determine default value. Don't overwrite this.secureContext because the
+	-- same context might be shared by a client and a server with different
 	-- default values.
 	local verifyRemote
 	if self.secureContext.verifyRemote == nil then
@@ -1402,7 +1402,7 @@ function Socket:open(fd, kind)
 end
 --]]
 
--- 
+--
 -- If there is a pending chunk to be sent, flush it
 --[=[
 function Socket:flush()
@@ -1429,7 +1429,7 @@ function Socket:flush()
 end
 --]=]
 
--- 
+--
 -- Returns the last element in the write queue
 --[=[
 function Socket:_writeQueueLast()
@@ -1625,9 +1625,9 @@ local function listen (self, address, port, addressType, backlog, fd)
 	self:_listen2(address, port, addressType, backlog, fd)
 end
 
--- 
+--
 -- server.listen (port, [host], [callback])
--- Begin accepting connections on the specified port and host. If the host is omitted, the server will accept 
+-- Begin accepting connections on the specified port and host. If the host is omitted, the server will accept
 -- connections directed to any IPv4 address (INADDR_ANY).
 -- This function is asynchronous. The last parameter callback will be called when the server has been bound.
 function Server:listen (port, host, callback)
