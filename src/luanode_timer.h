@@ -26,6 +26,7 @@ private:
 
 private:
 	boost::shared_ptr< boost::asio::deadline_timer > m_timer;
+	const unsigned int m_timerId;
 	bool m_repeats;
 	int m_after;
 };

@@ -9,6 +9,9 @@
 
 using namespace LuaNode;
 
+static unsigned long s_nextTimerId = 0;
+static unsigned long s_timerCount = 0;
+
 const char* Timer::className = "Timer";
 const Timer::RegType Timer::methods[] = {
 	{"start", &Timer::Start},
@@ -27,15 +30,18 @@ const Timer::RegType Timer::getters[] = {
 
 // Take care: if the code is running on a coroutine, L is not the main state
 Timer::Timer(lua_State* L) : 
+	m_timerId(++s_nextTimerId),
 	m_repeats(false),
 	m_after(0)
 {
-	LogDebug("Constructing Timer (%p)", this);
+	s_timerCount++;
+	LogDebug("Constructing Timer (%p) (id:%u). Current timer count = %lu", this, m_timerId, s_timerCount);
 }
 
 Timer::~Timer(void)
 {
-	LogDebug("Destructing Timer (%p)", this);
+	s_timerCount--;
+	LogDebug("Destructing Timer (%p) (id:%u). Current timer count = %lu", this, m_timerId, s_timerCount);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,7 +51,7 @@ int Timer::Start (lua_State* L)
 	m_after = luaL_checkinteger(L, 2);
 	int repeat = luaL_checkinteger(L, 3);
 
-	LogDebug("Timer::Start (%p) (after: %d ms, repeat: %d ms)", this, m_after, repeat);
+	LogDebug("Timer::Start (id:%u) (after: %d ms, repeat: %d ms)", m_timerId, m_after, repeat);
 
 	if(repeat != 0) {
 		m_repeats = true;
@@ -67,7 +73,7 @@ int Timer::Start (lua_State* L)
 /// 
 int Timer::Stop (lua_State* L)
 {
-	LogDebug("Timer::Stop (%p)", this);
+	LogDebug("Timer::Stop (id:%u)", m_timerId);
 	if(m_timer != NULL) {
 		m_timer->cancel();
 	}
@@ -78,7 +84,7 @@ int Timer::Stop (lua_State* L)
 /// 
 int Timer::Again (lua_State* L)
 {
-	LogDebug("Timer::Again (%p)", this);
+	LogDebug("Timer::Again (id:%u)", m_timerId);
 
 	// if no timer, start it (non repeating)
 	if(!m_timer) {
@@ -116,7 +122,7 @@ void Timer::OnTimeout (int reference, const boost::system::error_code& error)
 		
 		lua_getfield(L, 1, "callback");
 		if(lua_type(L, 2) == LUA_TFUNCTION) {
-			LogDebug("Timer::OnTimeout (%p) - Timer fired", this);
+			LogDebug("Timer::OnTimeout (id:%u) - Timer fired", m_timerId);
 			LuaNode::GetLuaVM().call(0, LUA_MULTRET);
 
 			if(m_repeats) {
@@ -129,16 +135,16 @@ void Timer::OnTimeout (int reference, const boost::system::error_code& error)
 			}
 		}
 		else {
-			LogDebug("Timer::OnTimeout (%p) - Timer fired without a callback. Cancelling it.", this);
+			LogDebug("Timer::OnTimeout (id:%u) - Timer fired without a callback. Cancelling it.", m_timerId);
 			m_timer->cancel();
 		}
 	}
 	else {
 		if(error.value() == boost::asio::error::operation_aborted) {
-			LogDebug("Timer::OnTimeout (%p) - Timer was cancelled", this);
+			LogDebug("Timer::OnTimeout (id:%u) - Timer was cancelled", m_timerId);
 		}
 		else {
-			LogError("Timer::OnTimeout (%p) - error %s", this, error.message().c_str());
+			LogError("Timer::OnTimeout (id:%u) - error %s", m_timerId, error.message().c_str());
 		}
 	}
 	lua_settop(L, 0);
