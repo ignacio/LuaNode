@@ -6,11 +6,15 @@ env:
   matrix:
     - LUA=lua5.1 LUA_DEV=liblua5.1-dev LUA_VER=5.1 LUA_SFX=5.1 LUA_INCDIR=/usr/include/lua5.1
     - LUA=lua5.2 LUA_DEV=liblua5.2-dev LUA_VER=5.2 LUA_SFX=5.2 LUA_INCDIR=/usr/include/lua5.2
-    - LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0
+    - LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0 LUAJIT_VER=2.0
+    - LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.1 LUAJIT_VER=2.1
 
 before_install:
-  - if [ $LUA = "luajit" ]; then
+  - if [ $LUA = "luajit" ] && [ $LUAJIT_VER = "2.0" ]; then
       sudo add-apt-repository ppa:mwild1/ppa -y && sudo apt-get update -y;
+    fi
+  - if [ $LUA = "luajit" ] && [ $LUAJIT_VER = "2.1" ]; then
+      sudo add-apt-repository ppa:neomantra/luajit-v2.1 -y && sudo apt-get update -y;
     fi
   - sudo apt-get install $LUA
   - sudo apt-get install $LUA_DEV
@@ -21,8 +25,7 @@ before_install:
   - cd $LUAROCKS_BASE
   - ./configure
     --lua-version=$LUA_VER --lua-suffix=$LUA_SFX --with-lua-include="$LUA_INCDIR"
-  - sudo make
-  - sudo make install
+  - make build && sudo make install
   - cd $TRAVIS_BUILD_DIR
 
 install:

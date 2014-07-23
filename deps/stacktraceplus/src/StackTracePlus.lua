@@ -363,7 +363,7 @@ Stack Traceback
 				source = source:sub(9)
 			end
 			local was_guessed = false
-			if not function_name then
+			if not function_name or function_name == "?" then
 				--for k,v in pairs(info) do print(k,v, type(v)) end
 				function_name = GuessFunctionName(info)
 				was_guessed = true

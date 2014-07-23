@@ -1,19 +1,10 @@
 local lunit = require "lunit"
-local console = require "lunit-console"
 
 package.path = "../src/?.lua;../src/?/init.lua;".. package.path
 
 require "test"
 
-lunit.setrunner({
-	fail = function(...)
-		print(...)
-	end,
-	err = function(...)
-		print(...)
-	end,
-})
-
-console.begin()
-lunit.run()
-console.done()
+local stats = lunit.main()
+if stats.errors > 0 or stats.failed > 0 then
+	os.exit(1)
+end

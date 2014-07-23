@@ -4,7 +4,7 @@
 
 StackTracePlus provides enhanced stack traces for [Lua 5.1, Lua 5.2][1] and [LuaJIT][2].
 
-StackTracePlus can be used as a replacement for debug.traceback. It gives detailed information about locals, tries to guess 
+StackTracePlus can be used as a replacement for debug.traceback. It gives detailed information about locals, tries to guess
 function names when they're not available, etc, so, instead of
 
     lua5.1.exe: D:\trunk_git\sources\stacktraceplus\test\test.lua:10: attempt to concatenate a nil value
@@ -34,8 +34,8 @@ you'll get
 
 ## Usage #
 
-StackTracePlus can be used as a replacement for `debug.traceback`, as an `xpcall` error handler or even from C code. Note that 
-only the Lua 5.1 interpreter allows the traceback function to be replaced "on the fly". Lua 5.2 always calls luaL_traceback.
+StackTracePlus can be used as a replacement for `debug.traceback`, as an `xpcall` error handler or even from C code. Note that
+only the Lua 5.1 interpreter allows the traceback function to be replaced "on the fly". LuaJIT and Lua 5.2 always calls luaL_traceback internally so there is no easy way to override that.
 
 ```lua
 local STP = require "StackTracePlus"
@@ -53,7 +53,7 @@ end
 test()
 ```
 
-That script will output:
+That script will output (only with Lua 5.1):
 
     lua5.1: example.lua:11: an error
     Stack Traceback
@@ -70,7 +70,7 @@ That script will output:
     (5) main chunk of file 'example.lua' at line 14
     (6)  C function 'function: 00637B30'
 
-**StackTracePlus** is aware of the usual Lua libraries, like *coroutine*, *table*, *string*, *io*, etc and functions like 
+**StackTracePlus** is aware of the usual Lua libraries, like *coroutine*, *table*, *string*, *io*, etc and functions like
 *print*, *pcall*, *assert*, and so on.
 
 You can also make STP aware of your own tables and functions by calling *add_known_function* and *add_known_table*.
