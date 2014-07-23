@@ -26,14 +26,14 @@ Some useful macros when defining properties.
 namespace LuaCppBridge {
 
 /**
-A RawObjectWithProperties is a C++ class exposed to Lua as a userdata. This prevents us from adding 
-additional methods and members. Only the functions exposed from C++ will be available.
+A RawObjectWithProperties is a C++ class exposed to Lua as a userdata. This prevents adding additional methods and
+members. Only the functions exposed from C++ will be available.
 Also, properties can be defined with setters and getters for each.
 
 TO DO:
 Inheritance won't work with this class. I couldn't make it see its parent's properties, so I disabled the whole thing.
 */
-template <typename T, bool is_disposable = false> 
+template <typename T, bool is_disposable = false>
 class RawObjectWithProperties : public BaseObject<T, RawObjectWithProperties<T> > {
 private:
 	typedef BaseObject<T, RawObjectWithProperties<T> > base_type;
@@ -42,8 +42,6 @@ public:
 	typedef typename base_type::userdataType userdataType;
 
 public:
-	//////////////////////////////////////////////////////////////////////////
-	///
 	static void Register (lua_State* L) {
 		Register(L, true);
 	}
@@ -60,10 +58,10 @@ public:
 
 protected:
 	/**
-	__index metamethod. Looks for a property, then for a method.
-	upvalues:	1 = table with get properties
-				2 = table with methods
-	initial stack: self (userdata), key
+	* __index metamethod. Looks for a property, then for a method.
+	* upvalues:	1 = table with get properties
+	* 			2 = table with methods
+	* initial stack: self (userdata), key
 	*/
 	static int thunk_index (lua_State* L) {
 		// stack: userdata, key
@@ -81,7 +79,8 @@ protected:
 				}
 				else {
 					lua_pop(L, 1);
-					// I should keep looking up in the parent's metatable, (if I'm inheriting something) but I don't know how its done
+					// I should keep looking up in the parent's metatable, (if I'm inheriting something) but I
+					// don't know how its done.
 					// Issue an error
 					error(L, "__index: the value '%s' does not exist", lua_tostring(L, 2));
 					return 1; // shut up the compiler
@@ -186,6 +185,9 @@ private:
 		
 		lua_pushcfunction(L, T::gc_T);
 		base_type::set(L, metatable, "__gc");
+
+		lua_pushstring(L, T::className);
+		base_type::set(L, metatable, "__name");
 		
 		if(isCreatableByLua) {
 			// Make Classname() and Classname:new() construct an instance of this class

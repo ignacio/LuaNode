@@ -26,19 +26,19 @@ Some useful macros when defining properties.
 namespace LuaCppBridge {
 
 /**
-An HybridObjectWithProperties is a C++ class exposed to Lua as a table. It differs from a RawObjectWithProperties 
+An HybridObjectWithProperties is a C++ class exposed to Lua as a table. It differs from a RawObjectWithProperties
 in that additional methods and properties can be added dynamically to its instances.
 
 There are some things to take into account.
 For instance, if a property has only a getter method, then it is read-only. Any attempt to write to it will issue an error.
-    print(obj.test) -- gives the 'internal' value
-    obj.test = "something"	-- error!
+  print(obj.test) -- gives the 'internal' value
+  obj.test = "something"	-- error!
 
 
 TO DO:
 Inheritance won't work with this class. I couldn't make it see its parent's properties, so I disabled the whole thing.
 */
-template <typename T, bool is_disposable = false> 
+template <typename T, bool is_disposable = false>
 class HybridObjectWithProperties : public BaseObject<T, HybridObjectWithProperties<T> > {
 private:
 	typedef BaseObject<T, HybridObjectWithProperties<T> > base_type;
@@ -47,8 +47,6 @@ public:
 	typedef typename base_type::userdataType userdataType;
 
 public:
-	//////////////////////////////////////////////////////////////////////////
-	///
 	static void Register (lua_State* L, const char* parentClassName) {
 		Register(L, parentClassName, true);
 	}
@@ -64,7 +62,8 @@ public:
 		lua_call(L, 3, 0);
 	}
 
-	// create a new T object and push onto the Lua stack a table containing a userdata which itself contains a pointer to T object
+	// create a new T object and push onto the Lua stack a table containing a userdata which itself contains a pointer
+	// to T object
 	static int new_T (lua_State* L) {
 		lua_remove(L, 1);	// use classname:new(), instead of classname.new()
 		T* obj = new T(L);	// call constructor for T objects
@@ -82,7 +81,7 @@ public:
 				lua_settable(L, newTable);
 			}
 		}
-		// last step in the creation of the object. call a method that can access the userdata that will be sent 
+		// last step in the creation of the object. call a method that can access the userdata that will be sent
 		// back to Lua
 		obj->PostConstruct(L);
 		return 1;			// userdata containing pointer to T object
@@ -118,8 +117,8 @@ public:
 		return metatable;	// index of userdata containing pointer to T object
 	}
 
-	// push onto the Lua stack a userdata containing a pointer to T object. The object is not collectable and is unique (two 
-	// calls to push_unique will yield two different userdatas)
+	// push onto the Lua stack a userdata containing a pointer to T object. The object is not collectable and is unique
+	// (two calls to push_unique will yield two different userdata)
 	static int push_unique (lua_State* L, T* obj) {
 		if(!obj) {
 			lua_pushnil(L);
@@ -164,20 +163,20 @@ protected:
 				// found something, return it
 				return 1;
 			}
-			lua_pop(L, 2);					// stack: userdata, key
+			lua_pop(L, 2);						// stack: userdata, key
 
 			// Look in getters table
-			lua_pushvalue(L, 2);			// stack: userdata, key, key
+			lua_pushvalue(L, 2);				// stack: userdata, key, key
 			lua_rawget(L, lua_upvalueindex(1));
-			if(!lua_isnil(L, -1)) {			// found a property
+			if(!lua_isnil(L, -1)) {				// found a property
 				// stack: userdata, key, getter (RegType*)
 				RegType* l = static_cast<RegType*>(lua_touserdata(L, -1));
 				lua_settop(L, 1);
-				return (obj->*(l->mfunc))(L);  // call member function
+				return (obj->*(l->mfunc))(L);  	// call member function
 			}
 			else {
-				lua_pop(L, 1);				// stack: userdata, key
-				lua_pushvalue(L, 2);		// stack: userdata, key, key
+				lua_pop(L, 1);					// stack: userdata, key
+				lua_pushvalue(L, 2);			// stack: userdata, key, key
 				
 				// not a property, look for a method up the inheritance hierarchy
 				lua_gettable(L, lua_upvalueindex(2));
@@ -265,20 +264,20 @@ private:
 		// lunar mio
 		lua_newtable(L);								// getters, "__index"
 		int getters_index = lua_gettop(L);
-		lua_pushliteral(L, "__index");				// getters, "__index"
-		lua_pushvalue(L, getters_index);		// getters, "__index", getters
+		lua_pushliteral(L, "__index");					// getters, "__index"
+		lua_pushvalue(L, getters_index);				// getters, "__index", getters
 		for(const RegType* l = T::getters; l->name; l++) {
-			lua_pushstring(L, l->name);			// getters, "__index", getters, name
-			lua_pushlightuserdata(L, (void*)l); // getters, "__index", getters, name, property implementation
-			lua_settable(L, getters_index);		// getters, "__index", getters
+			lua_pushstring(L, l->name);					// getters, "__index", getters, name
+			lua_pushlightuserdata(L, (void*)l); 		// getters, "__index", getters, name, property implementation
+			lua_settable(L, getters_index);				// getters, "__index", getters
 		}
-		lua_pushvalue(L, methods);				// getters, "__index", getters, methods
-		lua_pushcclosure(L, T::thunk_index, 2);	// getters, "__index", thunk
-		lua_settable(L, metatable);				// getters
+		lua_pushvalue(L, methods);						// getters, "__index", getters, methods
+		lua_pushcclosure(L, T::thunk_index, 2);			// getters, "__index", thunk
+		lua_settable(L, metatable);						// getters
 		
 		
-		lua_pushliteral(L, "__newindex");		// getters, "__newindex"
-		lua_newtable(L);						// getters, "__newindex", setters
+		lua_pushliteral(L, "__newindex");				// getters, "__newindex"
+		lua_newtable(L);								// getters, "__newindex", setters
 		int newindex = lua_gettop(L);
 		for (const RegType* setter = T::setters; setter->name; setter++) {
 			lua_pushstring(L, setter->name);			// getters, "__newindex", setters, name
@@ -286,7 +285,7 @@ private:
 			lua_settable(L, newindex);					// getters, "__newindex", setters
 		}
 		lua_pushvalue(L, getters_index);				// getters, "__newindex", setters, getters
-		lua_pushcclosure(L, T::thunk_newindex, 2);			// getters, "__newindex", thunk
+		lua_pushcclosure(L, T::thunk_newindex, 2);		// getters, "__newindex", thunk
 		lua_settable(L, metatable);						// getters
 		lua_pop(L, 1);									// remove the getters table
 		
@@ -295,6 +294,9 @@ private:
 		
 		lua_pushcfunction(L, T::gc_T);
 		base_type::set(L, metatable, "__gc");
+
+		lua_pushstring(L, T::className);
+		base_type::set(L, metatable, "__name");
 		
 		if(isCreatableByLua) {
 			// Make Classname() and Classname:new() construct an instance of this class

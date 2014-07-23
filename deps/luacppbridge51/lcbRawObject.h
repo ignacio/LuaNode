@@ -14,14 +14,14 @@
 namespace LuaCppBridge {
 
 /**
-A RawObject is a C++ class exposed to Lua as a userdata. This prevents us from adding additional methods and members. Only 
-the functions exposed from C++ will be available.
+A RawObject is a C++ class exposed to Lua as a userdata. This prevents adding additional methods and members.
+Only the functions exposed from C++ will be available.
 
 TO DO:
-Inheritance won't work with this class. The 'check' method when used with inheritance will fail because the userdata on the stack
-is not what it is expecting and fails. So, we could:
-- remove the check (con: it could blow up if called with userdata belonging to a different class) or
-- check against some kind of type hierarchy
+Inheritance won't work with this class. The 'check' method when used with inheritance will fail because the userdata
+on the stack is not what it is expecting and fails. So, we could:
+ - remove the check (con: it could blow up if called with userdata belonging to a different class) or
+ - check against some kind of type hierarchy
 */
 
 
@@ -33,8 +33,6 @@ public:
 	typedef typename base_type::userdataType userdataType;
 
 public:
-	//////////////////////////////////////////////////////////////////////////
-	///
 	static void Register (lua_State* L) {
 		Register(L, true);
 	}
@@ -81,21 +79,24 @@ private:
 		lua_pushliteral(L, "__gc");
 		lua_pushcfunction(L, T::gc_T);
 		lua_settable(L, metatable);
+
+		lua_pushstring(L, T::className);
+		lua_setfield(L, metatable, "__name");
 		
 		if(isCreatableByLua) {
 			// Make Classname() and Classname:new() construct an instance of this class
-			lua_newtable(L);				// mt for method table
+			lua_newtable(L);							// mt for method table
 			lua_pushcfunction(L, T::new_T);
-			lua_pushvalue(L, -1);			// dup new_T function
+			lua_pushvalue(L, -1);						// dup new_T function
 			base_type::set(L, methods, "new");			// add new_T to method table
 			base_type::set(L, -3, "__call");			// mt.__call = new_T
 			lua_setmetatable(L, methods);
 		}
 		else {
 			// Both Make Classname() and Classname:new() will issue an error
-			lua_newtable(L);				// mt for method table
+			lua_newtable(L);							// mt for method table
 			lua_pushcfunction(L, base_type::forbidden_new_T);
-			lua_pushvalue(L, -1);			// dup new_T function
+			lua_pushvalue(L, -1);						// dup new_T function
 			base_type::set(L, methods, "new");			// add new_T to method table
 			base_type::set(L, -3, "__call");			// mt.__call = new_T
 			lua_setmetatable(L, methods);

@@ -13,7 +13,7 @@
 namespace LuaCppBridge {
 
 /**
-An HybridObject is a C++ class whose instances are exposed to Lua as tables. It differs from RawObject 
+An HybridObject is a C++ class whose instances are exposed to Lua as tables. It differs from RawObject
 in that additional methods and members can be added dynamically to its instances.
 */
 template <typename T, bool is_disposable = false> class HybridObject : public BaseObject<T, HybridObject<T> > {
@@ -29,8 +29,6 @@ public:
 	} ObjectWrapper;
 
 public:
-	//////////////////////////////////////////////////////////////////////////
-	///
 	static void Register (lua_State* L, const char* parentClassName) {
 		Register(L, parentClassName, true);
 	}
@@ -46,7 +44,8 @@ public:
 		lua_call(L, 3, 0);
 	}
 	
-	// create a new T object and push onto the Lua stack a table containing a userdata which itself contains a pointer to T object
+	// create a new T object and push onto the Lua stack a table containing a userdata which itself contains a pointer
+	// to T object
 	static int new_T (lua_State* L) {
 		lua_remove(L, 1);	// use classname:new(), instead of classname.new()
 		T* obj = new T(L);	// call constructor for T objects
@@ -55,7 +54,7 @@ public:
 			obj->KeepTrack(L);
 		}
 		
-		// if this method was called with a table as parameter, then copy its values to the newly created object
+		// if this method was called with a table as parameter, copy its values to the newly created object
 		if(lua_gettop(L) == 2 && lua_istable(L, 1)) {
 			lua_pushnil(L);
 			while(lua_next(L, 1)) {
@@ -64,7 +63,7 @@ public:
 				lua_settable(L, newTable);
 			}
 		}
-		// last step in the creation of the object. call a method that can access the userdata that will be sent 
+		// last step in the creation of the object. call a method that can access the userdata that will be sent
 		// back to Lua
 		obj->PostConstruct(L);
 		return 1;
@@ -99,63 +98,6 @@ public:
 		lua_settop(L, metatable);
 		return metatable;	// index of userdata containing pointer to T object
 	}
-
-	// pcall named lua method from userdata method table
-	/*static int pcall (lua_State* L, const char* method, int nargs = 0, int nresults = LUA_MULTRET, int errfunc = 0)
-	{
-		int base = lua_gettop(L) - nargs;	// userdata index
-		if(!lua_istable(L, base)) {
-			lua_settop(L, base-1);			// drop table and args
-			luaL_error(L, "not a valid %s table", T::className);
-			return -1;
-		}
-		
-		lua_pushstring(L, method);			// method name
-		lua_gettable(L, base);				// get method from table
-		if(lua_isnil(L, -1)) {				// no method?
-			lua_settop(L, base - 1);		// drop userdata and args
-			//lua_pushfstring(L, "%s missing method '%s'", T::className, method);
-			return -1;
-		}
-		lua_insert(L, base);				// put method under userdata, args
-		// so the stack now is: method, self, args
-		
-		int status = lua_pcall(L, 1 + nargs, nresults, errfunc);	// call method
-		if(status) {
-			const char* msg = lua_tostring(L, -1);
-			if(msg == NULL) {
-				msg = "(error with no message)";
-			}
-			lua_pushfstring(L, "%s:%s status = %d\n%s", T::className, method, status, msg);
-			lua_remove(L, base);			// remove old message
-			return -1;
-		}
-		return lua_gettop(L) - base + 1;	// number of results
-	}*/
-
-	// call named lua method from userdata method table
-	/*static int call (lua_State* L, const char* method, int nargs = 0, int nresults = LUA_MULTRET)
-	{
-		int base = lua_gettop(L) - nargs;	// userdata index
-		if(!lua_istable(L, base)) {
-			lua_settop(L, base-1);			// drop table and args
-			luaL_error(L, "not a valid %s table", T::className);
-			return -1;
-		}
-		
-		lua_pushstring(L, method);			// method name
-		lua_gettable(L, base);				// get method from table
-		if(lua_isnil(L, -1)) {				// no method?
-			lua_settop(L, base - 1);		// drop userdata and args
-			//lua_pushfstring(L, "%s missing method '%s'", T::className, method);
-			return -1;
-		}
-		lua_insert(L, base);				// put method under userdata, args
-		// so the stack now is: method, self, args
-		
-		lua_call(L, 1 + nargs, nresults);	// call method
-		return lua_gettop(L) - base + 1;	// number of results
-	}*/
 	
 	// get userdata from Lua stack and return pointer to T object
 	// this is somewhat permissive, does not check for correct metatable (beware!)
@@ -266,6 +208,9 @@ private:
 			
 		lua_pushcfunction(L, T::gc_T);
 		base_type::set(L, metatable, "__gc");
+
+		lua_pushstring(L, T::className);
+		base_type::set(L, metatable, "__name");
 			
 		if(isCreatableByLua) {
 			// Make Classname() and Classname:new() construct an instance of this class

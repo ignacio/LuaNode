@@ -18,7 +18,8 @@ typedef void* ReferenceKey;
 BaseObject is the base class for Lua wrappers.
 It is instanced with T (the class to export) and Base (the wrapper to use).
 
-For all created objects a reference can be stored in Lua, so that when the C++ side needs to retrieve a reference to it can call GetSelf.
+For all created objects a reference can be stored in Lua, so when the C++ side can call GetSelf when it needs to
+retrieve a reference to the object.
 This behaviour is disabled by default. If needed, just call Class::EnableTracking() before Class::Register()
 */
 template <typename T, typename Base>
@@ -36,7 +37,7 @@ public:
 
 	static void EnableTracking (lua_State* L) {
 		s_trackingEnabled = true;
-		// creates a table where we'll do the tracking of objects. The table will be weak, so Lua can 
+		// creates a table where we'll do the tracking of objects. The table will be weak, so Lua can
 		// collect the objects in there.
 		lua_newtable(L);
 		int weakTable = lua_gettop(L);
@@ -64,44 +65,42 @@ public:
 	// call named lua method from userdata method table
 	static int call (lua_State* L, const char* method, int nargs = 0, int nresults = LUA_MULTRET)
 	{
-		int base = lua_gettop(L) - nargs;	// userdata index
+		int base = lua_gettop(L) - nargs;		// userdata index
 		if(!checkudata(L, base, T::className)) {
 			lua_settop(L, base - 1);			// drop userdata and args
 			return error(L, "not a valid %s userdata", T::className);
 		}
 		
-		lua_pushstring(L, method);			// method name
+		lua_pushstring(L, method);				// method name
 		lua_gettable(L, base);					// get method from userdata
-		if(lua_isnil(L, -1)) {						// no method?
+		if(lua_isnil(L, -1)) {					// no method?
 			lua_settop(L, base - 1);			// drop userdata and args
-			//lua_pushfstring(L, "%s missing method '%s'", T::className, method);
 			return -1;
 		}
-		lua_insert(L, base);						// put method under userdata, args
-		// now the stack is: method, self, args
+		lua_insert(L, base);					// put method under userdata, args
+												// now the stack is: method, self, args
 		
 		lua_call(L, 1 + nargs, nresults);		// call method
-		return lua_gettop(L) - base + 1;	// number of results
+		return lua_gettop(L) - base + 1;		// number of results
 	}
 	
 	// pcall named lua method from userdata method table
 	static int pcall (lua_State* L, const char* method, int nargs = 0, int nresults = LUA_MULTRET, int errfunc = 0)
 	{
-		int base = lua_gettop(L) - nargs;	// userdata index
+		int base = lua_gettop(L) - nargs;		// userdata index
 		if(!checkudata(L, base, T::className)) {
 			lua_settop(L, base - 1);			// drop userdata and args
 			return error(L, "not a valid %s userdata", T::className);
 		}
 		
-		lua_pushstring(L, method);			// method name
+		lua_pushstring(L, method);				// method name
 		lua_gettable(L, base);					// get method from userdata
-		if(lua_isnil(L, -1)) {						// no method?
+		if(lua_isnil(L, -1)) {					// no method?
 			lua_settop(L, base - 1);			// drop userdata and args
-			//lua_pushfstring(L, "%s missing method '%s'", T::className, method);
 			return -1;
 		}
-		lua_insert(L, base);						// put method under userdata, args
-		// so the stack now is: method, self, args
+		lua_insert(L, base);					// put method under userdata, args
+												// so the stack now is: method, self, args
 		
 		int status = lua_pcall(L, 1 + nargs, nresults, errfunc);	// call method
 		if(status) {
@@ -113,7 +112,7 @@ public:
 			lua_remove(L, base);				// remove old message
 			return -1;
 		}
-		return lua_gettop(L) - base + 1;	// number of results
+		return lua_gettop(L) - base + 1;		// number of results
 	}
 	
 	// push onto the Lua stack a userdata containing a pointer to T object
@@ -140,8 +139,8 @@ public:
 		return mt;	// index of userdata containing pointer to T object
 	}
 	
-	// push onto the Lua stack a userdata containing a pointer to T object. The object is not collectable and is unique (two 
-	// calls to push_unique will yield two different userdatas)
+	// push onto the Lua stack a userdata containing a pointer to T object. The object is not collectable and is unique
+	// (two calls to push_unique will yield two different userdata)
 	static int push_unique (lua_State* L, T* obj) {
 		if(!obj) {
 			lua_pushnil(L);
@@ -149,10 +148,10 @@ public:
 		}
 		getmetatable(L, T::className);	// look for the metatable
 		if(lua_isnil(L, -1)) {
-			return (L, "%s missing metatable", T::className);
+			return error(L, "%s missing metatable", T::className);
 		}
 		int mt = lua_gettop(L);
-		userdataType *ud = static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType)));	// create new userdata
+		userdataType *ud = static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType))); // create new userdata
 		if(ud) {
 			ud->pT = obj;	// store pointer to object in userdata
 			ud->collectable = false;
@@ -174,15 +173,16 @@ public:
 		if(lua_isnil(L, -1)) {
 			lua_settop(L, top);	// restore the stack
 			error(L, "%s missing metatable", T::className);
+			return;
 		}
 		// get the 'userdata' table
 		int mt = lua_gettop(L);
 		subtable(L, mt, "userdata", "v");
-		int userdatas = lua_gettop(L);
+		int userdata_table = lua_gettop(L);
 
 		// get the userdata
 		lua_pushlightuserdata(L, obj);
-		lua_gettable(L, userdatas);
+		lua_gettable(L, userdata_table);
 		int userdata = lua_gettop(L);
 		if(lua_isnil(L, userdata)) {
 			lua_settop(L, top);	// restore the stack
@@ -197,7 +197,7 @@ public:
 		// remove the userdata
 		lua_pushlightuserdata(L, obj);
 		lua_pushnil(L);
-		lua_settable(L, userdatas);			// userdata[key] = nil
+		lua_settable(L, userdata_table);		// userdata[key] = nil
 		
 		lua_settop(L, top);	// restore the stack
 	}
@@ -431,19 +431,20 @@ public:
 	mutable ReferenceKey m_selfReference;
 	void KeepTrack (lua_State* L) const {
 		m_selfReference = (ReferenceKey)this;
-		lua_rawgeti(L, LUA_REGISTRYINDEX, s_trackingIndex);			// stack-> self, instances
-		lua_pushlightuserdata(L, m_selfReference);	 				// uses 'this' as key // stack-> self, instances, key
-		lua_pushvalue(L, -3);										// stack-> self, instances, key, self
-		lua_settable(L, -3);										// stack-> self, instances
-		lua_pop(L, 1);												// stack-> self
+		lua_rawgeti(L, LUA_REGISTRYINDEX, s_trackingIndex);		// stack-> self, instances
+		lua_pushlightuserdata(L, m_selfReference);	 			// uses 'this' as key // stack-> self, instances, key
+		lua_pushvalue(L, -3);									// stack-> self, instances, key, self
+		lua_settable(L, -3);									// stack-> self, instances
+		lua_pop(L, 1);											// stack-> self
 	}
 
 	ReferenceKey GetSelfReference () const {
 		return m_selfReference;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	/// Looks for the table (or userdata) associated to a given instance of a class
+	/**
+	Looks for the table (or userdata) associated to a given instance of a class
+	*/
 	void GetSelf (lua_State* L) {
 		if(!s_trackingEnabled) {
 			error(L, "class %s is not being tracked", T::className);
@@ -454,13 +455,15 @@ public:
 		lua_gettable(L, -2);
 		if(lua_isnil(L, -1)) {
 			error(L, "'%p' has no bound userdata or table", m_selfReference);
+			return;
 		}
 		lua_remove(L, -2);	// remove the instances table
 		// leave the table or userdata associated with the given instance on top of the stack
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	/// Looks for the table or userdata associated with the given reference and leaves it on the stack
+	/**
+	Looks for the table or userdata associated with the given reference and leaves it on the stack
+	*/
 	static void GetReference (lua_State* L, ReferenceKey key) {
 #ifdef ENABLE_TRACE
 		char buffer[128];
@@ -524,6 +527,7 @@ public:
 			}
 #endif
 			error(L, "'%p' has no bound userdata or table", key);
+			return;
 		}
 		lua_remove(L, -2);	// remove the instances table
 		// leave the table or userdata associated with the given instance on top of the stack
