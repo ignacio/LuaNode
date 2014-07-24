@@ -80,7 +80,7 @@ private:
 		lua_pushcfunction(L, T::gc_T);
 		lua_settable(L, metatable);
 
-		lua_pushstring(L, T::className);
+		lua_pushstring(L, T::get_full_class_name_T());
 		lua_setfield(L, metatable, "__name");
 		
 		if(isCreatableByLua) {

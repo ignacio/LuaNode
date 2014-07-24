@@ -295,7 +295,7 @@ private:
 		lua_pushcfunction(L, T::gc_T);
 		base_type::set(L, metatable, "__gc");
 
-		lua_pushstring(L, T::className);
+		lua_pushstring(L, T::get_full_class_name_T());
 		base_type::set(L, metatable, "__name");
 		
 		if(isCreatableByLua) {

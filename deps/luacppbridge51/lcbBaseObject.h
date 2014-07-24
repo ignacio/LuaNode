@@ -319,6 +319,12 @@ protected:
 		return 0;
 	}
 
+	// Allows to override the __name field of the exposed metatable
+	static const char* get_full_class_name_T ()
+	{
+		return T::className;
+	}
+
 	static void set (lua_State* L, int table_index, const char* key) {
 		lua_pushstring(L, key);
 		lua_insert(L, -2);	// swap value and key
