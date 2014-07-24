@@ -13,6 +13,53 @@
 
 using namespace LuaNode::Crypto;
 
+static unsigned long s_nextSocketId = 0;
+static unsigned long s_socketCount = 0;
+static unsigned long s_secureContextCount = 0;
+static unsigned long s_hashCount = 0;
+static unsigned long s_hmacCount = 0;
+static unsigned long s_signerCount = 0;
+static unsigned long s_verifierCount = 0;
+static unsigned long s_cipherCount = 0;
+static unsigned long s_decipherCount = 0;
+static unsigned long s_openCount = 0;
+static unsigned long s_sealCount = 0;
+
+
+static int GetSocketCount (lua_State* L) { lua_pushinteger(L, s_socketCount); return 1; }
+static int GetSecureContextCount (lua_State* L) { lua_pushinteger(L, s_secureContextCount); return 1; }
+static int GetHashCount (lua_State* L) { lua_pushinteger(L, s_hashCount); return 1; }
+static int GetHmacCount (lua_State* L) { lua_pushinteger(L, s_hmacCount); return 1; }
+static int GetSignerCount (lua_State* L) { lua_pushinteger(L, s_signerCount); return 1; }
+static int GetVerifierCount (lua_State* L) { lua_pushinteger(L, s_verifierCount); return 1; }
+static int GetCipherCount (lua_State* L) { lua_pushinteger(L, s_cipherCount); return 1; }
+static int GetDecipherCount (lua_State* L) { lua_pushinteger(L, s_decipherCount); return 1; }
+static int GetOpenCount (lua_State* L) { lua_pushinteger(L, s_openCount); return 1; }
+static int GetSealCount (lua_State* L) { lua_pushinteger(L, s_sealCount); return 1; }
+
+
+void LuaNode::Crypto::PopulateCounters (lua_State* L)
+{
+	lua_getfield(L, -1, "crypto");
+	assert(lua_istable(L, -1));
+
+	luaL_Reg methods[] = {
+		{ "sockets", GetSocketCount },
+		{ "contexts", GetSecureContextCount },
+		{ "hashes", GetHashCount },
+		{ "hmacs", GetHmacCount },
+		{ "signers", GetSignerCount },
+		{ "verifiers", GetVerifierCount },
+		{ "ciphers", GetCipherCount },
+		{ "deciphers", GetDecipherCount },
+		{ "openers", GetOpenCount },
+		{ "sealers", GetSealCount },
+		{ 0, 0 }
+	};
+	luaL_register(L, NULL, methods);
+	lua_pop(L, 1);
+}
+
 /////////////////////////////////////////////////////////////////////////
 /// 
 static int crypto_error(lua_State* L, const char* func_name) {
@@ -53,8 +100,7 @@ void LuaNode::Crypto::Register(lua_State* L) {
 }
 
 
-static unsigned long s_nextSocketId = 0;
-static unsigned long s_socketCount = 0;
+
 
 const char* Socket::className = "SecureSocket";
 const char* Socket::get_full_class_name_T() { return "LuaNode.core.Crypto.SecureSocket"; };
@@ -765,6 +811,7 @@ SecureContext::SecureContext(lua_State* L) :
 	m_L( LuaNode::GetLuaVM() ),
 	m_ca_store(0)
 {
+	++s_secureContextCount;
 	// TODO: handle other ssl types
 	m_context = boost::make_shared<boost::asio::ssl::context>(boost::ref(GetIoService()), boost::asio::ssl::context::sslv23);
 	m_context->set_options(boost::asio::ssl::context::default_workarounds);
@@ -780,6 +827,7 @@ SecureContext::SecureContext(lua_State* L) :
 
 SecureContext::~SecureContext(void)
 {
+	--s_secureContextCount;
 	// the store is implicitly free'd by the context
 	// X509_STORE_free(m_ca_store);
 	LogDebug("Destructing Crypto::SecureContext (%p)", this);
@@ -921,6 +969,7 @@ const Hash::RegType Hash::methods[] = {
 
 Hash::Hash(lua_State* L)
 {
+	++s_hashCount;
 	const char* digest_name = luaL_checkstring(L, 1);
 
 	const EVP_MD* digest = EVP_get_digestbyname(digest_name);
@@ -936,6 +985,7 @@ Hash::Hash(lua_State* L)
 
 Hash::~Hash(void)
 {
+	--s_hashCount;
 	EVP_MD_CTX_cleanup(&m_context);
 }
 
@@ -982,6 +1032,7 @@ const Hmac::RegType Hmac::methods[] = {
 
 Hmac::Hmac(lua_State* L)
 {
+	++s_hmacCount;
 	const char* algorithm_name = luaL_checkstring(L, 1);
 	const char* key = luaL_checkstring(L, 2);
 
@@ -998,6 +1049,7 @@ Hmac::Hmac(lua_State* L)
 
 Hmac::~Hmac(void)
 {
+	--s_hmacCount;
 	HMAC_CTX_cleanup(&m_context);
 }
 
@@ -1040,6 +1092,7 @@ const Signer::RegType Signer::methods[] = {
 
 Signer::Signer(lua_State* L)
 {
+	++s_signerCount;
 	const char* algorithm_name = luaL_checkstring(L, 1);
 
 	const EVP_MD* digest = EVP_get_digestbyname(algorithm_name);
@@ -1055,6 +1108,7 @@ Signer::Signer(lua_State* L)
 
 Signer::~Signer(void)
 {
+	--s_signerCount;
 	EVP_MD_CTX_cleanup(&m_context);
 }
 
@@ -1117,6 +1171,7 @@ const Verifier::RegType Verifier::methods[] = {
 
 Verifier::Verifier(lua_State* L)
 {
+	++s_verifierCount;
 	const char* algorithm_name = luaL_checkstring(L, 1);
 
 	const EVP_MD* digest = EVP_get_digestbyname(algorithm_name);
@@ -1132,6 +1187,7 @@ Verifier::Verifier(lua_State* L)
 
 Verifier::~Verifier(void)
 {
+	--s_verifierCount;
 	EVP_MD_CTX_cleanup(&m_context);
 }
 
@@ -1203,6 +1259,7 @@ const Cipher::RegType Cipher::methods[] = {
 
 Cipher::Cipher(lua_State* L)
 {
+	++s_cipherCount;
 	const char* algorithm_name = luaL_checkstring(L, 1);
 	const EVP_CIPHER* cipher = EVP_get_cipherbyname(algorithm_name);
 	if(cipher == NULL) {
@@ -1232,6 +1289,7 @@ Cipher::Cipher(lua_State* L)
 
 Cipher::~Cipher(void)
 {
+	--s_cipherCount;
 	EVP_CIPHER_CTX_cleanup(&m_context);
 }
 
@@ -1282,6 +1340,7 @@ const Decipher::RegType Decipher::methods[] = {
 
 Decipher::Decipher(lua_State* L)
 {
+	++s_decipherCount;
 	const char* algorithm_name = luaL_checkstring(L, 1);
 	const EVP_CIPHER* cipher = EVP_get_cipherbyname(algorithm_name);
 	if(cipher == NULL) {
@@ -1310,6 +1369,7 @@ Decipher::Decipher(lua_State* L)
 
 Decipher::~Decipher(void)
 {
+	--s_decipherCount;
 	EVP_CIPHER_CTX_cleanup(&m_context);
 }
 
@@ -1360,6 +1420,7 @@ const Open::RegType Open::methods[] = {
 
 Open::Open(lua_State* L) : m_cipher(0)
 {
+	++s_openCount;
 	const char* algorithm_name = luaL_checkstring(L, 1);
 	m_cipher = EVP_get_cipherbyname(algorithm_name);
 	if(m_cipher == NULL) {
@@ -1400,6 +1461,7 @@ Open::Open(lua_State* L) : m_cipher(0)
 
 Open::~Open(void)
 {
+	--s_openCount;
 	EVP_CIPHER_CTX_cleanup(&m_context);
 }
 
@@ -1450,6 +1512,7 @@ const Seal::RegType Seal::methods[] = {
 
 Seal::Seal(lua_State* L) : m_eklen(0), m_ek(0)
 {
+	++s_sealCount;
 	const char* cipher_type = luaL_checkstring(L, 1);
 	const EVP_CIPHER* cipher = EVP_get_cipherbyname(cipher_type);
 	if(cipher == NULL) {
@@ -1495,6 +1558,7 @@ Seal::Seal(lua_State* L) : m_eklen(0), m_ek(0)
 
 Seal::~Seal(void)
 {
+	--s_sealCount;
 	EVP_CIPHER_CTX_cleanup(&m_context);
 	if(m_ek) {
 		free(m_ek);

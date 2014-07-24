@@ -8,6 +8,7 @@ namespace LuaNode {
 namespace Http {
 
 void RegisterFunctions(lua_State* L);
+void PopulateCounters (lua_State* L);
 
 class Parser : public LuaCppBridge::HybridObjectWithProperties<Parser>
 {

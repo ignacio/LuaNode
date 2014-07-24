@@ -124,6 +124,7 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/event_emitter.precomp \
 		$(BUILD_TEMP_DIR)/free_list.precomp \
 		$(BUILD_TEMP_DIR)/fs.precomp \
+		$(BUILD_TEMP_DIR)/introspect.precomp \
 		$(BUILD_TEMP_DIR)/http.precomp \
 		$(BUILD_TEMP_DIR)/net.precomp \
 		$(BUILD_TEMP_DIR)/path.precomp \
@@ -138,6 +139,8 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/utils.precomp \
 		$(BUILD_TEMP_DIR)/node.precomp \
 		$(BUILD_TEMP_DIR)/stacktraceplus/StackTracePlus.precomp \
+		$(BUILD_TEMP_DIR)/__private_luastate.precomp \
+		$(BUILD_TEMP_DIR)/__private_traverse.precomp \
 		$(BUILD_TEMP_DIR)/__private_url.precomp
 
 all : $(OUTPUT_FILE)

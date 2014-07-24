@@ -15,6 +15,7 @@ namespace LuaNode {
 namespace Crypto {
 
 void Register(lua_State* L);
+void PopulateCounters (lua_State* L);
 
 class Socket : public LuaCppBridge::HybridObjectWithProperties<Socket>
 {

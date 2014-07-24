@@ -394,6 +394,25 @@ static void PrintVersion() {
 }
 
 //////////////////////////////////////////////////////////////////////////
+/// this is kind of a hack. It is called from preloader code.
+void PopulateIntrospectCounters (lua_State* L)
+{
+	int top = lua_gettop(L);
+	
+	lua_getfield(L, -1, "counters");
+	luaL_checktype(L, -1, LUA_TTABLE);
+
+	LuaNode::Net::PopulateCounters(L);
+	LuaNode::Net::Acceptor::PopulateCounters(L);
+	LuaNode::Timer::PopulateCounters(L);
+	LuaNode::Http::PopulateCounters(L);
+	LuaNode::Dns::PopulateCounters(L);
+	LuaNode::Crypto::PopulateCounters(L);
+
+	lua_settop(L, top);
+}
+
+//////////////////////////////////////////////////////////////////////////
 /// taken from Lua interpreter
 
 static void lstop (lua_State *L, lua_Debug *ar) {
@@ -782,7 +801,6 @@ static int Load(int argc, char *argv[]) {
 	else {
 		lua_pushboolean(L, true);
 		lua_setfield(L, LUA_GLOBALSINDEX, "DEBUG"); // esto es temporal (y horrendo)
-
 		std::string path = source_path + "/src/node.lua";
 		LuaNode::luaVm->loadfile(path.c_str());
 	}
@@ -795,6 +813,7 @@ static int Load(int argc, char *argv[]) {
 		lua_settop(L, 0);
 		return EXIT_FAILURE;
 	}
+
 	lua_pushvalue(L, process);
 
 	if(LuaNode::luaVm->call(1, LUA_MULTRET) != 0) {

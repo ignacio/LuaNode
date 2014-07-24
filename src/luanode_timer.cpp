@@ -12,6 +12,21 @@ using namespace LuaNode;
 static unsigned long s_nextTimerId = 0;
 static unsigned long s_timerCount = 0;
 
+static int GetTimerCount (lua_State* L)
+{
+	lua_pushinteger(L, s_timerCount);
+	return 1;
+}
+
+void LuaNode::Timer::PopulateCounters (lua_State* L)
+{
+	luaL_Reg methods[] = {
+		{ "timers", GetTimerCount },
+		{ 0, 0 }
+	};
+	luaL_register(L, NULL, methods);
+}
+
 const char* Timer::className = "Timer";
 const char* Timer::get_full_class_name_T() { return "LuaNode.core.Timer"; };
 const Timer::RegType Timer::methods[] = {

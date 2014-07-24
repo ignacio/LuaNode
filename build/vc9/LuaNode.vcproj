@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="LuaNode"
 	ProjectGUID="{4D9B134E-CC54-4175-8F80-EEFC3B635ED7}"
 	RootNamespace="LuaNode"
@@ -764,6 +764,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lib\luanode\introspect.lua"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lib\LuaNode\net.lua"
 				>
 			</File>
@@ -822,6 +826,14 @@
 			<Filter
 				Name="private"
 				>
+				<File
+					RelativePath="..\..\lib\luanode\__private_luastate.lua"
+					>
+				</File>
+				<File
+					RelativePath="..\..\lib\luanode\__private_traverse.lua"
+					>
+				</File>
 				<File
 					RelativePath="..\..\lib\luanode\__private_url.lua"
 					>

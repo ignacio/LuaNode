@@ -8,7 +8,7 @@
 
 namespace LuaNode {
 
-	class Timer : public LuaCppBridge::HybridObjectWithProperties<Timer>
+class Timer : public LuaCppBridge::HybridObjectWithProperties<Timer>
 {
 public:
 	Timer(lua_State* L);
@@ -17,6 +17,7 @@ public:
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Timer);
 	static const char* get_full_class_name_T();
+	static void PopulateCounters (lua_State* L);
 
 	int Start(lua_State* L);
 	int Stop(lua_State* L);

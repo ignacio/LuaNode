@@ -8,6 +8,8 @@ namespace LuaNode {
 
 namespace Dns {
 
+void PopulateCounters (lua_State* L);
+
 class Resolver : public LuaCppBridge::HybridObjectWithProperties<Resolver>
 {
 public:

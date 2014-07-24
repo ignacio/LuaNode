@@ -267,7 +267,11 @@
     <Build_Lua_File Include="..\..\lib\LuaNode\free_list.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\fs.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\http.lua" />
+    <Build_Lua_File Include="..\..\lib\luanode\introspect.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\net.lua" />
+    <Build_Lua_File Include="..\..\lib\luanode\__private_luastate.lua" />
+    <Build_Lua_File Include="..\..\lib\luanode\__private_traverse.lua" />
+    <Build_Lua_File Include="..\..\lib\luanode\__private_url.lua" />
     <Build_Lua_File Include="..\..\src\node.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\path.lua" />
     <Build_Lua_File Include="..\..\lib\LuaNode\querystring.lua" />

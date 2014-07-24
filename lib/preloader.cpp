@@ -1,5 +1,10 @@
 #include "preloader.h"
 
+// defined in luanode.cpp
+namespace LuaNode {
+	extern void PopulateIntrospectCounters (lua_State* L);
+}
+
 static int luaopen_LuaNode_Class(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
@@ -300,6 +305,53 @@ static int luaopen_LuaNode_Private_Url (lua_State* L)
 	return 1;
 }
 
+static int luaopen_LuaNode_Private_Traverse (lua_State* L)
+{
+	static const unsigned char code[] = {
+		#include "__private_traverse.precomp"
+	};
+	int arg = lua_gettop(L);
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.__private_traverse")) {
+		return lua_error(L);
+	}
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
+static int luaopen_LuaNode_Private_LuaState (lua_State* L)
+{
+	static const unsigned char code[] = {
+		#include "__private_luastate.precomp"
+	};
+	int arg = lua_gettop(L);
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.__private_luastate")) {
+		return lua_error(L);
+	}
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	return 1;
+}
+
+static int luaopen_LuaNode_Introspect (lua_State* L)
+{
+	static const unsigned char code[] = {
+		#include "introspect.precomp"
+	};
+	int arg = lua_gettop(L);
+	if(luaL_loadbuffer(L,(const char*)code,sizeof(code),"luanode.introspect")) {
+		return lua_error(L);
+	}
+	lua_insert(L,1);
+	lua_call(L,arg,1);
+	
+	// at the top of the stack there is now the 'introspect' module.
+	// now fill the 'counters' part with some C functions
+	LuaNode::PopulateIntrospectCounters(L);
+
+	return 1;
+}
+
 
 void PreloadModules(lua_State* L) {
 	luaL_findtable(L, LUA_GLOBALSINDEX, "package.preload", 1);
@@ -325,6 +377,9 @@ void PreloadModules(lua_State* L) {
 	
 	lua_pushcfunction(L, luaopen_LuaNode_Fs);
 	lua_setfield(L, -2, "luanode.fs");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Introspect);
+	lua_setfield(L, -2, "luanode.introspect");
 	
 	lua_pushcfunction(L, luaopen_LuaNode_Http);
 	lua_setfield(L, -2, "luanode.http");
@@ -370,6 +425,12 @@ void PreloadModules(lua_State* L) {
 
 	lua_pushcfunction(L, luaopen_LuaNode_Private_Url);
 	lua_setfield(L, -2, "luanode.__private_url");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Private_Traverse);
+	lua_setfield(L, -2, "luanode.__private_traverse");
+
+	lua_pushcfunction(L, luaopen_LuaNode_Private_LuaState);
+	lua_setfield(L, -2, "luanode.__private_luastate");
 
 	lua_pop(L, 1);
 }

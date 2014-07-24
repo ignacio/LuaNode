@@ -65,6 +65,11 @@ using namespace LuaNode::Net;
 static unsigned long s_nextSocketId = 0;
 static unsigned long s_socketCount = 0;
 
+static int GetSocketCount (lua_State* L)
+{
+	lua_pushinteger(L, s_socketCount);
+	return 1;
+}
 
 //////////////////////////////////////////////////////////////////////////
 /// 
@@ -74,6 +79,21 @@ void LuaNode::Net::RegisterFunctions(lua_State* L) {
 		{ 0, 0 }
 	};
 	luaL_register(L, "Net", methods);
+	lua_pop(L, 1);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// 
+void LuaNode::Net::PopulateCounters (lua_State* L)
+{
+	lua_getfield(L, -1, "net");
+	assert(lua_istable(L, -1));
+
+	luaL_Reg methods[] = {
+		{ "sockets", GetSocketCount },
+		{ 0, 0 }
+	};
+	luaL_register(L, NULL, methods);
 	lua_pop(L, 1);
 }
 

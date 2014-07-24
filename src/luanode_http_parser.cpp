@@ -5,8 +5,24 @@
 
 using namespace LuaNode::Http;
 
+static unsigned long s_httpParserCount = 0;
 
 /*static*/ struct http_parser_settings LuaNode::Http::Parser::s_settings;
+
+static int GetParserCount (lua_State* L)
+{
+	lua_pushinteger(L, s_httpParserCount);
+	return 1;
+}
+
+void LuaNode::Http::PopulateCounters (lua_State* L)
+{
+	luaL_Reg methods[] = {
+		{ "http_parsers", GetParserCount },
+		{ 0, 0 }
+	};
+	luaL_register(L, NULL, methods);
+}
 
 void LuaNode::Http::RegisterFunctions(lua_State* L) {
 	luaL_Reg methods[] = {
@@ -83,7 +99,8 @@ const Parser::RegType Parser::getters[] = {
 Parser::Parser(lua_State* L) : 
 	m_L( LuaNode::GetLuaVM() )
 {
-	LogDebug("Constructing HTTP Parser (%p)", this);
+	s_httpParserCount++;
+	LogDebug("Constructing HTTP Parser (%p). Current parser count = %lu", this, s_httpParserCount);
 
 	const char* options[] = {
 		"request",
@@ -108,7 +125,8 @@ Parser::Parser(lua_State* L) :
 
 Parser::~Parser(void)
 {
-	LogDebug("Destructing HTTP Parser (%p)", this);
+	s_httpParserCount--;
+	LogDebug("Destructing HTTP Parser (%p). Current parser count = %lu", this, s_httpParserCount);
 }
 
 void Parser::Init(enum http_parser_type type) {

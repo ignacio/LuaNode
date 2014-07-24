@@ -28,6 +28,22 @@ const Resolver::RegType Resolver::getters[] = {
 
 static unsigned long s_resolverCount = 0;
 
+static int GetResolverCount (lua_State* L)
+{
+	lua_pushinteger(L, s_resolverCount);
+	return 1;
+}
+
+void LuaNode::Dns::PopulateCounters (lua_State* L)
+{
+	luaL_Reg methods[] = {
+		{ "resolvers", GetResolverCount },
+		{ 0, 0 }
+	};
+	luaL_register(L, NULL, methods);
+}
+
+
 Resolver::Resolver(lua_State* L) : 
 	m_L( LuaNode::GetLuaVM() ),
 	m_resolver( LuaNode::GetIoService() )

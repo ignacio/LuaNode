@@ -11,6 +11,9 @@ namespace Net {
 class Acceptor : public LuaCppBridge::HybridObjectWithProperties<Acceptor>
 {
 public:
+	static void PopulateCounters (lua_State* L);
+
+public:
 	Acceptor(lua_State* L);
 	virtual ~Acceptor(void);
 

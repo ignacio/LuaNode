@@ -14,6 +14,7 @@ namespace LuaNode {
 namespace Net {
 
 void RegisterFunctions(lua_State* L);
+void PopulateCounters (lua_State* L);
 
 int IsIP(lua_State* L);
 

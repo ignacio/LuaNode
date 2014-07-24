@@ -14,10 +14,28 @@ using namespace LuaNode::Net;
 static unsigned long s_nextAcceptorId = 0;
 static unsigned long s_acceptorCount = 0;
 
+static int GetAcceptorCount (lua_State* L)
+{
+	lua_pushinteger(L, s_acceptorCount);
+	return 1;
+}
+
 //////////////////////////////////////////////////////////////////////////
 /// 
 void LuaNode::Net::Acceptor::RegisterFunctions(lua_State* L) {}
 
+void LuaNode::Net::Acceptor::PopulateCounters (lua_State* L)
+{
+	lua_getfield(L, -1, "net");
+	assert(lua_istable(L, -1));
+	
+	luaL_Reg methods[] = {
+		{ "acceptors", GetAcceptorCount },
+		{ 0, 0 }
+	};
+	luaL_register(L, NULL, methods);
+	lua_pop(L, 1);
+}
 
 const char* Acceptor::className = "Acceptor";
 const char* Acceptor::get_full_class_name_T() { return "LuaNode.core.Net.Acceptor"; };

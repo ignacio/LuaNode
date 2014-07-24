@@ -78,6 +78,7 @@ SET(LUAS
     lib/luanode/event_emitter
     lib/luanode/free_list
     lib/luanode/fs
+    lib/luanode/introspect
     lib/luanode/http
     lib/luanode/net
     lib/luanode/path
@@ -90,6 +91,8 @@ SET(LUAS
     lib/luanode/tty
     lib/luanode/url
     lib/luanode/utils
+    lib/luanode/__private_luastate
+    lib/luanode/__private_traverse
     lib/luanode/__private_url
     ${LUA_OS}
     src/node
