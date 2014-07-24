@@ -29,6 +29,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Socket);
+	static const char* get_full_class_name_T();
 
 	static int tostring_T(lua_State* L);
 

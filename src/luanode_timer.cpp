@@ -13,6 +13,7 @@ static unsigned long s_nextTimerId = 0;
 static unsigned long s_timerCount = 0;
 
 const char* Timer::className = "Timer";
+const char* Timer::get_full_class_name_T() { return "LuaNode.core.Timer"; };
 const Timer::RegType Timer::methods[] = {
 	{"start", &Timer::Start},
 	{"stop", &Timer::Stop},

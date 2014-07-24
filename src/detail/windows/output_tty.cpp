@@ -38,6 +38,7 @@ static int tty_WriteTextW(HANDLE handle, const WCHAR buffer[], DWORD length, DWO
 
 
 const char* OutputTtyStream::className = "OutputTtyStream";
+const char* OutputTtyStream::get_full_class_name_T() { return "LuaNode.core.OutputTtyStream"; };
 const OutputTtyStream::RegType OutputTtyStream::methods[] = {
 	//{"setRawMode", &OutputTtyStream::SetRawMode},
 	{"write", &OutputTtyStream::Write},

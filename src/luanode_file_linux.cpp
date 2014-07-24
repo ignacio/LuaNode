@@ -40,6 +40,7 @@ int LuaNode::Fs::Read(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* File::className = "File";
+const char* File::get_full_class_name_T() { return "LuaNode.core.Fs.File"; };
 const File::RegType File::methods[] = {
 	{"close", &File::Close},
 	{"write", &File::Write},

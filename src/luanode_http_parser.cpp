@@ -64,6 +64,7 @@ static inline const char* method_to_str(unsigned short m) {
 
 
 const char* Parser::className = "HTTPParser";
+const char* Parser::get_full_class_name_T() { return "LuaNode.core.Http.HTTPParser"; };
 const Parser::RegType Parser::methods[] = {
 	{"execute", &Parser::Execute},
 	{"finish", &Parser::Finish},

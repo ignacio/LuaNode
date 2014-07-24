@@ -40,6 +40,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(InputTtyStream);
+	static const char* get_full_class_name_T();
 
 private:
 	boost::shared_ptr<boost::thread> m_tty_reader_thread;

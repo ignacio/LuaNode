@@ -27,6 +27,7 @@ public:
 	LCB_HOWP_DECLARE_EXPORTABLE(File);
 
 	static int tostring_T(lua_State* L);
+	static const char* get_full_class_name_T();
 
 	int Write(lua_State* L);
 	int Read(lua_State* L);

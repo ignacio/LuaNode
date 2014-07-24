@@ -22,6 +22,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(TtyStream);
+	static const char* get_full_class_name_T();
 
 	int SetRawMode(lua_State* L);
 	int Read(lua_State* L);

@@ -93,6 +93,7 @@ static void uv_tty_reset_mode() {
 
 
 const char* TtyStream::className = "TtyStream";
+const char* TtyStream::get_full_class_name_T() { return "LuaNode.core.TtyStream"; };
 const TtyStream::RegType TtyStream::methods[] = {
 	{"setRawMode", &TtyStream::SetRawMode},
 	{"write", &TtyStream::Write},

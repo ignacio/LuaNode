@@ -74,6 +74,7 @@ static const char* get_vt100_fn_key(DWORD code, char shift, char ctrl, size_t* l
 using namespace LuaNode::detail::windows;
 
 const char* InputTtyStream::className = "InputTtyStream";
+const char* InputTtyStream::get_full_class_name_T() { return "LuaNode.core.InputTtyStream"; };
 const InputTtyStream::RegType InputTtyStream::methods[] = {
 	{"setRawMode", &InputTtyStream::SetRawMode},
 	//{"write", &TtyStream::Write},

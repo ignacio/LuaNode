@@ -17,6 +17,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Parser);
+	static const char* get_full_class_name_T();
 
 	int Execute(lua_State* L);
 	int Finish(lua_State* L);

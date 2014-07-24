@@ -20,6 +20,7 @@ void LuaNode::Net::Acceptor::RegisterFunctions(lua_State* L) {}
 
 
 const char* Acceptor::className = "Acceptor";
+const char* Acceptor::get_full_class_name_T() { return "LuaNode.core.Net.Acceptor"; };
 const Acceptor::RegType Acceptor::methods[] = {
 	{"open", &Acceptor::Open},
 	{"close", &Acceptor::Close},

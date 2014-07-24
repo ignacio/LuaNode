@@ -12,6 +12,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(ChildProcess);
+	static const char* get_full_class_name_T();
 
 	int New(lua_State* L);
 	int Spawn(lua_State* L);

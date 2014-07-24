@@ -32,6 +32,7 @@ public:
 
 	static int tostring_T(lua_State* L);
 	static int new_T (lua_State* L);
+	static const char* get_full_class_name_T();
 
 	int SetOption(lua_State* L);
 

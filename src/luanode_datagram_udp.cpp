@@ -33,6 +33,7 @@ void LuaNode::Datagram::RegisterFunctions(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Socket::className = "UdpSocket";
+const char* Socket::get_full_class_name_T() { return "LuaNode.core.Datagram.UdpSocket"; };
 const Socket::RegType Socket::methods[] = {
 	{"setoption", &Socket::SetOption},
 	{"bind", &Socket::Bind},

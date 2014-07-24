@@ -41,6 +41,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(OutputTtyStream);
+	static const char* get_full_class_name_T();
 };
 
 }

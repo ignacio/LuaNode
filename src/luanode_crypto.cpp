@@ -57,6 +57,7 @@ static unsigned long s_nextSocketId = 0;
 static unsigned long s_socketCount = 0;
 
 const char* Socket::className = "SecureSocket";
+const char* Socket::get_full_class_name_T() { return "LuaNode.core.Crypto.SecureSocket"; };
 const Socket::RegType Socket::methods[] = {
 	{"setoption", &Socket::SetOption},
 	{"verifyPeer", &Socket::VerifyPeer},
@@ -740,6 +741,7 @@ LCB_IMPL_GET(Socket, writeQueueSize)
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* SecureContext::className = "SecureContext";
+const char* SecureContext::get_full_class_name_T() { return "LuaNode.core.Crypto.SecureContext"; };
 const SecureContext::RegType SecureContext::methods[] = {
 	{"setKey", &SecureContext::SetKey},
 	{"setCert", &SecureContext::SetCert},
@@ -909,6 +911,7 @@ static const char* encoding_options[] = {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Hash::className = "Hash";
+const char* Hash::get_full_class_name_T() { return "LuaNode.core.Crypto.Hash"; };
 const Hash::RegType Hash::methods[] = {
 	{"update", &Hash::Update},
 	{"final", &Hash::Final},
@@ -969,6 +972,7 @@ int Hash::Final(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Hmac::className = "Hmac";
+const char* Hmac::get_full_class_name_T() { return "LuaNode.core.Crypto.Hmac"; };
 const Hmac::RegType Hmac::methods[] = {
 	{"update", &Hmac::Update},
 	{"final", &Hmac::Final},
@@ -1026,6 +1030,7 @@ int Hmac::Final(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Signer::className = "Signer";
+const char* Signer::get_full_class_name_T() { return "LuaNode.core.Crypto.Signer"; };
 const Signer::RegType Signer::methods[] = {
 	{"update", &Signer::Update},
 	{"sign", &Signer::Sign},
@@ -1102,6 +1107,7 @@ int Signer::Sign(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Verifier::className = "Verifier";
+const char* Verifier::get_full_class_name_T() { return "LuaNode.core.Crypto.Verifier"; };
 const Verifier::RegType Verifier::methods[] = {
 	{"update", &Verifier::Update},
 	{"verify", &Verifier::Verify},
@@ -1187,6 +1193,7 @@ int Verifier::Verify(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Cipher::className = "Cipher";
+const char* Cipher::get_full_class_name_T() { return "LuaNode.core.Crypto.Cipher"; };
 const Cipher::RegType Cipher::methods[] = {
 	{"update", &Cipher::Update},
 	{"final", &Cipher::Final},
@@ -1265,6 +1272,7 @@ int Cipher::Final(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Decipher::className = "Decipher";
+const char* Decipher::get_full_class_name_T() { return "LuaNode.core.Crypto.Decipher"; };
 const Decipher::RegType Decipher::methods[] = {
 	{"update", &Decipher::Update},
 	{"final", &Decipher::Final},
@@ -1342,6 +1350,7 @@ int Decipher::Final(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Open::className = "Open";
+const char* Open::get_full_class_name_T() { return "LuaNode.core.Crypto.Open"; };
 const Open::RegType Open::methods[] = {
 	{"update", &Open::Update},
 	{"final", &Open::Final},
@@ -1431,6 +1440,7 @@ int Open::Final(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Seal::className = "Seal";
+const char* Seal::get_full_class_name_T() { return "LuaNode.core.Crypto.Seal"; };
 const Seal::RegType Seal::methods[] = {
 	{"update", &Seal::Update},
 	{"final", &Seal::Final},

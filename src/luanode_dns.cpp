@@ -12,6 +12,7 @@
 using namespace LuaNode::Dns;
 
 const char* Resolver::className = "Resolver";
+const char* Resolver::get_full_class_name_T() { return "LuaNode.core.Dns.Resolver"; };
 const Resolver::RegType Resolver::methods[] = {
 	{ "Lookup", &Resolver::Lookup },
 	{0}

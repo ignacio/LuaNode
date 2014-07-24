@@ -16,6 +16,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Resolver);
+	static const char* get_full_class_name_T();
 
 	int Lookup(lua_State* L);
 

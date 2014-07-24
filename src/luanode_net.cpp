@@ -105,6 +105,7 @@ void LuaNode::Net::RegisterFunctions(lua_State* L) {
 //////////////////////////////////////////////////////////////////////////
 /// 
 const char* Socket::className = "Socket";
+const char* Socket::get_full_class_name_T() { return "LuaNode.core.Net.Socket"; };
 const Socket::RegType Socket::methods[] = {
 	{"setoption", &Socket::SetOption},
 	{"bind", &Socket::Bind},

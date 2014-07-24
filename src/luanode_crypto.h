@@ -27,6 +27,7 @@ public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Socket);
 
 	static int tostring_T(lua_State* L);
+	static const char* get_full_class_name_T();
 
 	int SetOption(lua_State* L);
 
@@ -87,6 +88,8 @@ public:
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(SecureContext);
 
+	static const char* get_full_class_name_T();
+
 	int SetKey(lua_State* L);
 	int SetCert(lua_State* L);
 	int AddCACert(lua_State* L);
@@ -110,6 +113,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Hash);
+	static const char* get_full_class_name_T();
 
 	int Update(lua_State* L);
 	int Final(lua_State* L);
@@ -126,6 +130,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Hmac);
+	static const char* get_full_class_name_T();
 
 	int Update(lua_State* L);
 	int Final(lua_State* L);
@@ -142,6 +147,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Signer);
+	static const char* get_full_class_name_T();
 	
 	int Update(lua_State* L);
 	int Sign(lua_State* L);
@@ -158,6 +164,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Verifier);
+	static const char* get_full_class_name_T();
 
 	int Update(lua_State* L);
 	int Verify(lua_State* L);
@@ -175,6 +182,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Cipher);
+	static const char* get_full_class_name_T();
 
 	int Update(lua_State* L);
 	int Final(lua_State* L);
@@ -192,6 +200,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Decipher);
+	static const char* get_full_class_name_T();
 
 	int Update(lua_State* L);
 	int Final(lua_State* L);
@@ -209,6 +218,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Open);
+	static const char* get_full_class_name_T();
 
 	int Update(lua_State* L);
 	int Final(lua_State* L);
@@ -227,6 +237,7 @@ public:
 
 public:
 	LCB_RO_DECLARE_EXPORTABLE(Seal);
+	static const char* get_full_class_name_T();
 
 	int Update(lua_State* L);
 	int Final(lua_State* L);

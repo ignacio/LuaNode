@@ -6,6 +6,7 @@
 using namespace LuaNode;
 
 const char* ChildProcess::className = "ChildProcess";
+const char* ChildProcess::get_full_class_name_T() { return "LuaNode.core.ChildProcess"; };
 const ChildProcess::RegType ChildProcess::methods[] = {
 	{"spawn", &ChildProcess::Spawn},
 	{"kill", &ChildProcess::Kill},
@@ -29,7 +30,6 @@ ChildProcess::ChildProcess(lua_State* L)
 ChildProcess::~ChildProcess() {
 
 }
-
 
 int ChildProcess::New(lua_State* L) {
 	return luaL_error(L, "not implemented yet");

@@ -16,6 +16,7 @@ public:
 
 public:
 	LCB_HOWP_DECLARE_EXPORTABLE(Timer);
+	static const char* get_full_class_name_T();
 
 	int Start(lua_State* L);
 	int Stop(lua_State* L);
