@@ -354,8 +354,8 @@ static int luaopen_LuaNode_Introspect (lua_State* L)
 
 
 void PreloadModules(lua_State* L) {
-	luaL_findtable(L, LUA_GLOBALSINDEX, "package.preload", 1);
-	//int preload = lua_gettop(L);
+	lua_getfield(L, LUA_GLOBALSINDEX, "package");
+	lua_getfield(L, -1, "preload");
 
 	lua_pushcfunction(L, luaopen_LuaNode_Class);
 	lua_setfield(L, -2, "luanode.class");
@@ -432,17 +432,17 @@ void PreloadModules(lua_State* L) {
 	lua_pushcfunction(L, luaopen_LuaNode_Private_LuaState);
 	lua_setfield(L, -2, "luanode.__private_luastate");
 
-	lua_pop(L, 1);
+	lua_pop(L, 2); // pops 'package' and 'preload' from the stack
 }
 
 //////////////////////////////////////////////////////////////////////////
 /// 
 void PreloadAdditionalModules(lua_State* L) {
-	luaL_findtable(L, LUA_GLOBALSINDEX, "package.preload", 1);
-	//int preload = lua_gettop(L);
+	lua_getfield(L, LUA_GLOBALSINDEX, "package");
+	lua_getfield(L, -1, "preload");
 
 	lua_pushcfunction(L, luaopen_StackTracePlus);
 	lua_setfield(L, -2, "stacktraceplus");
 
-	lua_pop(L, 1);
+	lua_pop(L, 2);	// pops 'package' and 'preload' from the stack
 }
