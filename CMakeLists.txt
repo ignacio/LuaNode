@@ -1,6 +1,10 @@
 PROJECT(LuaNode C CXX)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
+ENDIF()
+
 FIND_PACKAGE( Lua51 REQUIRED )
 FIND_PACKAGE( OpenSSL REQUIRED )
 FIND_PACKAGE( Threads REQUIRED )
@@ -99,11 +103,11 @@ SET(LUAS
     deps/stacktraceplus/src/StackTracePlus
 )
 
-SET(DST ${CMAKE_SOURCE_DIR}/build/temp)
 SET(SRC ${CMAKE_SOURCE_DIR})
+SET(DST ${CMAKE_SOURCE_DIR}/build/temp)
+# Create a temp directory to store Lua .precomp files
 FILE(MAKE_DIRECTORY ${DST})
 
-SET(SRC ${CMAKE_SOURCE_DIR})
 ADD_DEFINITIONS( -D_SOURCE_PATH=\"${CMAKE_SOURCE_DIR}\" )
 FILE(WRITE ${DST}/${target}/build_path.precomp \"${SRC}\")
 
@@ -111,7 +115,10 @@ FOREACH(filename ${LUAS})
     GET_FILENAME_COMPONENT(base ${filename} NAME)
     SET(target "${DST}/${base}.precomp")
     MESSAGE(STATUS "Precompiling ${filename} into ${target}")
-    EXECUTE_PROCESS(COMMAND ${LUA} ${SRC}/tools/bin2c.lua ${SRC}/${filename}.lua extension_status OUTPUT_FILE ${target})
+    EXECUTE_PROCESS(COMMAND ${LUA} ${SRC}/tools/bin2c.lua ${SRC}/${filename}.lua extension_status OUTPUT_FILE ${target} RESULT_VARIABLE res)
+    IF(NOT ${res} EQUAL 0)
+        MESSAGE(FATAL_ERROR "Error while precompiling Lua file. ${SRC}/${filename}.lua" )
+    ENDIF()
 ENDFOREACH(filename)
 
 SET(SOURCES
@@ -145,7 +152,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "BSD")
     # BSD specific code
     TARGET_LINK_LIBRARIES(luanode ${KVM_LIBRARIES} rt)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    # Mac OS X specific code    
+    # Mac OS X specific code
 ELSE()
     # Linux specific code
     TARGET_LINK_LIBRARIES(luanode rt)

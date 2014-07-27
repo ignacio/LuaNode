@@ -2,6 +2,7 @@ Debug
 Release
 ReleaseMinDependency
 Release Debuggable
+build/*/ipch
 CMakeFiles
 build/CMakeFiles
 build/luanode

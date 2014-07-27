@@ -26,11 +26,14 @@ Licensed under the same terms as Lua (MIT license).
 
 if not arg or not arg[1] then
   io.stderr:write(description)
-  return
+  return -1
 end
 
 local compile, filename = arg[1]:match"^(+?)(.*)"
 local status = arg[2]
+
+-- break on syntax errors in Lua files
+assert(loadfile(filename))
 
 local content = compile=="+"
   and string.dump(assert(loadfile(filename)))
