@@ -394,8 +394,8 @@ static void PrintVersion() {
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// this is kind of a hack. It is called from preloader code.
-void PopulateIntrospectCounters (lua_State* L)
+/// luanode.introspect will call this function to fill the counters table
+static int PopulateIntrospectCounters (lua_State* L)
 {
 	int top = lua_gettop(L);
 	
@@ -410,6 +410,8 @@ void PopulateIntrospectCounters (lua_State* L)
 	LuaNode::Crypto::PopulateCounters(L);
 
 	lua_settop(L, top);
+
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -671,6 +673,9 @@ static int Load(int argc, char *argv[]) {
 	
 	lua_pushstring(L, source_path.c_str());
 	lua_setfield(L, internal, "_SOURCE_PATH");
+
+	lua_pushcfunction(L, LuaNode::PopulateIntrospectCounters);
+	lua_setfield(L, internal, "populate_introspect_counters");
 
 	lua_setfield(L, process, "__internal");
 

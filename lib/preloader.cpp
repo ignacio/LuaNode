@@ -1,10 +1,5 @@
 #include "preloader.h"
 
-// defined in luanode.cpp
-namespace LuaNode {
-	extern void PopulateIntrospectCounters (lua_State* L);
-}
-
 static int luaopen_LuaNode_Class(lua_State* L) {
 	int arg = lua_gettop(L);
 	static const unsigned char code[] = {
@@ -344,10 +339,6 @@ static int luaopen_LuaNode_Introspect (lua_State* L)
 	}
 	lua_insert(L,1);
 	lua_call(L,arg,1);
-	
-	// at the top of the stack there is now the 'introspect' module.
-	// now fill the 'counters' part with some C functions
-	LuaNode::PopulateIntrospectCounters(L);
 
 	return 1;
 }

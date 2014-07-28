@@ -1,4 +1,4 @@
-local setmetatable, table, next = setmetatable, table, next
+local setmetatable, table, next, assert = setmetatable, table, next, assert
 local console_warn = console.warn
 
 module((...))
@@ -9,7 +9,6 @@ module((...))
 
 local FreeList = {}
 FreeList.__index = FreeList
-setmetatable(FreeList, FreeList)
 
 function FreeList:alloc(...)
 	-- print("alloc " .. self.name + " " + #self.list)
@@ -48,7 +47,7 @@ end
 function new(name, max, constructor)
 	local t = setmetatable({}, FreeList)
 	t.name = name
-	t.constructor = constructor
+	t.constructor = assert(constructor)
 	t.max = max
 	t.map = {}
 	t.count = 0

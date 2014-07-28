@@ -6,9 +6,12 @@ local _M = {
 -- Make LuaNode 'public' modules available as globals.
 luanode.introspect = _M
 
--- this table will be populated with C functions defined in LuaNode core itself
--- look for 'PopulateIntrospectCounters'
 _M.counters = { net = {}, crypto = {} }
+
+-- this table will be populated with C functions defined in LuaNode core itself
+process.__internal.populate_introspect_counters(_M)
+
+process.__internal.populate_introspect_counters = nil
 
 ---
 -- See what data is around. Walks the VM and returns a table with a summary of what has been found.
