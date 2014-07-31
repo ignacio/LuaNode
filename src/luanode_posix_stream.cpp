@@ -10,6 +10,7 @@
 using namespace LuaNode::Posix;
 
 const char* Stream::className = "PosixStream";
+const char* Stream::get_full_class_name_T() { return "LuaNode.core.Posix.Stream"; };
 const Stream::RegType Stream::methods[] = {
 	{"close", &Stream::Close},
 	{"write", &Stream::Write},
