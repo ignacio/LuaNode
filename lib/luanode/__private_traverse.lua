@@ -156,11 +156,11 @@ function _M.countreferences(value)
 end
 
 -- Main function
--- 'funcs' is a table that contains a funcation for every lua type and also the
+-- 'funcs' is a table that contains a function for every lua type and also the
 -- function edge edge (traverseedge).
 function _M.traverse(funcs, ignoreobjs)
 
-	-- The keys of the marked table are the objetcts (for example, table: 00442330).
+	-- The keys of the marked table are the objects (for example, table: 00442330).
 	-- The value of each key is true if the object has been found and false
 	-- otherwise.
 	local env = {marked = {}, list=List.new(), funcs=funcs}
@@ -201,9 +201,7 @@ function _M.traverse(funcs, ignoreobjs)
 	
 		local obj = List.pop(env.list)
 		local t = type(obj)
-		--_M["traverse" .. t](env, obj)
 		traverse[t](env, obj)
-			
 	end
 	
 end
