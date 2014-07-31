@@ -67,6 +67,7 @@ end
 -- Repl Class
 local REPLServer = Class.InheritsFrom(EventEmitter)
 _M.REPLServer = REPLServer
+REPLServer.__name = "luanode.repl.REPLServer"
 
 ---
 --

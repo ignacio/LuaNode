@@ -12,7 +12,8 @@ local EventEmitter = Class{
 		t = t or {}
 		t._events = {}
 		return Class.base.rawnew(class, t)
-	end
+	end,
+	__name = "luanode.EventEmitter"
 }
 
 --

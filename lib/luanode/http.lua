@@ -239,6 +239,7 @@ _M.status_codes = {
 -- Public:
 local IncomingMessage = Class.InheritsFrom(stream.Stream)
 _M.IncomingMessage = IncomingMessage
+IncomingMessage.__name = "luanode.http.IncomingMessage"
 
 function IncomingMessage:__init (socket)
 	local newMessage = Class.construct(IncomingMessage)
@@ -418,6 +419,7 @@ end
 -- Public:
 local OutgoingMessage = Class.InheritsFrom(stream.Stream)
 _M.OutgoingMessage = OutgoingMessage
+OutgoingMessage.__name = "luanode.http.OutgoingMessage"
 
 function OutgoingMessage:__init (socket)
 	local newMessage = Class.construct(OutgoingMessage)
@@ -918,6 +920,7 @@ end
 --
 local ServerResponse = Class.InheritsFrom(OutgoingMessage)
 _M.ServerResponse = ServerResponse
+ServerResponse.__name = "luanode.http.ServerResponse"
 
 function ServerResponse:__init (req)
 	local newResponse = Class.construct(ServerResponse, req.socket)
@@ -1083,6 +1086,7 @@ end
 --
 local Agent = Class.InheritsFrom(EventEmitter)
 _M.Agent = Agent
+Agent.__name = "luanode.http.Agent"
 
 function Agent:__init (options)
 	local new = Class.construct(Agent)
@@ -1224,6 +1228,7 @@ _M.globalAgent = agent
 --
 local ClientRequest = Class.InheritsFrom(OutgoingMessage)
 _M.ClientRequest = ClientRequest
+ClientRequest.__name = "luanode.http.ClientRequest"
 
 --
 --
@@ -2090,6 +2095,7 @@ _M._connectionListener = connectionListener
 -- Server Class
 local Server = Class.InheritsFrom(net.Server)
 _M.Server = Server
+Server.__name = "luanode.http.Server"
 
 function Server:__init (requestListener)
 	local newServer = Class.construct(Server, { allowHalfOpen = true })
@@ -2122,6 +2128,7 @@ end
 -- Legacy Interface
 local Client = Class.InheritsFrom(EventEmitter)
 _M.Client = Client
+Client.__name = "luanode.http.Client"
 
 function Client:__init (port, host)
 	console.warn("http.Client will be removed soon. Do not use it.")

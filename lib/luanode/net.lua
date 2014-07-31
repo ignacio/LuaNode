@@ -105,6 +105,7 @@ end
 -- Socket Class
 local Socket = Class.InheritsFrom(luanode_stream.Stream)
 _M.Socket = Socket
+Socket.__name = "luanode.net.Socket"
 
 -- FIXME: tengo que guardar las conexiones en algun lado. Y eventualmente las tengo que sacar
 local m_opened_sockets = {}
@@ -1544,6 +1545,7 @@ _M.connect = _M.createConnection
 -- Server Class
 local Server = Class.InheritsFrom(EventEmitter)
 _M.Server = Server
+Server.__name = "luanode.net.Server"
 
 -- Last time we've issued a EMFILE warning
 local lastEMFILEWarning = 0

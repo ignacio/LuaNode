@@ -17,7 +17,7 @@ local function debug(...)
 	--if DEBUG 
 end
 
--- This differs with node.js implementationin that it is not intrusive. It won't add stuff to items
+-- This differs with node.js implementation in that it is not intrusive. It won't add stuff to items.
 
 local items = {}
 -- make it weak-keyed, so the items can be collected
@@ -33,6 +33,7 @@ setmetatable(items, {__mode = "k"})
 -- http://pod.tst.eu/http://cvs.schmorp.de/libev/ev.pod#Be_smart_about_timeouts
 
 local Timers = {}
+Timers.__name = "luanode.timers"
 
 local lists = {}
 

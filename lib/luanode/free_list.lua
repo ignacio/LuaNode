@@ -9,6 +9,7 @@ module((...))
 
 local FreeList = {}
 FreeList.__index = FreeList
+FreeList.__name = "luanode.FreeList"
 
 function FreeList:alloc(...)
 	-- print("alloc " .. self.name + " " + #self.list)

@@ -12,6 +12,7 @@ luanode.stream = _M
 -- Stream Class
 local Stream = Class.InheritsFrom(EventEmitter)
 _M.Stream = Stream
+Stream.__name = "luanode.stream.Stream"
 
 --
 --

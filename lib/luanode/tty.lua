@@ -33,6 +33,7 @@ end
 --ReadStream = Class.InheritsFrom(Socket)
 local ReadStream = Class.InheritsFrom(luanode_stream.Stream)
 _M.ReadStream = ReadStream
+ReadStream.__name = "luanode.tty.ReadStream"
 
 function ReadStream:__init(fd)
 	--local newStream = Class.construct(ReadStream)--, fd)
@@ -145,6 +146,7 @@ end
 -- WriteStream class
 local WriteStream = Class.InheritsFrom(luanode_stream.Stream)
 _M.WriteStream = WriteStream
+WriteStream.__name = "luanode.tty.WriteStream"
 
 function WriteStream:__init (fd)
 	local newStream = Class.construct(WriteStream)

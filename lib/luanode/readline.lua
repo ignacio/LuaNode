@@ -174,6 +174,7 @@ end
 --
 local Interface = Class.InheritsFrom(EventEmitter)
 _M.Interface = Interface
+Interface.__name = "luanode.readline.Interface"
 
 ---
 --
