@@ -48,7 +48,7 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
 **LuaNode** depends on the following:
 
  - [Boost.Asio][5]
- - [OpenSSL][7] 
+ - [OpenSSL][7]
  - [JSON4Lua][9]
  - [lunit][10]
  
