@@ -14,7 +14,7 @@ local timer = setTimeout(function()
 	request.connection:destroy()
 	assert_true(response_received, "A response should have arrived by now")
 	process:exit(-1)
-end, 5000)
+end, 10000)
 
 request:on("response", function (self, response)
 	console.log("STATUS: " .. response.statusCode)
