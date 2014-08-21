@@ -82,10 +82,11 @@ function _M.dump_stats (options)
 		if type(k) == 'string' and type(v) == 'table' then
 			ud_types[v] = k
 		elseif type(k) == "userdata" then
-			if v.__name then
-				ud_types[v] = v.__name
-			elseif v.__type then
-				ud_types[v] = v.__type
+			local __name, __type = rawget(v.__name), rawget(v.__type)
+			if __name then
+				ud_types[v] = __name
+			elseif __type then
+				ud_types[v] = __type
 			end
 			--print(tostring(k), tostring(v), pp(v))
 			--ud_types[v] = "coso"
@@ -122,10 +123,11 @@ function _M.dump_stats (options)
 	["table"] = function(v)
 		local t = debug.getmetatable(v)
 		if t then
-			if type(t.__name) == "string" then
-				type_inc(t.__name)
-			elseif type(t.__type) == "string" then
-				type_inc(t.__type)
+			local __name, __type = rawget(t.__name), rawget(t.__type)
+			if type(__name) == "string" then
+				type_inc(__name)
+			elseif type(__type) == "string" then
+				type_inc(__type)
 			else
 				type_inc("table")
 			end
