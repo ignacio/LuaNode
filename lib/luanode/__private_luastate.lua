@@ -28,6 +28,8 @@ if not jit then
 	--have_getsize = true
 end
 
+local rawget = rawget
+
 --[[
 local inspect = require("luanode.utils").inspect
 local pp = function(v)
@@ -82,7 +84,7 @@ function _M.dump_stats (options)
 		if type(k) == 'string' and type(v) == 'table' then
 			ud_types[v] = k
 		elseif type(k) == "userdata" then
-			local __name, __type = rawget(v.__name), rawget(v.__type)
+			local __name, __type = rawget(v, "__name"), rawget(v, "__type")
 			if __name then
 				ud_types[v] = __name
 			elseif __type then
@@ -123,7 +125,7 @@ function _M.dump_stats (options)
 	["table"] = function(v)
 		local t = debug.getmetatable(v)
 		if t then
-			local __name, __type = rawget(t.__name), rawget(t.__type)
+			local __name, __type = rawget(t, "__name"), rawget(t, "__type")
 			if type(__name) == "string" then
 				type_inc(__name)
 			elseif type(__type) == "string" then
