@@ -23,10 +23,7 @@ LUA_LIB ?= /usr/lib/liblua5.1.a
 
 OPENSSL_INC ?= /usr/include/openssl
 
-INCONCERT_COMPILER ?= g++
-INCONCERT_COMPILER_C ?= gcc
-
-GCC_VERSION ?= $(shell expr substr "`$(INCONCERT_COMPILER) -dumpversion | tr -dc '[0-9]'`" 1 2)
+GCC_VERSION ?= $(shell expr substr "`$(CXX) -dumpversion | tr -dc '[0-9]'`" 1 2)
 
 BASE_SRC_DIR = $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST))))../..)
 
@@ -47,9 +44,9 @@ LIBS = -L$(INCONCERT_LIB) -L$(BOOST_LIBS) -L$(INCONCERT_BIN)
 OUTPUT_BASE = luanode
 
 OUTPUT_DIR = $(INCONCERT_BIN)
-COMPILER = $(INCONCERT_COMPILER)
-COMPILER_C = $(INCONCERT_COMPILER_C)
-LINKER = $(INCONCERT_COMPILER)
+COMPILER = $(CXX)
+COMPILER_C = $(CC)
+LINKER = $(CXX)
 LUA ?= $(shell which lua)
 BIN2C = $(BASE_SRC_DIR)/tools/bin2c.lua
 
@@ -143,29 +140,29 @@ LUAS = 	$(BUILD_TEMP_DIR)/child_process.precomp \
 		$(BUILD_TEMP_DIR)/__private_traverse.precomp \
 		$(BUILD_TEMP_DIR)/__private_url.precomp
 
-all : $(OUTPUT_FILE)
+all: $(OUTPUT_FILE)
 
 
-$(BUILD_TEMP_DIR) :
+$(BUILD_TEMP_DIR):
 	mkdir -p $(BUILD_TEMP_DIR)
 
-$(BUILD_TEMP_DIR)/%.o : $(BASE_SRC_DIR)/src/%.cpp
+$(BUILD_TEMP_DIR)/%.o: $(BASE_SRC_DIR)/src/%.cpp
 	@echo ""
 	$(COMPILE)
 
-$(BUILD_TEMP_DIR)/%.o : $(BASE_SRC_DIR)/src/detail/posix/%.cpp
+$(BUILD_TEMP_DIR)/%.o: $(BASE_SRC_DIR)/src/detail/posix/%.cpp
 	@echo ""
 	$(COMPILE)
 
-$(BUILD_TEMP_DIR)/%.precomp : $(BASE_SRC_DIR)/lib/luanode/%.lua
+$(BUILD_TEMP_DIR)/%.precomp: $(BASE_SRC_DIR)/lib/luanode/%.lua
 	@echo ""
 	$(COMPILE_LUA)
 
-$(BUILD_TEMP_DIR)/%.precomp : $(BASE_SRC_DIR)/src/%.lua
+$(BUILD_TEMP_DIR)/%.precomp: $(BASE_SRC_DIR)/src/%.lua
 	@echo ""
 	$(COMPILE_LUA)
 
-$(BUILD_TEMP_DIR)/stacktraceplus/%.precomp : $(BASE_SRC_DIR)/deps/stacktraceplus/src/%.lua
+$(BUILD_TEMP_DIR)/stacktraceplus/%.precomp: $(BASE_SRC_DIR)/deps/stacktraceplus/src/%.lua
 	@echo ""
 	$(COMPILE_LUA)
 
@@ -184,7 +181,7 @@ $(BUILD_TEMP_DIR)/http_parser.o: $(BASE_SRC_DIR)/deps/http-parser/http_parser.c
 
 $(OUTPUT_FILE): $(BUILD_TEMP_DIR) $(LUAS) $(OBJS)
 	$(LINK)
-	rm -f $(BUILD_TEMP_DIR)/preloader.o
+	$(RM) $(BUILD_TEMP_DIR)/preloader.o
 
 .PHONY: clean
 
@@ -193,6 +190,6 @@ $(OUTPUT_FILE): $(BUILD_TEMP_DIR) $(LUAS) $(OBJS)
 
 
 clean:
-	rm -rf $(BUILD_TEMP_DIR)
-	rm -f $(BASE_SRC_DIR)/lib/luanode/*.precomp
-	rm -f "$(OUTPUT_FILE)"
+	$(RM) -r $(BUILD_TEMP_DIR)
+	$(RM) $(BASE_SRC_DIR)/lib/luanode/*.precomp
+	$(RM) "$(OUTPUT_FILE)"
