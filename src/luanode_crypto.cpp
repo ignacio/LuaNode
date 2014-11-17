@@ -1303,7 +1303,7 @@ int Cipher::Update(lua_State* L) {
 	int output_len = 0;
 	if(!EVP_EncryptUpdate(&m_context, buffer, &output_len, input, input_len)) {
 		free(buffer);
-		crypto_error(L, "Cipher::Update");
+		return crypto_error(L, "Cipher::Update");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	free(buffer);
@@ -1383,7 +1383,7 @@ int Decipher::Update(lua_State* L) {
 	int output_len = 0;
 	if(!EVP_DecryptUpdate(&m_context, buffer, &output_len, input, input_len)) {
 		free(buffer);
-		crypto_error(L, "Decipher::Update");
+		return crypto_error(L, "Decipher::Update");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	free(buffer);
@@ -1475,7 +1475,7 @@ int Open::Update(lua_State* L) {
 	int output_len = 0;
 	if(!EVP_OpenUpdate(&m_context, buffer, &output_len, input, input_len)) {
 		free(buffer);
-		crypto_error(L, "Decipher::Update");
+		return crypto_error(L, "Decipher::Update");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	free(buffer);
@@ -1576,7 +1576,7 @@ int Seal::Update(lua_State* L) {
 	int output_len = 0;
 	if(!EVP_SealUpdate(&m_context, buffer, &output_len, input, input_len)) {
 		free(buffer);
-		crypto_error(L, "Seal::Update");
+		return crypto_error(L, "Seal::Update");
 	}
 	encode_output(L, m_outputMode, buffer, output_len);
 	free(buffer);
