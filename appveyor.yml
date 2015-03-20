@@ -1,0 +1,32 @@
+version: 0.0.2.{build}
+os: Windows Server 2012 R2
+init:
+- rem tree c:\Libraries
+install:
+- rem appveyor DownloadFile http://sourceforge.net/projects/boost/files/boost-binaries/1.57.0/boost_1_57_0-msvc-12.0-32.exe/download -FileName boost_1_57_0-msvc-12.0-32.exe
+- rem boost_1_57_0-msvc-12.0-32.exe /silent /verysilent /sp- /suppressmsgboxes
+- appveyor DownloadFile http://slproweb.com/download/Win32OpenSSL-1_0_2.exe
+- Win32OpenSSL-1_0_2.exe /silent /verysilent /sp- /suppressmsgboxes
+- appveyor DownloadFile http://keplerproject.github.io/luarocks/releases/luarocks-2.2.1-win32.zip
+- 7z x luarocks-2.2.1-win32.zip
+- cd luarocks-2.2.1-win32
+- install.bat /L /Q
+- set PATH=%PATH%;C:\Program Files (x86)\LuaRocks\2.2
+- set LUA_PATH="C:\Program Files (x86)\LuaRocks\2.2\lua\?.lua;C:\Program Files (x86)\LuaRocks\2.2\lua\?\init.lua;C:\Program Files (x86)\LuaRocks\systree\share\lua\5.1\?.lua;C:\Program Files (x86)\LuaRocks\systree\share\lua\5.1\?\init.lua"
+- set LUA_CPATH="C:\Program Files (x86)\LuaRocks\systree\lib\lua\5.1\?.dll"
+- cd ..
+build_script:
+- cd build
+- cmake -DLUA_INCLUDE_DIR="C:\Program Files (x86)\LuaRocks\2.2\include" -DLUA_LIBRARIES="C:\Program Files (x86)\LuaRocks\2.2\lua5.1.lib" -DBOOST_ROOT="c:\Libraries\boost" -DBOOST_LIBRARYDIR="c:\Libraries\boost\stage\lib" -DCMAKE_BUILD_TYPE=Release ..
+- rem add -DCMAKE_BUILD_TYPE=Release eventually
+- cmake --build --target Release .
+- 7z a foo.7z C:\projects\luanode\build\Release\*
+- cd ..\test
+- copy C:\projects\luanode\build\Release\luanode.exe luanode_d.exe
+- appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\build\foo.7z
+- appveyor PushArtifact C:\OpenSSL-Win32\bin\ssleay32.dll
+- appveyor PushArtifact C:\OpenSSL-Win32\bin\libeay32.dll
+test_script:
+- cd C:\projects\luanode\test
+- set PATH=C:\OpenSSL-Win32\bin;%PATH%
+- run.cmd
