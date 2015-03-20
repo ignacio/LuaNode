@@ -31,7 +31,7 @@ init:
 # Download and install OpenSSL
 - cd %APPVEYOR_BUILD_FOLDER%
 - appveyor DownloadFile http://slproweb.com/download/%OPENSSL_BINARY%
-- %OPENSSL_BINARY% /silent /verysilent /sp- /suppressmsgboxes
+- @%OPENSSL_BINARY% /silent /verysilent /sp- /suppressmsgboxes
 # Create 'artifacts' folder
 - md %ARTIFACTS%
 
