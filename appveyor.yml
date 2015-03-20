@@ -19,7 +19,7 @@ build_script:
 - cd build
 - cmake -DLUA_INCLUDE_DIR="C:\Program Files (x86)\LuaRocks\2.2\include" -DLUA_LIBRARIES="C:\Program Files (x86)\LuaRocks\2.2\lua5.1.lib" -DBOOST_ROOT="c:\Libraries\boost" -DBOOST_LIBRARYDIR="c:\Libraries\boost\stage\lib" -DCMAKE_BUILD_TYPE=Release ..
 - rem add -DCMAKE_BUILD_TYPE=Release eventually
-- cmake --build --target Release .
+- cmake --build . --target Release
 - 7z a foo.7z C:\projects\luanode\build\Release\*
 - cd ..\test
 - copy C:\projects\luanode\build\Release\luanode.exe luanode_d.exe
