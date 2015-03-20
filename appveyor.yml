@@ -29,7 +29,7 @@ init:
 - set LUA_DIR=c:\lua%LUA_VER%
 # Download and install OpenSSL
 - cd %APPVEYOR_BUILD_FOLDER%
-- appveyor DownloadFile http://slproweb.com/download/Win32OpenSSL-1_0_2.exe
+- appveyor DownloadFile http://slproweb.com/download/Win32OpenSSL-1_0_2a.exe
 - Win32OpenSSL-1_0_2.exe /silent /verysilent /sp- /suppressmsgboxes
 # Create 'artifacts' folder
 - md %ARTIFACTS%
