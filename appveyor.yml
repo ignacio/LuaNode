@@ -9,7 +9,6 @@ environment:
   LUA_VER: 5.1.5
   LUA_SHORTV: 5.1
   ARTIFACTS: c:\artifacts
-  OPENSSL_BINARY: Win32OpenSSL-1_0_2a.exe
 
 init:
 # Make VS 2013 command line tools available
@@ -30,8 +29,8 @@ init:
 - set LUA_DIR=c:\lua%LUA_VER%
 # Download and install OpenSSL
 - cd %APPVEYOR_BUILD_FOLDER%
-- appveyor DownloadFile http://slproweb.com/download/%OPENSSL_BINARY%
-- @%OPENSSL_BINARY% /silent /verysilent /sp- /suppressmsgboxes
+- appveyor DownloadFile http://slproweb.com/download/Win32OpenSSL-1_0_2a.exe
+- Win32OpenSSL-1_0_2a.exe /silent /verysilent /sp- /suppressmsgboxes
 # Create 'artifacts' folder
 - md %ARTIFACTS%
 
