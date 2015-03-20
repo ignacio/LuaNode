@@ -25,6 +25,7 @@ init:
 - mv luawinmake-master\etc\winmake.bat %APPVEYOR_BUILD_FOLDER%\lua-%LUA_VER%\etc\winmake.bat
 - etc\winmake.bat
 - etc\winmake.bat install c:\lua%LUA_VER%
+- if %LUA_SVER%==5.1.5 copy "etc\lua.hpp" "c:\lua%LUA_VER%\include"
 # defines LUA_DIR so Cmake can find this Lua install
 - set LUA_DIR=c:\lua%LUA_VER%
 - set PATH=%PATH%;c:\lua%LUA_VER%\bin
