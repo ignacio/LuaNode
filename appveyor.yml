@@ -8,60 +8,31 @@ environment:
   LUAURL: http://www.lua.org/ftp
   LUA_VER: 5.1.5
   LUA_SHORTV: 5.1
+  LUA_SHORTVND: 51
   ARTIFACTS: c:\artifacts
+
+  matrix:
+  - platform: x86
+  #- platform: x64  # disabled until I figure out why it does not compile
+
+matrix:
+  fast_finish: false     # set this flag to true to immediately finish build once one of the jobs fails.
+  allow_failures:
+    - platform: x64
 
 init:
 # Make VS 2013 command line tools available
-- '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86'
-- rem tree c:\Libraries
-# Download and compile Lua
-- appveyor DownloadFile %LUAURL%/lua-%LUA_VER%.tar.gz
-- 7z x lua-%LUA_VER%.tar.gz
-- 7z x lua-%LUA_VER%.tar
-- cd lua-%LUA_VER%
-- appveyor DownloadFile https://github.com/Tieske/luawinmake/archive/master.zip
-- 7z x master.zip
-- if not exist etc mkdir etc
-- mv luawinmake-master\etc\winmake.bat %APPVEYOR_BUILD_FOLDER%\lua-%LUA_VER%\etc\winmake.bat
-- etc\winmake.bat
-- etc\winmake.bat install c:\lua%LUA_VER%
-- if %LUA_SHORTV%==5.1 (copy "etc\lua.hpp" "c:\lua%LUA_VER%\include")
-# defines LUA_DIR so Cmake can find this Lua install
-- set LUA_DIR=c:\lua%LUA_VER%
-- set PATH=%PATH%;c:\lua%LUA_VER%\bin
-# Download and install OpenSSL
-- cd %APPVEYOR_BUILD_FOLDER%
-- appveyor DownloadFile http://slproweb.com/download/Win32OpenSSL-1_0_2a.exe
-- Win32OpenSSL-1_0_2a.exe /silent /verysilent /sp- /suppressmsgboxes
+- '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%'
 # Create 'artifacts' folder
 - md %ARTIFACTS%
 
 install:
-- rem appveyor DownloadFile http://sourceforge.net/projects/boost/files/boost-binaries/1.57.0/boost_1_57_0-msvc-12.0-32.exe/download -FileName boost_1_57_0-msvc-12.0-32.exe
-- rem boost_1_57_0-msvc-12.0-32.exe /silent /verysilent /sp- /suppressmsgboxes
-#- appveyor DownloadFile http://keplerproject.github.io/luarocks/releases/luarocks-2.2.1-win32.zip
-#- 7z x luarocks-2.2.1-win32.zip
-#- cd luarocks-2.2.1-win32
-#- install.bat /L /Q
-#- set PATH=%PATH%;C:\Program Files (x86)\LuaRocks\2.2
-#- set LUA_PATH="C:\Program Files (x86)\LuaRocks\2.2\lua\?.lua;C:\Program Files (x86)\LuaRocks\2.2\lua\?\init.lua;C:\Program Files (x86)\LuaRocks\systree\share\lua\5.1\?.lua;C:\Program Files (x86)\LuaRocks\systree\share\lua\5.1\?\init.lua"
-#- set LUA_CPATH="C:\Program Files (x86)\LuaRocks\systree\lib\lua\5.1\?.dll"
-#- cd ..
+- cd %APPVEYOR_BUILD_FOLDER%
+- call ci\appveyor\install.bat
 
 build_script:
-- cd %APPVEYOR_BUILD_FOLDER%\build
-- cmake -DBOOST_ROOT="c:\Libraries\boost" -DBOOST_LIBRARYDIR="c:\Libraries\boost\stage\lib" -DCMAKE_BUILD_TYPE=Release ..
-- cmake --build . --config Release
-- cd ..\test
-- copy %APPVEYOR_BUILD_FOLDER%\build\Release\luanode.exe luanode.exe
-# Build artifacts
-- copy %APPVEYOR_BUILD_FOLDER%\build\Release\luanode.exe %ARTIFACTS%\luanode.exe
-- copy C:\OpenSSL-Win32\bin\ssleay32.dll %ARTIFACTS%\ssleay32.dll
-- copy C:\OpenSSL-Win32\bin\libeay32.dll %ARTIFACTS%\libeay32.dll
-- copy C:\lua%LUA_VER%\bin\lua%LUA_SHORTV%.dll %ARTIFACTS%\lua%LUA_SHORTV%.dll
-- 7z a luanode-%APPVEYOR_REPO_COMMIT%.7z %ARTIFACTS%\*
-- appveyor PushArtifact luanode-%APPVEYOR_REPO_COMMIT%.7z
-- del luanode-%APPVEYOR_REPO_COMMIT%.7z
+- cd %APPVEYOR_BUILD_FOLDER%
+- call ci\appveyor\build.bat
 
 test_script:
 - cd %APPVEYOR_BUILD_FOLDER%\test
