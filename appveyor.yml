@@ -22,11 +22,11 @@ build_script:
 - cmake --build . --config Release
 - 7z a foo.7z C:\projects\luanode\build\Release\*
 - cd ..\test
-- copy C:\projects\luanode\build\Release\luanode.exe luanode_d.exe
-- appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\build\foo.7z
+- copy C:\projects\luanode\build\Release\luanode.exe luanode.exe
+- appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\build\Release\luanode.exe
 - appveyor PushArtifact C:\OpenSSL-Win32\bin\ssleay32.dll
 - appveyor PushArtifact C:\OpenSSL-Win32\bin\libeay32.dll
 test_script:
 - cd C:\projects\luanode\test
 - set PATH=C:\OpenSSL-Win32\bin;%PATH%
-- run.cmd
+- runappveyor.cmd
