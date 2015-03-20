@@ -1,6 +1,7 @@
 # LuaNode #
 
-[![Build Status](https://travis-ci.org/ignacio/LuaNode.png?branch=master)](https://travis-ci.org/ignacio/LuaNode)
+[![Build Status](https://travis-ci.org/ignacio/LuaNode.svg?branch=master)](https://travis-ci.org/ignacio/LuaNode)
+[![Build status](https://ci.appveyor.com/api/projects/status/h314jv8m29cb2xkp?svg=true)](https://ci.appveyor.com/project/ignacio/luanode)
 
 Asynchronous I/O for Lua.
 
