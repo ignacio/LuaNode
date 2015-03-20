@@ -47,7 +47,7 @@ install:
 #- cd ..
 
 build_script:
-- cd cd %APPVEYOR_BUILD_FOLDER%\build
+- cd %APPVEYOR_BUILD_FOLDER%\build
 - cmake -DBOOST_ROOT="c:\Libraries\boost" -DBOOST_LIBRARYDIR="c:\Libraries\boost\stage\lib" -DCMAKE_BUILD_TYPE=Release ..
 - cmake --build . --config Release
 - cd ..\test
