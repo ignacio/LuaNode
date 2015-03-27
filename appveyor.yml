@@ -7,24 +7,28 @@ shallow_clone: true
 environment:
   LUAURL: http://www.lua.org/ftp
   LUA_VER: 5.1.5
-  LUA_SHORTV: 5.1
-  LUA_SHORTVND: 51
-  ARTIFACTS: c:\artifacts
+  OPENSSL_VER: 1.0.2a
 
   matrix:
   - platform: x86
-  #- platform: x64  # disabled until I figure out why it does not compile
+  - platform: x64
 
 matrix:
   fast_finish: false     # set this flag to true to immediately finish build once one of the jobs fails.
   allow_failures:
     - platform: x64
 
+cache:
+  - c:\lua5.1.5_x86 -> appveyor.yml
+  - c:\lua5.1.5_x64 -> appveyor.yml
+  - build\downloads -> appveyor.yml
+  - C:\OpenSSL-Win32 -> appveyor.yml
+  - C:\OpenSSL-Win64 -> appveyor.yml
+  - C:\local\boost_1_57_0 -> appveyor.yml
+
 init:
 # Make VS 2013 command line tools available
 - '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%'
-# Create 'artifacts' folder
-- md %ARTIFACTS%
 
 install:
 - cd %APPVEYOR_BUILD_FOLDER%
@@ -36,5 +40,4 @@ build_script:
 
 test_script:
 - cd %APPVEYOR_BUILD_FOLDER%\test
-- set PATH=C:\OpenSSL-Win32\bin;%PATH%
-- runappveyor.cmd
+- call runappveyor.cmd

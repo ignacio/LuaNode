@@ -1,21 +1,47 @@
+@echo off
+Setlocal EnableDelayedExpansion EnableExtensions
+
+if not defined SEVENZIP set SEVENZIP=7z
+if not defined APPVEYOR_BUILD_FOLDER set APPVEYOR_BUILD_FOLDER=%CD%
+
+:: =========================================================
+:: Determine if arch is 32/64 bits
+if /I "%platform%"=="x86" (
+	set arch=32
+	set _cmake_per_Arch_Args=""
+) else (
+	set arch=64
+	set _cmake_per_Arch_Args=-DCMAKE_GENERATOR_PLATFORM=%platform%
+)
+:: =========================================================
 echo LUA_DIR: %LUA_DIR%
 echo PATH: %PATH%
 
-cd %APPVEYOR_BUILD_FOLDER%\build
-cmake -DBOOST_ROOT="c:\Libraries\boost" -DBOOST_LIBRARYDIR="c:\Libraries\boost\stage\lib" -DCMAKE_BUILD_TYPE=Release ..
+set build_dir=%APPVEYOR_BUILD_FOLDER%\build_%platform%
+mkdir %build_dir% 2>NUL
+cd %build_dir%
+
+:: Where to put the resulting artifacts
+if not defined ARTIFACTS set ARTIFACTS=%build_dir%\artifacts
+
+cmake --version
+cmake -DBOOST_ROOT="c:\local\boost_1_57_0" -DBOOST_LIBRARYDIR="c:\local\boost_1_57_0\lib%arch%-msvc-12.0" -DCMAKE_BUILD_TYPE=Release %_cmake_per_Arch_Args% ..
 cmake --build . --config Release
-cd ..\test
-copy %APPVEYOR_BUILD_FOLDER%\build\Release\luanode.exe luanode.exe
+
+copy %build_dir%\Release\luanode.exe luanode.exe
+
 :: Build artifacts
-copy %APPVEYOR_BUILD_FOLDER%\build\Release\luanode.exe %ARTIFACTS%\luanode.exe
-copy C:\lua%LUA_VER%\bin\lua%LUA_SHORTVND%.dll %ARTIFACTS%\lua%LUA_SHORTVND%.dll
-if %platform%==x86 (
-  copy C:\OpenSSL-Win32\bin\ssleay32.dll %ARTIFACTS%\ssleay32.dll
-  copy C:\OpenSSL-Win32\bin\libeay32.dll %ARTIFACTS%\libeay32.dll
-) else (
-  copy C:\OpenSSL-Win64\bin\ssleay32.dll %ARTIFACTS%\ssleay32.dll
-  copy C:\OpenSSL-Win64\bin\libeay32.dll %ARTIFACTS%\libeay32.dll
+mkdir %ARTIFACTS% 2>NUL
+copy %build_dir%\Release\luanode.exe %ARTIFACTS%\luanode.exe
+copy %build_dir%\Release\luanode.exe %APPVEYOR_BUILD_FOLDER%\test\luanode.exe
+copy %LUA_DIR%\bin\lua%LUA_SHORTVND%.dll %ARTIFACTS%\lua%LUA_SHORTVND%.dll
+copy C:\OpenSSL-Win%arch%\bin\ssleay32.dll %ARTIFACTS%\ssleay32.dll
+copy C:\OpenSSL-Win%arch%\bin\libeay32.dll %ARTIFACTS%\libeay32.dll
+
+if "%APPVEYOR%"=="True" (
+	%SEVENZIP% a luanode-%APPVEYOR_REPO_COMMIT%-%platform%.7z %ARTIFACTS%\*
+	appveyor PushArtifact luanode-%APPVEYOR_REPO_COMMIT%-%platform%.7z
+	luanode-%APPVEYOR_REPO_COMMIT%-%platform%.7z
 )
-7z a luanode-%APPVEYOR_REPO_COMMIT%-%platform%.7z %ARTIFACTS%\*
-appveyor PushArtifact luanode-%APPVEYOR_REPO_COMMIT%-%platform%.7z
-del luanode-%APPVEYOR_REPO_COMMIT%-%platform%.7z
+
+endlocal
