@@ -1,4 +1,4 @@
-language: c++
+language: cpp
 
 compiler:
   - clang
@@ -6,36 +6,54 @@ compiler:
 
 env:
   global:
-    - LUAROCKS_BASE=luarocks-2.2.1
-  matrix:
-    - LUA=lua5.1 LUA_DEV=liblua5.1-dev LUA_VER=5.1 LUA_SFX=5.1 LUA_INCDIR=/usr/include/lua5.1
-    #- LUA=luajit LUA_DEV=libluajit-5.1-dev LUA_VER=5.1 LUA_SFX=jit LUA_INCDIR=/usr/include/luajit-2.0
+    - LUAROCKS_VER=2.2.1
+    - LUA_VER=5.1.5
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - libboost-dev
+    - libboost-system-dev
+    - libboost-date-time-dev
+    - libboost-thread-dev
 
 before_install:
-  - if [ $LUA = "luajit" ]; then
-      sudo add-apt-repository ppa:mwild1/ppa -y && sudo apt-get update -y;
-    fi
-  - sudo apt-get install $LUA
-  - sudo apt-get install $LUA_DEV
-  - lua$LUA_SFX -v
-  # Install a recent luarocks release
-  - wget http://luarocks.org/releases/$LUAROCKS_BASE.tar.gz
-  - tar zxvpf $LUAROCKS_BASE.tar.gz
-  - cd $LUAROCKS_BASE
-  - ./configure --lua-version=$LUA_VER --lua-suffix=$LUA_SFX --with-lua-include="$LUA_INCDIR"
-  - make build && sudo make install
-  - luarocks --version
+  - export LUA_SHORTV="$(echo $LUA_VER | cut -c 1-3)"
+  # defines LUA_DIR so Cmake can find this Lua install
+  - export LUA_DIR="$HOME/lua/$LUA_SHORTV"
+  - mkdir -p "$LUA_DIR"
+  - mkdir -p "$HOME/build_deps"
+  - pushd "$HOME/build_deps"
+  -   curl http://www.lua.org/ftp/lua-$LUA_VER.tar.gz | tar xz
+  -   pushd lua-$LUA_VER
+  -     make linux
+  -     make INSTALL_TOP="$LUA_DIR" install
+  -     export PATH=$PATH:$LUA_DIR/bin
+  -   popd
+  #   Install a recent luarocks release (in the same place as our Lua install)
+  -   curl --location http://luarocks.org/releases/luarocks-$LUAROCKS_VER.tar.gz | tar xz
+  -   pushd luarocks-$LUAROCKS_VER
+  -     ./configure --with-lua="$LUA_DIR" --prefix="$LUA_DIR" --lua-version=$LUA_SHORTV
+  -     make build && make install
+  -   popd
+  - popd
   #
   # install dependencies
+  - luarocks install lunit
   #
-  - sudo luarocks install lunit 
-  - sudo apt-get install libboost-dev libboost-system-dev libboost-date-time-dev libboost-thread-dev liblua5.1-json
 
 install:
+  - lua -v
+  - luarocks --version
   - cd $TRAVIS_BUILD_DIR/build
   - cmake -DBOOST_ROOT=/usr/lib ..
   - cmake --build .
-  - sudo mv luanode /usr/bin/luanode_d
+  - cp luanode luanode_d
+  - export PATH=$PATH:$(pwd)
+  - eval `luarocks path`
+  - luanode -v
 
 script: 
   - cd $TRAVIS_BUILD_DIR/test
