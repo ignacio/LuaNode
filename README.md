@@ -171,7 +171,7 @@ I'd like to acknowledge the work of the following people or group:
 [6]: http://www.boost.org/
 [7]: http://www.openssl.org/
 [8]: http://w3.impa.br/~diego/software/luasocket/
-[10]: http://www.nessie.de/mroth/lunit/
+[10]: https://rocks.moonscript.org/modules/luarocks/lunit
 [11]: http://nodejs.org/
 [12]: http://nodejs.org/docs/v0.2.5/api.html
 [13]: http://loop.luaforge.net/
