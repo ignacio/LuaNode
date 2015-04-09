@@ -44,20 +44,42 @@ quite compatible. Code from *Node.js* can be easily rewritten from JavaScript in
 
 ## Building #
 
-**LuaNode** can be compiled on Windows with Visual Studio 2008 or with GCC on Linux. Look on the `build` folder. At the moment, both VS projects and Makefiles are not usable without some heavy tweaking. Proper makefiles and projects (and also build instructions) will follow.
+**LuaNode** can be compiled on Windows, Linux and OSX, using [CMake](http://www.cmake.org/). Although there are makefiles and projects for Visual Studio in the `build` folder, they are not really meant for general use. Currently, the recommended way to build is by using CMake 2.6 or above.
+
+It is regularly built on:
+
+- Ubuntu 12.04 (precise)
+- Debian (squeeze, wheezy, jessie)
+- Windows 7, 8 and Server 2012 R2
 
 **LuaNode** depends on the following:
 
  - [Boost.Asio][5]
  - [OpenSSL][7]
- - [JSON4Lua][9]
  - [lunit][10]
  
 ### Debian installation #
-The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
+
+If you already have Lua, OpenSSL and Boost installed, you can use [CMake](http://www.cmake.org/) to build LuaNode 
+(thanks to Michal Kottman). Just do:
+
+ - git clone git://github.com/ignacio/LuaNode.git
+ - cd LuaNode/build
+ - cmake ..
+ - cmake --build .
+
+ When building on ArchLinux, you need to change the install prefix, so the steps required are:
+
+ - git clone git://github.com/ignacio/LuaNode.git
+ - cd LuaNode/build
+ - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+ - cmake --build .
+
+
+If you do not want to or cannot use CMake, the following has been tested on Ubuntu Desktop 10.10 / Debian testing.
 
  - Install Lua and libraries
-   - sudo apt-get install lua5.1 liblua5.1-0-dev liblua5.1-json
+   - sudo apt-get install lua5.1 liblua5.1-0-dev
 
  - Install OpenSSL
    - sudo apt-get install libssl-dev
@@ -65,7 +87,7 @@ The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
  - Install Boost
    - sudo apt-get install libboost1.46-dev libboost-system1.46-dev
    
- - Install Boost (tested with 1.44 to 1.47)
+ - Install Boost (tested with 1.44 to 1.57)
    - Download [boost_1_44_0.tar.bz2](http://sourceforge.net/projects/boost/files/boost/1.44.0/boost_1_44_0.tar.bz2/download)
    - Unpack
    - ./bootstrap.sh
@@ -73,9 +95,9 @@ The following has been tested on Ubuntu Desktop 10.10 / Debian testing.
    - sudo ldconfig -v
    
  - Install LuaRocks
-   - wget http://luarocks.org/releases/luarocks-2.1.1.tar.gz
-   - tar xvf luarocks-2.1.1.tar.gz
-   - cd luarocks-2.1.1
+   - wget http://luarocks.org/releases/luarocks-2.2.1.tar.gz
+   - tar xvf luarocks-2.2.1.tar.gz
+   - cd luarocks-2.2.1
    - ./configure
    - make
    - sudo make install
@@ -96,20 +118,6 @@ When compiling on ArchLinux, the last step is this:
    
 *Note: This installation procedure will be simplified in the future.*
 
-If you already have Lua, OpenSSL and Boost installed, you can use [CMake](http://www.cmake.org/) to build LuaNode 
-(thanks to Michal Kottman). Just do:
-
- - git clone git://github.com/ignacio/LuaNode.git
- - cd LuaNode/build
- - cmake ..
- - cmake --build .
-
- When build on ArchLinux, you need to change the install prefix, so the steps required are:
-
- - git clone git://github.com/ignacio/LuaNode.git
- - cd LuaNode/build
- - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
- - cmake --build .
 
 ### Mac OSX installation 
 *Note: Installation was tested on OS X Lion 10.7.5, OS X Mountain Lion 10.8 and OSX Mavericks 10.9*
@@ -159,11 +167,10 @@ I'd like to acknowledge the work of the following people or group:
 [2]: http://rubyeventmachine.com/
 [3]: http://twistedmatrix.com/trac/
 [4]: http://www.lua.org/
-[5]: http://www.boost.org/doc/libs/1_45_0/doc/html/boost_asio.html
+[5]: http://www.boost.org/doc/libs/release/doc/html/boost_asio.html
 [6]: http://www.boost.org/
 [7]: http://www.openssl.org/
 [8]: http://w3.impa.br/~diego/software/luasocket/
-[9]: http://json.luaforge.net/
 [10]: http://www.nessie.de/mroth/lunit/
 [11]: http://nodejs.org/
 [12]: http://nodejs.org/docs/v0.2.5/api.html
