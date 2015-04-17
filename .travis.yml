@@ -23,20 +23,14 @@ addons:
 before_install:
   - export LUA_SHORTV="$(echo $LUA_VER | cut -c 1-3)"
   # defines LUA_DIR so Cmake can find this Lua install
-  - export LUA_DIR="$HOME/lua/$LUA_SHORTV"
-  - mkdir -p "$LUA_DIR"
+  - export LUAROCKS_DIR="$HOME/luarocks/$LUA_SHORTV"
+  - mkdir -p "$LUAROCKS_DIR"
   - mkdir -p "$HOME/build_deps"
   - pushd "$HOME/build_deps"
-  -   curl http://www.lua.org/ftp/lua-$LUA_VER.tar.gz | tar xz
-  -   pushd lua-$LUA_VER
-  -     make linux
-  -     make INSTALL_TOP="$LUA_DIR" install
-  -     export PATH=$PATH:$LUA_DIR/bin
-  -   popd
   #   Install a recent luarocks release (in the same place as our Lua install)
   -   curl --location http://luarocks.org/releases/luarocks-$LUAROCKS_VER.tar.gz | tar xz
   -   pushd luarocks-$LUAROCKS_VER
-  -     ./configure --with-lua="$LUA_DIR" --prefix="$LUA_DIR" --lua-version=$LUA_SHORTV
+  -     ./configure --prefix="$LUAROCKS_DIR" --lua-version=$LUA_SHORTV
   -     make build && make install
   -   popd
   - popd
