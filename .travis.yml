@@ -35,6 +35,7 @@ before_install:
   -     make build && make install
   -   popd
   - popd
+  - export PATH=$PATH:$LUAROCKS_DIR/bin
   #
   # install dependencies
   - luarocks install lunit
