@@ -14,6 +14,7 @@ sudo: false
 addons:
   apt:
     packages:
+    - lua5.1
     - liblua5.1-0-dev
     - libboost-dev
     - libboost-system-dev
