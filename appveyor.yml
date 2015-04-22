@@ -24,7 +24,7 @@ cache:
   - build\downloads -> appveyor.yml
   - C:\OpenSSL-Win32 -> appveyor.yml
   - C:\OpenSSL-Win64 -> appveyor.yml
-  - C:\local\boost_1_57_0 -> appveyor.yml
+  - C:\local\boost_1_58_0 -> appveyor.yml
 
 init:
 # Make VS 2013 command line tools available

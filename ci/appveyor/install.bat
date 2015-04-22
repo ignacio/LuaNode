@@ -101,19 +101,21 @@ set PATH=%OPENSSL_ROOT_DIR%\bin;%PATH%
 
 :: Download and install Boost
 cd %APPVEYOR_BUILD_FOLDER%
-if not defined BOOST_VERSION set BOOST_VERSION=1.57.0
+if not defined BOOST_VERSION set BOOST_VERSION=1.58.0
+:: replace dots with underscores
+set BOOST_VER_USC=%BOOST_VERSION:.=_%
 
-if not exist build\downloads\boost_1_57_0-msvc-12.0-%arch%.exe (
+if not exist build\downloads\boost_%BOOST_VER_USC%-msvc-12.0-%arch%.exe (
 	echo Downloading Boost %BOOST_VERSION% %arch% bits...
-	curl --silent --fail --location --max-time 1600 --connect-timeout 30 --output build\downloads\boost_1_57_0-msvc-12.0-%arch%.exe http://sourceforge.net/projects/boost/files/boost-binaries/1.57.0/boost_1_57_0-msvc-12.0-%arch%.exe/download
+	curl --silent --fail --location --max-time 1600 --connect-timeout 30 --output build\downloads\boost_%BOOST_VER_USC%-msvc-12.0-%arch%.exe http://sourceforge.net/projects/boost/files/boost-binaries/%BOOST_VERSION%/boost_%BOOST_VER_USC%-msvc-12.0-%arch%.exe/download
 	echo Done downloading.
 ) else (
 	echo Boost %BOOST_VERSION% %arch% bits already downloaded
 )
 
-if not exist "C:\local\boost_1_57_0\lib%arch%-msvc-12.0" (
+if not exist "C:\local\boost_%BOOST_VER_USC%\lib%arch%-msvc-12.0" (
 	echo Installing Boost %BOOST_VERSION% %arch% bits...
-	build\downloads\boost_1_57_0-msvc-12.0-%arch%.exe /silent /verysilent /sp- /suppressmsgboxes
+	build\downloads\boost_%BOOST_VER_USC%-msvc-12.0-%arch%.exe /silent /verysilent /sp- /suppressmsgboxes
 	echo Done installing.
 ) else (
 	echo Boost %BOOST_VERSION% %arch% bits already installed

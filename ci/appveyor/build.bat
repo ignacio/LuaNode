@@ -24,8 +24,12 @@ cd %build_dir%
 :: Where to put the resulting artifacts
 if not defined ARTIFACTS set ARTIFACTS=%build_dir%\artifacts
 
+if not defined BOOST_VERSION set BOOST_VERSION=1.58.0
+:: replace dots with underscores
+set BOOST_VER_USC=%BOOST_VERSION:.=_%
+
 cmake --version
-cmake -DBOOST_ROOT="c:\local\boost_1_57_0" -DBOOST_LIBRARYDIR="c:\local\boost_1_57_0\lib%arch%-msvc-12.0" -DCMAKE_BUILD_TYPE=Release %_cmake_per_Arch_Args% ..
+cmake -DBOOST_ROOT="c:\local\boost_%BOOST_VER_USC%" -DBOOST_LIBRARYDIR="c:\local\boost_%BOOST_VER_USC%\lib%arch%-msvc-12.0" -DCMAKE_BUILD_TYPE=Release %_cmake_per_Arch_Args% ..
 cmake --build . --config Release
 
 copy %build_dir%\Release\luanode.exe luanode.exe
