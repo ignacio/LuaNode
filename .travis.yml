@@ -6,7 +6,7 @@ compiler:
 
 env:
   global:
-    - LUAROCKS_VER=2.2.1
+    - LUAROCKS_VER=2.2.2
     - LUA_VER=5.1.5
 
 sudo: false
