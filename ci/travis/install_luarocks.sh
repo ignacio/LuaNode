@@ -2,7 +2,7 @@
 
 set -eufo pipefail
 
-export LUAROCKS_DIR="$HOME/luarocks/$LUA_SHORTV"
+LUAROCKS_DIR="$HOME/luarocks/$LUA_SHORTV"
 
 mkdir -p "$LUAROCKS_DIR"
 
