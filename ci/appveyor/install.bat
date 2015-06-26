@@ -30,7 +30,7 @@ if /I "%platform%"=="x64" set LR_SYSTREE=%ProgramFiles%\LuaRocks\systree
 
 if not defined SEVENZIP set SEVENZIP=7z
 
-if not defined OPENSSL_VER set OPENSSL_VER=1.0.2a
+if not defined OPENSSL_VER set OPENSSL_VER=1.0.2c
 
 :: Determine if arch is 32/64 bits
 if /I "%platform%"=="x86" ( set arch=32) else ( set arch=64)
