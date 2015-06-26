@@ -8,7 +8,7 @@ env:
   global:
     - LUAROCKS_VER=2.2.2
     - LUA_VER=5.1.5
-    - COMPILE_LUA=yes
+    - COMPILE_LUA=yes  # no allows to use Lua installed from packages
 
 # matrix:
 #   include:
@@ -20,6 +20,7 @@ sudo: false
 addons:
   apt:
     packages:
+    # It is still 5.1.4 ...
     #- lua5.1
     #- liblua5.1-0-dev
     - libboost-dev
