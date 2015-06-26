@@ -13,7 +13,7 @@ env:
 matrix:
   include:
     - compiler: gcc
-    - env: COMPILE_LUA=yes
+      env: COMPILE_LUA=yes
 
 sudo: false
 
