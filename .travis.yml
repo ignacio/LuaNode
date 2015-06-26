@@ -12,8 +12,8 @@ env:
 
 matrix:
   include:
-    - COMPILE_LUA=yes
     - compiler: gcc
+      - COMPILE_LUA=yes
 
 sudo: false
 
