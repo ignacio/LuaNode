@@ -44,9 +44,8 @@ before_install:
   #
 
 install:
-  - cd $TRAVIS_BUILD_DIR/build
   - ci/travis/build.sh
-  - export PATH=$PATH:$(pwd)
+  - export PATH=$PATH:${TRAVIS_BUILD_DIR}/build
   - luanode -v
 
 script:
