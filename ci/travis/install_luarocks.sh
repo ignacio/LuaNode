@@ -1,8 +1,6 @@
 #! /bin/bash
 
-set -eufo pipefail
-
-LUAROCKS_DIR="$HOME/luarocks/$LUA_SHORTV"
+set -efo pipefail
 
 mkdir -p "$LUAROCKS_DIR"
 
@@ -19,5 +17,3 @@ pushd "$HOME/build_deps"
 		make build && make install
 	popd
 popd
-
-export PATH=$PATH:$LUAROCKS_DIR/bin

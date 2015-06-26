@@ -30,16 +30,19 @@ addons:
 before_install:
   - export LUA_SHORTV="$(echo $LUA_VER | cut -c 1-3)"
   - mkdir -p "$HOME/build_deps"
-  - source ci/travis/install_lua.sh
-  - source ci/travis/install_luarocks.sh
+  - source ci/travis/set_env.sh
+  - ci/travis/install_lua.sh
+  - ci/travis/install_luarocks.sh
+  #
+  # Report versions
+  - lua -v
+  - luarocks --version
   #
   # install dependencies
   - luarocks install lunit
   #
 
 install:
-  - lua -v
-  - luarocks --version
   - cd $TRAVIS_BUILD_DIR/build
   - cmake -DBOOST_ROOT=/usr/lib ..
   - cmake --build .
