@@ -6,7 +6,7 @@ compiler:
 
 env:
   global:
-    - LUAROCKS_VER=2.2.1
+    - LUAROCKS_VER=2.2.2
     - LUA_VER=5.1.5
 
 sudo: false
@@ -23,19 +23,9 @@ addons:
 
 before_install:
   - export LUA_SHORTV="$(echo $LUA_VER | cut -c 1-3)"
-  # defines LUA_DIR so Cmake can find this Lua install
-  - export LUAROCKS_DIR="$HOME/luarocks/$LUA_SHORTV"
-  - mkdir -p "$LUAROCKS_DIR"
   - mkdir -p "$HOME/build_deps"
-  - pushd "$HOME/build_deps"
-  #   Install a recent luarocks release (in the same place as our Lua install)
-  -   curl --location http://luarocks.org/releases/luarocks-$LUAROCKS_VER.tar.gz | tar xz
-  -   pushd luarocks-$LUAROCKS_VER
-  -     ./configure --prefix="$LUAROCKS_DIR" --lua-version=$LUA_SHORTV
-  -     make build && make install
-  -   popd
-  - popd
-  - export PATH=$PATH:$LUAROCKS_DIR/bin
+  - ci/travis/install_lua.sh
+  - ci/travis/install_luarocks.sh
   #
   # install dependencies
   - luarocks install lunit
@@ -52,6 +42,6 @@ install:
   - eval `luarocks path`
   - luanode -v
 
-script: 
+script:
   - cd $TRAVIS_BUILD_DIR/test
   - ./run.sh
