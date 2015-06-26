@@ -8,20 +8,20 @@ env:
   global:
     - LUAROCKS_VER=2.2.2
     - LUA_VER=5.1.5
-    - COMPILE_LUA=no
+    - COMPILE_LUA=yes
 
-matrix:
-  include:
-    - compiler: gcc
-      env: COMPILE_LUA=yes
+# matrix:
+#   include:
+#     - compiler: gcc
+#       env: COMPILE_LUA=yes
 
 sudo: false
 
 addons:
   apt:
     packages:
-    - lua5.1
-    - liblua5.1-0-dev
+    #- lua5.1
+    #- liblua5.1-0-dev
     - libboost-dev
     - libboost-system-dev
     - libboost-date-time-dev
