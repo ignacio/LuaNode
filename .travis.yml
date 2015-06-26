@@ -33,6 +33,7 @@ before_install:
   - source ci/travis/set_env.sh
   - ci/travis/install_lua.sh
   - ci/travis/install_luarocks.sh
+  - eval `luarocks path`
   #
   # Report versions
   - lua -v
@@ -44,11 +45,8 @@ before_install:
 
 install:
   - cd $TRAVIS_BUILD_DIR/build
-  - cmake -DBOOST_ROOT=/usr/lib ..
-  - cmake --build .
-  - cp luanode luanode_d
+  - ci/travis/build.sh
   - export PATH=$PATH:$(pwd)
-  - eval `luarocks path`
   - luanode -v
 
 script:
