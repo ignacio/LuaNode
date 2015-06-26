@@ -29,7 +29,7 @@ if not defined BOOST_VERSION set BOOST_VERSION=1.58.0
 set BOOST_VER_USC=%BOOST_VERSION:.=_%
 
 cmake --version
-cmake -DBOOST_ROOT="c:\local\boost_%BOOST_VER_USC%" -DBOOST_LIBRARYDIR="c:\local\boost_%BOOST_VER_USC%\lib%arch%-msvc-12.0" -DCMAKE_BUILD_TYPE=Release %_cmake_per_Arch_Args% ..
+cmake -G "Visual Studio 12 2013" -DBOOST_ROOT="c:\local\boost_%BOOST_VER_USC%" -DBOOST_LIBRARYDIR="c:\local\boost_%BOOST_VER_USC%\lib%arch%-msvc-12.0" -DCMAKE_BUILD_TYPE=Release %_cmake_per_Arch_Args% ..
 cmake --build . --config Release
 
 copy %build_dir%\Release\luanode.exe luanode.exe
