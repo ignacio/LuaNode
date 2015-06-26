@@ -30,8 +30,8 @@ addons:
 before_install:
   - export LUA_SHORTV="$(echo $LUA_VER | cut -c 1-3)"
   - mkdir -p "$HOME/build_deps"
-  - ci/travis/install_lua.sh
-  - ci/travis/install_luarocks.sh
+  - source ci/travis/install_lua.sh
+  - source ci/travis/install_luarocks.sh
   #
   # install dependencies
   - luarocks install lunit
