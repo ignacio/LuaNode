@@ -8,12 +8,21 @@ env:
   global:
     - LUAROCKS_VER=2.2.2
     - LUA_VER=5.1.5
+    - COMPILE_LUA=yes  # no allows to use Lua installed from packages
+
+# matrix:
+#   include:
+#     - compiler: gcc
+#       env: COMPILE_LUA=yes
 
 sudo: false
 
 addons:
   apt:
     packages:
+    # It is still 5.1.4 ...
+    #- lua5.1
+    #- liblua5.1-0-dev
     - libboost-dev
     - libboost-system-dev
     - libboost-date-time-dev
@@ -21,40 +30,25 @@ addons:
 
 before_install:
   - export LUA_SHORTV="$(echo $LUA_VER | cut -c 1-3)"
-  # defines LUA_DIR so Cmake can find this Lua install
-  - export LUA_DIR="$HOME/lua/$LUA_SHORTV"
-  - mkdir -p "$LUA_DIR"
   - mkdir -p "$HOME/build_deps"
-  - pushd "$HOME/build_deps"
-  -   curl http://www.lua.org/ftp/lua-$LUA_VER.tar.gz | tar xz
-  -   pushd lua-$LUA_VER
-  -     make linux
-  -     make INSTALL_TOP="$LUA_DIR" install
-  -     export PATH=$PATH:$LUA_DIR/bin
-  -   popd
-  #   Install a recent luarocks release (in the same place as our Lua install)
-  -   curl --location http://luarocks.org/releases/luarocks-$LUAROCKS_VER.tar.gz | tar xz
-  -   pushd luarocks-$LUAROCKS_VER
-  -     ./configure --with-lua="$LUA_DIR" --prefix="$LUA_DIR" --lua-version=$LUA_SHORTV
-  -     make build && make install
-  -   popd
-  - popd
+  - source ci/travis/set_env.sh
+  - ci/travis/install_lua.sh
+  - ci/travis/install_luarocks.sh
+  - eval `luarocks path`
+  #
+  # Report versions
+  - lua -v
+  - luarocks --version
   #
   # install dependencies
   - luarocks install lunit
   #
 
 install:
-  - lua -v
-  - luarocks --version
-  - cd $TRAVIS_BUILD_DIR/build
-  - cmake -DBOOST_ROOT=/usr/lib ..
-  - cmake --build .
-  - cp luanode luanode_d
-  - export PATH=$PATH:$(pwd)
-  - eval `luarocks path`
+  - ci/travis/build.sh
+  - export PATH=$PATH:${TRAVIS_BUILD_DIR}/build
   - luanode -v
 
-script: 
+script:
   - cd $TRAVIS_BUILD_DIR/test
   - ./run.sh
