@@ -88,7 +88,7 @@ If you do not want to or cannot use CMake, the following has been tested on Ubun
  - Install Boost
    - sudo apt-get install libboost1.46-dev libboost-system1.46-dev
    
- - Install Boost (tested with 1.44 to 1.58)
+ - Install Boost (tested with 1.44 to 1.59)
    - Download [boost_1_44_0.tar.bz2](http://sourceforge.net/projects/boost/files/boost/1.44.0/boost_1_44_0.tar.bz2/download)
    - Unpack
    - ./bootstrap.sh

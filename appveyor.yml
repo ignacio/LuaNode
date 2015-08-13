@@ -5,7 +5,7 @@ shallow_clone: true
 environment:
   LUAURL: http://www.lua.org/ftp
   LUA_VER: 5.1.5
-  OPENSSL_VER: 1.0.2c
+  OPENSSL_VER: 1.0.2d
 
   matrix:
   - platform: x86
@@ -22,11 +22,11 @@ cache:
   - build\downloads -> appveyor.yml
   - C:\OpenSSL-Win32 -> appveyor.yml
   - C:\OpenSSL-Win64 -> appveyor.yml
-  - C:\local\boost_1_58_0 -> appveyor.yml
+  - C:\local\boost_1_59_0 -> appveyor.yml
 
 init:
-# Make VS 2013 command line tools available
-- '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%'
+# Make VS 2015 command line tools available
+- '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %platform%'
 
 install:
 - cd %APPVEYOR_BUILD_FOLDER%
