@@ -5,7 +5,7 @@ shallow_clone: true
 environment:
   LUAURL: http://www.lua.org/ftp
   LUA_VER: 5.1.5
-  OPENSSL_VER: 1.0.2c
+  OPENSSL_VER: 1.0.2d
 
   matrix:
   - platform: x86
